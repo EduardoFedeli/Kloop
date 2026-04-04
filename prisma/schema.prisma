@@ -1,0 +1,468 @@
+// ============================================================
+// T-Hex Garage — Prisma Schema
+// Stack: PostgreSQL (Neon) + Prisma ORM + Next.js (App Router)
+// ============================================================
+// MVP: Modelos 1 (Marketplace/Comissões) + 2 (Assinaturas B2C)
+// Futuro: Modelos 3 (Loja Pro) + 4 (Clube/Condomínios B2B)
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Neon requer conexão direta para migrations
+}
+
+// ──────────────────────────────────────────
+// ENUMS
+// ──────────────────────────────────────────
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum SubscriptionInterval {
+  MONTHLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+}
+
+enum ListingCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+}
+
+enum ListingStatus {
+  DRAFT
+  ACTIVE
+  SOLD
+  PAUSED
+  EXPIRED
+}
+
+enum TransactionStatus {
+  PENDING
+  AWAITING_PAYMENT
+  PAID
+  SHIPPED
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+  DISPUTED
+}
+
+enum PaymentMethod {
+  PIX
+  CREDIT_CARD
+  DEBIT_CARD
+  BOLETO
+  PLATFORM_CREDIT
+}
+
+enum BoostType {
+  FEED_HIGHLIGHT
+  CATEGORY_TOP
+  SEARCH_PRIORITY
+}
+
+enum CommunityMemberRole {
+  MEMBER
+  MODERATOR
+  ADMIN
+}
+
+enum CommunityMemberStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REMOVED
+}
+
+// ──────────────────────────────────────────
+// CORE: USERS & AUTH
+// ──────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified DateTime? @map("email_verified")
+  phone         String?
+  avatarUrl     String?   @map("avatar_url")
+  bio           String?
+  role          UserRole  @default(USER)
+  isVerified    Boolean   @default(false) @map("is_verified")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relações MVP (Modelo 1 + 2)
+  addresses              Address[]
+  subscription           UserSubscription?
+  listings               Listing[]               @relation("SellerListings")
+  purchaseTransactions   Transaction[]            @relation("BuyerTransactions")
+  saleTransactions       Transaction[]            @relation("SellerTransactions")
+  reviewsWritten         Review[]                 @relation("ReviewAuthor")
+  reviewsReceived        Review[]                 @relation("ReviewTarget")
+  favorites              Favorite[]
+  conversationMembers    ConversationParticipant[]
+  messagesSent           Message[]
+
+  // Relações Futuras (Modelo 3 + 4)
+  store                  Store?
+  communityMemberships   CommunityMember[]
+  adminCommunities       Community[]              @relation("CommunityAdmin")
+
+  @@map("users")
+}
+
+model Address {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  label        String   @default("Casa") // Casa, Trabalho, Outro
+  street       String
+  number       String
+  complement   String?
+  neighborhood String
+  city         String
+  state        String   @db.Char(2) // UF brasileira
+  zipCode      String   @map("zip_code") @db.VarChar(9) // CEP
+  isDefault    Boolean  @default(false) @map("is_default")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
+}
+
+// ──────────────────────────────────────────
+// MVP MODELO 2: ASSINATURAS B2C
+// ──────────────────────────────────────────
+
+model SubscriptionPlan {
+  id                String               @id @default(cuid())
+  name              String // "Free", "Plus", "Pro"
+  slug              String               @unique
+  description       String?
+  priceCents        Int                  @map("price_cents") // 0 para Free
+  interval          SubscriptionInterval @default(MONTHLY)
+  maxActiveListings Int                  @map("max_active_listings") // -1 = ilimitado
+  commissionRate    Decimal              @map("commission_rate") @db.Decimal(5, 4) // 0.0800 = 8%
+  features          Json                 @default("{}") // { "boosts": false, "analytics": false, ... }
+  isActive          Boolean              @default(true) @map("is_active")
+  createdAt         DateTime             @default(now()) @map("created_at")
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+
+  subscriptions UserSubscription[]
+
+  @@map("subscription_plans")
+}
+
+model UserSubscription {
+  id                    String             @id @default(cuid())
+  userId                String             @unique @map("user_id")
+  planId                String             @map("plan_id")
+  status                SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart    DateTime           @map("current_period_start")
+  currentPeriodEnd      DateTime           @map("current_period_end")
+  gatewaySubscriptionId String?            @map("gateway_subscription_id") // ID no gateway de pagamento
+  cancelledAt           DateTime?          @map("cancelled_at")
+  createdAt             DateTime           @default(now()) @map("created_at")
+  updatedAt             DateTime           @updatedAt @map("updated_at")
+
+  user User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@map("user_subscriptions")
+}
+
+// ──────────────────────────────────────────
+// MVP MODELO 1: MARKETPLACE / CATÁLOGO
+// ──────────────────────────────────────────
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  parentId  String?  @map("parent_id")
+  icon      String? // Nome do ícone (ex: "shirt", "laptop", "sofa")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
+  listings Listing[]
+
+  @@map("categories")
+}
+
+model Listing {
+  id          String           @id @default(cuid())
+  sellerId    String           @map("seller_id")
+  storeId     String?          @map("store_id") // null = marketplace aberto
+  communityId String?          @map("community_id") // null = marketplace aberto
+  categoryId  String           @map("category_id")
+  title       String
+  slug        String           @unique
+  description String
+  priceCents  Int              @map("price_cents")
+  condition   ListingCondition
+  status      ListingStatus    @default(DRAFT)
+  brand       String?
+  size        String? // Tamanho livre (P, M, G, 42, etc.)
+  viewsCount  Int              @default(0) @map("views_count")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  seller       User           @relation("SellerListings", fields: [sellerId], references: [id])
+  store        Store?         @relation(fields: [storeId], references: [id])
+  community    Community?     @relation(fields: [communityId], references: [id])
+  category     Category       @relation(fields: [categoryId], references: [id])
+  images       ListingImage[]
+  transactions Transaction[]
+  favorites    Favorite[]
+  conversations Conversation[]
+  boosts       StoreBoost[]
+
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([communityId])
+  @@index([storeId])
+  @@index([createdAt(sort: Desc)])
+  @@map("listings")
+}
+
+model ListingImage {
+  id           String   @id @default(cuid())
+  listingId    String   @map("listing_id")
+  url          String
+  displayOrder Int      @default(0) @map("display_order")
+  altText      String?  @map("alt_text")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@map("listing_images")
+}
+
+// ──────────────────────────────────────────
+// MVP: TRANSAÇÕES & REVIEWS
+// ──────────────────────────────────────────
+
+model Transaction {
+  id               String            @id @default(cuid())
+  listingId        String            @map("listing_id")
+  buyerId          String            @map("buyer_id")
+  sellerId         String            @map("seller_id")
+  amountCents      Int               @map("amount_cents")
+  commissionCents  Int               @map("commission_cents")
+  commissionRate   Decimal           @map("commission_rate") @db.Decimal(5, 4)
+  status           TransactionStatus @default(PENDING)
+  gatewayPaymentId String?           @map("gateway_payment_id") // ID no gateway
+  paymentMethod    PaymentMethod?    @map("payment_method")
+  shippedAt        DateTime?         @map("shipped_at")
+  deliveredAt      DateTime?         @map("delivered_at")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  listing Listing @relation(fields: [listingId], references: [id])
+  buyer   User    @relation("BuyerTransactions", fields: [buyerId], references: [id])
+  seller  User    @relation("SellerTransactions", fields: [sellerId], references: [id])
+  review  Review?
+
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([status])
+  @@map("transactions")
+}
+
+model Review {
+  id            String   @id @default(cuid())
+  transactionId String   @unique @map("transaction_id")
+  reviewerId    String   @map("reviewer_id")
+  reviewedId    String   @map("reviewed_id") // O outro lado da transação
+  rating        Int // 1-5
+  comment       String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  transaction Transaction @relation(fields: [transactionId], references: [id])
+  reviewer    User        @relation("ReviewAuthor", fields: [reviewerId], references: [id])
+  reviewed    User        @relation("ReviewTarget", fields: [reviewedId], references: [id])
+
+  @@index([reviewedId])
+  @@map("reviews")
+}
+
+// ──────────────────────────────────────────
+// MVP: FAVORITOS
+// ──────────────────────────────────────────
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  listingId String   @map("listing_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+  @@map("favorites")
+}
+
+// ──────────────────────────────────────────
+// MVP: MENSAGENS / CHAT
+// ──────────────────────────────────────────
+
+model Conversation {
+  id        String   @id @default(cuid())
+  listingId String?  @map("listing_id") // Conversa pode ser sobre um anúncio específico
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  listing      Listing?                  @relation(fields: [listingId], references: [id])
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String    @id @default(cuid())
+  conversationId String    @map("conversation_id")
+  userId         String    @map("user_id")
+  lastReadAt     DateTime? @map("last_read_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id])
+
+  @@unique([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String   @map("conversation_id")
+  senderId       String   @map("sender_id")
+  content        String
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id])
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+// ──────────────────────────────────────────
+// FUTURO — MODELO 3: LOJA PRÓPRIA (PRO)
+// ──────────────────────────────────────────
+
+model Store {
+  id          String   @id @default(cuid())
+  ownerId     String   @unique @map("owner_id")
+  name        String
+  slug        String   @unique
+  description String?
+  logoUrl     String?  @map("logo_url")
+  bannerUrl   String?  @map("banner_url")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  owner    User         @relation(fields: [ownerId], references: [id])
+  listings Listing[]
+  boosts   StoreBoost[]
+
+  @@map("stores")
+}
+
+model StoreBoost {
+  id           String    @id @default(cuid())
+  storeId      String    @map("store_id")
+  listingId    String?   @map("listing_id") // null = boost na loja inteira
+  boostType    BoostType @map("boost_type")
+  startDate    DateTime  @map("start_date")
+  endDate      DateTime  @map("end_date")
+  creditsSpent Int       @map("credits_spent")
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  store   Store    @relation(fields: [storeId], references: [id])
+  listing Listing? @relation(fields: [listingId], references: [id])
+
+  @@index([storeId])
+  @@index([isActive, endDate])
+  @@map("store_boosts")
+}
+
+// ──────────────────────────────────────────
+// FUTURO — MODELO 4: CLUBE / CONDOMÍNIOS (B2B)
+// ──────────────────────────────────────────
+
+model Community {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  logoUrl     String?  @map("logo_url")
+  adminUserId String   @map("admin_user_id")
+  settings    Json     @default("{}") // { "allowElectronics": true, "maxPricePerItem": 50000, ... }
+  isActive    Boolean  @default(true) @map("is_active")
+  maxMembers  Int      @default(500) @map("max_members")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  admin    User              @relation("CommunityAdmin", fields: [adminUserId], references: [id])
+  members  CommunityMember[]
+  listings Listing[]
+  rules    CommunityRule[]
+
+  @@map("communities")
+}
+
+model CommunityMember {
+  id          String                @id @default(cuid())
+  communityId String                @map("community_id")
+  userId      String                @map("user_id")
+  role        CommunityMemberRole   @default(MEMBER)
+  status      CommunityMemberStatus @default(PENDING)
+  unitNumber  String?               @map("unit_number") // Apartamento/bloco
+  joinedAt    DateTime              @default(now()) @map("joined_at")
+  createdAt   DateTime              @default(now()) @map("created_at")
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@unique([communityId, userId])
+  @@map("community_members")
+}
+
+model CommunityRule {
+  id          String   @id @default(cuid())
+  communityId String   @map("community_id")
+  ruleType    String   @map("rule_type") // "blocked_category", "max_price", "listing_approval_required"
+  ruleValue   Json     @map("rule_value") // { "categoryId": "xxx" } ou { "maxCents": 50000 }
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@map("community_rules")
+}
