@@ -32,7 +32,7 @@ export function ListingCard({ listing }: Props) {
       <Link href={`/listing/${listing.slug}`} className="block relative aspect-square">
         <Image
           src={
-            image?.url ?? 'https://placehold.co/400x400/69A297/F1F1E6?text=Sem+foto'
+            image?.url ?? 'https://picsum.photos/seed/thex-fallback/400/400'
           }
           alt={image?.altText ?? listing.title}
           fill

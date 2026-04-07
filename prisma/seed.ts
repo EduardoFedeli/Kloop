@@ -242,9 +242,16 @@ async function main(): Promise<void> {
 
     const listingSlug = `${slug(data.title)}-${data.n}`
 
-    await prisma.listing.upsert({
+    const listing = await prisma.listing.upsert({
       where: { slug: listingSlug },
-      update: {},
+      update: {
+        title: data.title,
+        description: data.description,
+        priceCents: data.priceCents,
+        condition: data.condition,
+        brand: data.brand,
+        size: data.size,
+      },
       create: {
         title: data.title,
         slug: listingSlug,
@@ -256,13 +263,17 @@ async function main(): Promise<void> {
         sellerId: data.sellerId,
         brand: data.brand,
         size: data.size,
-        images: {
-          create: {
-            url: `https://placehold.co/400x400/69A297/F1F1E6?text=Produto+${data.n}`,
-            altText: data.title,
-            displayOrder: 0,
-          },
-        },
+      },
+    })
+
+    // Garante que a imagem sempre use a URL correta
+    await prisma.listingImage.deleteMany({ where: { listingId: listing.id } })
+    await prisma.listingImage.create({
+      data: {
+        listingId: listing.id,
+        url: `https://picsum.photos/seed/thex${data.n}/400/400`,
+        altText: data.title,
+        displayOrder: 0,
       },
     })
   }
