@@ -1,5 +1,7 @@
 import Link from 'next/link'
-import { Search, Bell, MessageCircle, Tag } from 'lucide-react'
+import { Search, Bell, MessageCircle } from 'lucide-react'
+import { auth } from "@/lib/auth"
+import { HeaderAuth } from "@/components/layout/HeaderAuth"
 
 const navLinks = [
   { href: '/categoria/roupas', label: 'roupas' },
@@ -10,7 +12,10 @@ const navLinks = [
   { href: '/categoria/outros', label: 'outros' },
 ]
 
-export function Header() {
+export async function Header() {
+  // Busca a sessão no servidor
+  const session = await auth()
+
   return (
     <header className="sticky top-0 z-40 bg-linen border-b border-teal-muted/30">
       {/* Promo bar — desktop only */}
@@ -77,13 +82,10 @@ export function Header() {
               <MessageCircle size={22} />
             </button>
 
-            <Link
-              href="/vender"
-              className="hidden md:flex items-center gap-2 ml-2 bg-teal text-linen px-5 py-2.5 rounded-full font-bold text-sm hover:bg-airforce transition-colors"
-            >
-              <Tag size={15} />
-              quero vender
-            </Link>
+            {/* Injeção do Auth */}
+            <div className="ml-2 flex items-center">
+              <HeaderAuth user={session?.user} />
+            </div>
           </div>
         </div>
       </div>
