@@ -14,10 +14,10 @@ const conditionLabel: Record<ListingCondition, string> = {
 }
 
 const conditionColor: Record<ListingCondition, string> = {
-  NEW: 'bg-celadon text-airforce',
-  LIKE_NEW: 'bg-teal text-linen',
-  GOOD: 'bg-teal-muted text-linen',
-  FAIR: 'bg-teal-muted/60 text-airforce',
+  NEW: 'bg-celadon text-airforce shadow-sm',
+  LIKE_NEW: 'bg-teal text-linen shadow-sm',
+  GOOD: 'bg-teal-muted text-linen shadow-sm',
+  FAIR: 'bg-gray-700 text-white shadow-sm',
 }
 
 type Props = {

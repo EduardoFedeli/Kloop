@@ -7,7 +7,13 @@ export const profileSchema = z.object({
     .string()
     .regex(/^\+?[\d\s\(\)\-]{8,20}$/, "Telefone inválido")
     .optional(),
-  avatarUrl: z.string().url("URL de avatar inválida").optional(),
+  avatarUrl: z
+    .string()
+    .refine(
+      (val) => !val || val.startsWith('data:image/') || /^https?:\/\//.test(val),
+      'URL de avatar inválida'
+    )
+    .optional(),
 })
 
 export type ProfileFormValues = z.infer<typeof profileSchema>
