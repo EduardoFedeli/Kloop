@@ -1,9 +1,10 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, MapPin } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 import { ListingCondition } from '@prisma/client'
 import { cn, formatPrice } from '@/lib/utils'
 import type { ListingWithDetails } from '@/types/listing'
+import { FavoriteButton } from './FavoriteButton'
 
 const conditionLabel: Record<ListingCondition, string> = {
   NEW: 'Novo',
@@ -21,9 +22,10 @@ const conditionColor: Record<ListingCondition, string> = {
 
 type Props = {
   listing: ListingWithDetails
+  isFavorited: boolean
 }
 
-export function ListingCard({ listing }: Props) {
+export function ListingCard({ listing, isFavorited }: Props) {
   const image = listing.images[0]
   const location = listing.seller.addresses[0]
 
@@ -47,14 +49,7 @@ export function ListingCard({ listing }: Props) {
         >
           {conditionLabel[listing.condition]}
         </span>
-        <button
-          type="button"
-          aria-label="Favoritar"
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 backdrop-blur-sm text-teal-muted hover:text-teal transition-colors"
-          onClick={(e) => e.preventDefault()}
-        >
-          <Heart size={16} />
-        </button>
+        <FavoriteButton listingId={listing.id} initialFavorited={isFavorited} />
       </Link>
 
       <div className="p-3 space-y-1">

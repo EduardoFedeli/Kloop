@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Shirt, Footprints, Watch, Smartphone, Sofa, Package, ArrowRight, Tag } from 'lucide-react'
 import type { ListingWithDetails, CategoryOption } from '@/types/listing'
 import { CategoryFilter } from './CategoryFilter'
@@ -10,6 +11,7 @@ import { ListingGrid } from './ListingGrid'
 type Props = {
   listings: ListingWithDetails[]
   categories: CategoryOption[]
+  favoriteIds?: string[]
 }
 
 const categoryIcons: Record<string, React.ReactNode> = {
@@ -21,7 +23,8 @@ const categoryIcons: Record<string, React.ReactNode> = {
   outros: <Package size={28} />,
 }
 
-export function HomeFeed({ listings, categories }: Props) {
+export function HomeFeed({ listings, categories, favoriteIds }: Props) {
+  const router = useRouter()
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   const filtered =
@@ -30,7 +33,6 @@ export function HomeFeed({ listings, categories }: Props) {
       : listings.filter((l) => l.category.slug === selectedCategory)
 
   const highlighted = listings.filter((l) => l.condition === 'LIKE_NEW' || l.condition === 'NEW').slice(0, 4)
-  const recent = listings.slice(0, 8)
 
   return (
     <div className="space-y-10">
@@ -92,12 +94,8 @@ export function HomeFeed({ listings, categories }: Props) {
             <button
               key={cat.id}
               type="button"
-              onClick={() => setSelectedCategory(selectedCategory === cat.slug ? null : cat.slug)}
-              className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all hover:shadow-md ${
-                selectedCategory === cat.slug
-                  ? 'bg-airforce text-linen border-airforce'
-                  : 'bg-white text-airforce border-teal-muted/20 hover:border-teal hover:text-teal'
-              }`}
+              onClick={() => router.push(`/search?category=${cat.slug}`)}
+              className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all hover:shadow-md bg-white text-airforce border-teal-muted/20 hover:border-teal hover:text-teal"
             >
               <span className="text-2xl">
                 {categoryIcons[cat.slug] ?? <Package size={28} />}
@@ -118,7 +116,7 @@ export function HomeFeed({ listings, categories }: Props) {
             </Link>
           </div>
           <p className="text-xs text-teal-muted mb-4">seminovos e novos selecionados</p>
-          <ListingGrid listings={highlighted} />
+          <ListingGrid listings={highlighted} favoriteIds={favoriteIds} />
         </section>
       )}
 
@@ -138,7 +136,7 @@ export function HomeFeed({ listings, categories }: Props) {
           onChange={setSelectedCategory}
         />
         <div className="mt-4">
-          <ListingGrid listings={filtered} />
+          <ListingGrid listings={filtered} favoriteIds={favoriteIds} />
         </div>
       </section>
 

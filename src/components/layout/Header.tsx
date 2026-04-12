@@ -4,12 +4,12 @@ import { auth } from "@/lib/auth"
 import { HeaderAuth } from "@/components/layout/HeaderAuth"
 
 const navLinks = [
-  { href: '/categoria/roupas', label: 'roupas' },
-  { href: '/categoria/calcados', label: 'calçados' },
-  { href: '/categoria/acessorios', label: 'acessórios' },
-  { href: '/categoria/eletronicos', label: 'eletrônicos' },
-  { href: '/categoria/casa', label: 'casa' },
-  { href: '/categoria/outros', label: 'outros' },
+  { href: '/search?category=roupas', label: 'roupas' },
+  { href: '/search?category=calcados', label: 'calçados' },
+  { href: '/search?category=acessorios', label: 'acessórios' },
+  { href: '/search?category=eletronicos', label: 'eletrônicos' },
+  { href: '/search?category=casa', label: 'casa' },
+  { href: '/search?category=outros', label: 'outros' },
 ]
 
 export async function Header() {
@@ -37,7 +37,7 @@ export async function Header() {
           </Link>
 
           {/* Search — desktop */}
-          <form action="/buscar" method="get" className="hidden md:flex flex-1 max-w-2xl mx-4">
+          <form action="/search" method="get" className="hidden md:flex flex-1 max-w-2xl mx-4">
             <div className="flex w-full rounded-full border-2 border-teal-muted/40 bg-white overflow-hidden focus-within:border-teal transition-colors">
               <input
                 name="q"
@@ -58,13 +58,13 @@ export async function Header() {
           {/* Right actions */}
           <div className="ml-auto md:ml-0 flex items-center gap-1">
             {/* Mobile search */}
-            <button
-              type="button"
+            <Link
+              href="/search"
               aria-label="Buscar"
               className="md:hidden p-2 rounded-full hover:bg-celadon/30 transition-colors text-airforce"
             >
               <Search size={22} />
-            </button>
+            </Link>
 
             <button
               type="button"
