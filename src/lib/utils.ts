@@ -19,3 +19,14 @@ export function formatDate(date: Date | string): string {
     year: "numeric",
   }).format(new Date(date));
 }
+
+export function timeAgo(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date
+  const diff = Math.floor((Date.now() - d.getTime()) / 1000)
+
+  if (diff < 60) return "agora"
+  if (diff < 3600) return `há ${Math.floor(diff / 60)} min`
+  if (diff < 86400) return `há ${Math.floor(diff / 3600)} h`
+  if (diff < 604800) return `há ${Math.floor(diff / 86400)} dias`
+  return formatDate(d)
+}
