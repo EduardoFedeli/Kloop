@@ -166,6 +166,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
           <ListingActions
             listing={{ id: listing.id, slug: listing.slug, status: listing.status }}
             isOwner={isOwner}
+            currentUserId={session?.user?.id}
           />
         </div>
       </div>

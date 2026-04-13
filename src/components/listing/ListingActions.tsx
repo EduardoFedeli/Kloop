@@ -6,17 +6,20 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Edit2, Trash2, MessageCircle, ShoppingBag } from "lucide-react"
 import { deleteListingAction } from "@/lib/actions/listing"
+import { startConversation } from "@/app/actions/chat"
 import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import type { ListingStatus } from "@prisma/client"
 
 type Props = {
   listing: { id: string; slug: string; status: ListingStatus }
   isOwner: boolean
+  currentUserId?: string
 }
 
-export function ListingActions({ listing, isOwner }: Props) {
+export function ListingActions({ listing, isOwner, currentUserId }: Props) {
   const router = useRouter()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [isStartingChat, setIsStartingChat] = useState(false)
 
   const handleDelete = async () => {
     const result = await deleteListingAction(listing.id)
@@ -26,6 +29,21 @@ export function ListingActions({ listing, isOwner }: Props) {
     } else {
       toast.error(result.error)
     }
+  }
+
+  const handleConversar = async () => {
+    if (!currentUserId) {
+      router.push("/login")
+      return
+    }
+    setIsStartingChat(true)
+    const result = await startConversation(listing.id)
+    setIsStartingChat(false)
+    if ("error" in result) {
+      toast.error("Erro ao iniciar conversa. Tente novamente.")
+      return
+    }
+    router.push(`/chat/${result.conversationId}`)
   }
 
   if (isOwner) {
@@ -64,12 +82,12 @@ export function ListingActions({ listing, isOwner }: Props) {
   return (
     <div className="flex gap-3">
       <button
-        disabled
-        title="Chat em breve"
-        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-100 text-gray-400 font-bold text-sm cursor-not-allowed"
+        onClick={handleConversar}
+        disabled={isStartingChat}
+        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-teal text-linen font-bold text-sm hover:bg-airforce transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
         <MessageCircle size={16} />
-        Conversar
+        {isStartingChat ? "Aguarde..." : "Conversar"}
       </button>
       <button
         disabled
