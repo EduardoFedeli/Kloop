@@ -37,13 +37,20 @@ export function ListingActions({ listing, isOwner, currentUserId }: Props) {
       return
     }
     setIsStartingChat(true)
-    const result = await startConversation(listing.id)
-    setIsStartingChat(false)
-    if ("error" in result) {
-      toast.error("Erro ao iniciar conversa. Tente novamente.")
-      return
+    try {
+      const result = await startConversation(listing.id)
+      if ("error" in result) {
+        const errorMessages: Record<string, string> = {
+          listing_not_available: "Este anúncio não está mais disponível.",
+          cannot_chat_with_self: "Você não pode conversar com você mesmo.",
+        }
+        toast.error(errorMessages[result.error] ?? "Erro ao iniciar conversa. Tente novamente.")
+        return
+      }
+      router.push(`/chat/${result.conversationId}`)
+    } finally {
+      setIsStartingChat(false)
     }
-    router.push(`/chat/${result.conversationId}`)
   }
 
   if (isOwner) {
@@ -82,7 +89,7 @@ export function ListingActions({ listing, isOwner, currentUserId }: Props) {
   return (
     <div className="flex gap-3">
       <button
-        onClick={handleConversar}
+        onClick={() => void handleConversar()}
         disabled={isStartingChat}
         className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-teal text-linen font-bold text-sm hover:bg-airforce transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
