@@ -12,36 +12,37 @@ export async function startConversation(listingId: string): Promise<StartConvers
 
   const listing = await db.listing.findUnique({
     where: { id: listingId },
-    select: { sellerId: true },
+    select: { sellerId: true, status: true },
   })
   if (!listing) return { error: "listing_not_found" }
+  if (listing.status !== "ACTIVE") return { error: "listing_not_available" }
 
   const currentUserId = session.user.id
   const sellerId = listing.sellerId
 
   if (currentUserId === sellerId) return { error: "cannot_chat_with_self" }
 
-  const existing = await db.conversation.findFirst({
-    where: {
-      listingId,
-      AND: [
-        { participants: { some: { userId: currentUserId } } },
-        { participants: { some: { userId: sellerId } } },
-      ],
-    },
-    select: { id: true },
-  })
-
-  if (existing) return { conversationId: existing.id }
-
-  const conversation = await db.conversation.create({
-    data: {
-      listingId,
-      participants: {
-        create: [{ userId: currentUserId }, { userId: sellerId }],
+  const conversation = await db.$transaction(async (tx) => {
+    const existing = await tx.conversation.findFirst({
+      where: {
+        listingId,
+        AND: [
+          { participants: { some: { userId: currentUserId } } },
+          { participants: { some: { userId: sellerId } } },
+        ],
       },
-    },
-    select: { id: true },
+      select: { id: true },
+    })
+    if (existing) return existing
+    return tx.conversation.create({
+      data: {
+        listingId,
+        participants: {
+          create: [{ userId: currentUserId }, { userId: sellerId }],
+        },
+      },
+      select: { id: true },
+    })
   })
 
   return { conversationId: conversation.id }
@@ -56,6 +57,7 @@ export async function sendMessage(
 
   const trimmed = content.trim()
   if (!trimmed) return { error: "empty_content" }
+  if (trimmed.length > 2000) return { error: "content_too_long" }
 
   const participant = await db.conversationParticipant.findUnique({
     where: {
@@ -81,10 +83,8 @@ export async function markAsRead(conversationId: string): Promise<void> {
   const session = await auth()
   if (!session?.user?.id) return
 
-  await db.conversationParticipant.update({
-    where: {
-      conversationId_userId: { conversationId, userId: session.user.id },
-    },
+  await db.conversationParticipant.updateMany({
+    where: { conversationId, userId: session.user.id },
     data: { lastReadAt: new Date() },
   })
 }
