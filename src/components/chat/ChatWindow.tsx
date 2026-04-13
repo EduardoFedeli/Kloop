@@ -100,6 +100,7 @@ export function ChatWindow({
   // Polling every 5 seconds
   useEffect(() => {
     const interval = setInterval(async () => {
+      if (document.hidden) return
       const msgs = lastServerMsgRef.current
       const last = msgs[msgs.length - 1]
       const after = last?.createdAt ?? new Date(0).toISOString()
@@ -229,13 +230,13 @@ export function ChatWindow({
         )}
 
         {/* Avatar do outro usuário */}
-        <div className="relative w-8 h-8 rounded-full overflow-hidden bg-celadon/30 shrink-0">
+        <div className="relative w-9 h-9 rounded-full overflow-hidden bg-celadon/30 shrink-0">
           {otherUser.avatarUrl ? (
             <Image
               src={otherUser.avatarUrl}
               alt={otherUser.name}
               fill
-              sizes="32px"
+              sizes="36px"
               className="object-cover"
             />
           ) : (
