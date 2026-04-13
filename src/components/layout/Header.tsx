@@ -1,19 +1,22 @@
-import Link from 'next/link'
-import { Search, Bell, MessageCircle } from 'lucide-react'
+import Link from "next/link"
+import { Search, Bell, MessageCircle } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { HeaderAuth } from "@/components/layout/HeaderAuth"
 
 const navLinks = [
-  { href: '/search?category=roupas', label: 'roupas' },
-  { href: '/search?category=calcados', label: 'calçados' },
-  { href: '/search?category=acessorios', label: 'acessórios' },
-  { href: '/search?category=eletronicos', label: 'eletrônicos' },
-  { href: '/search?category=casa', label: 'casa' },
-  { href: '/search?category=outros', label: 'outros' },
+  { href: "/search?category=roupas", label: "roupas" },
+  { href: "/search?category=calcados", label: "calçados" },
+  { href: "/search?category=acessorios", label: "acessórios" },
+  { href: "/search?category=eletronicos", label: "eletrônicos" },
+  { href: "/search?category=casa", label: "casa" },
+  { href: "/search?category=outros", label: "outros" },
 ]
 
-export async function Header() {
-  // Busca a sessão no servidor
+type Props = {
+  unreadCount?: number
+}
+
+export async function Header({ unreadCount }: Props) {
   const session = await auth()
 
   return (
@@ -22,7 +25,10 @@ export async function Header() {
       <div className="hidden md:flex items-center justify-center gap-6 bg-airforce text-linen text-xs px-4 py-1.5">
         <span>📱 baixe o app T-Hex Garage</span>
         <span className="opacity-40">|</span>
-        <Link href="/como-vender" className="underline underline-offset-2 hover:opacity-80 transition-opacity">
+        <Link
+          href="/como-vender"
+          className="underline underline-offset-2 hover:opacity-80 transition-opacity"
+        >
           veja como anunciar é mágico
         </Link>
       </div>
@@ -74,13 +80,19 @@ export async function Header() {
               <Bell size={22} />
             </button>
 
-            <button
-              type="button"
+            {/* Chat icon com badge */}
+            <Link
+              href="/chat"
               aria-label="Mensagens"
-              className="p-2 rounded-full hover:bg-celadon/30 transition-colors text-airforce"
+              className="relative p-2 rounded-full hover:bg-celadon/30 transition-colors text-airforce"
             >
               <MessageCircle size={22} />
-            </button>
+              {unreadCount && unreadCount > 0 ? (
+                <span className="absolute top-0.5 right-0.5 inline-flex items-center justify-center w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              ) : null}
+            </Link>
 
             {/* Injeção do Auth */}
             <div className="ml-2 flex items-center">
