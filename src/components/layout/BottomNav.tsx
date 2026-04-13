@@ -16,7 +16,7 @@ const navItems: NavItem[] = [
   { href: '/', label: 'Home', icon: <Home size={22} /> },
   { href: '/buscar', label: 'Buscar', icon: <Search size={22} /> },
   { href: '/create', label: 'Criar', icon: <PlusCircle size={26} />, highlight: true },
-  { href: '/salvos', label: 'Salvos', icon: <Bookmark size={22} /> },
+  { href: '/favorites', label: 'Salvos', icon: <Bookmark size={22} /> },
   { href: '/perfil', label: 'Perfil', icon: <User size={22} /> },
 ]
 

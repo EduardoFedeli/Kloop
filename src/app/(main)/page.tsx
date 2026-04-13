@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 
+import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { HomeFeed } from '@/components/listing/HomeFeed'
 import type { ListingWithDetails, CategoryOption } from '@/types/listing'
@@ -39,5 +40,15 @@ export default async function FeedPage() {
   const listings: ListingWithDetails[] = rawListings
   const categoryOptions: CategoryOption[] = categories
 
-  return <HomeFeed listings={listings} categories={categoryOptions} />
+  const session = await auth()
+  const favoriteIds = session?.user?.id
+    ? await db.favorite
+        .findMany({
+          where: { userId: session.user.id },
+          select: { listingId: true },
+        })
+        .then((favs) => favs.map((f) => f.listingId))
+    : []
+
+  return <HomeFeed listings={listings} categories={categoryOptions} favoriteIds={favoriteIds} />
 }
