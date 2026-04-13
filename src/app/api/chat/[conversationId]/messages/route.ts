@@ -28,10 +28,15 @@ export async function GET(
     return NextResponse.json([])
   }
 
+  const afterDate = new Date(after)
+  if (isNaN(afterDate.getTime())) {
+    return NextResponse.json({ error: "invalid_after" }, { status: 400 })
+  }
+
   const messages = await db.message.findMany({
     where: {
       conversationId,
-      createdAt: { gt: new Date(after) },
+      createdAt: { gt: afterDate },
     },
     orderBy: { createdAt: "asc" },
     select: {
