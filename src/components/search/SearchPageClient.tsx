@@ -1,17 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import { SlidersHorizontal, ChevronDown, X, Check } from "lucide-react"
+import { SlidersHorizontal, ChevronDown, X } from "lucide-react"
 import { ListingGrid } from "@/components/listing/ListingGrid"
 import { GlobalSearchBar } from "./GlobalSearchBar"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import type { ListingWithDetails } from "@/types/listing"
 
 interface Props {
-  listings: any[]
+  listings: ListingWithDetails[]
   favoriteIds: string[]
-  breadcrumbs: any[]
+  breadcrumbs: { label: string; href: string }[]
   pills: { name: string; href: string }[]
   brands: string[]
   availableConditions: string[]
