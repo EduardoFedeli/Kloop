@@ -1,20 +1,33 @@
-import type { ReactNode } from "react"
 import { auth } from "@/lib/auth"
-import { getUnreadCount } from "@/app/actions/chat"
+import { db } from "@/lib/db"
 import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 
-export default async function MainLayout({ children }: { children: ReactNode }) {
+export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
-  const unreadCount = session?.user?.id ? await getUnreadCount() : undefined
+
+  // Conta conversas com mensagens não lidas (lastReadAt null = nunca leu)
+  const unreadCount = session?.user?.id
+    ? await db.conversationParticipant.count({
+        where: {
+          userId: session.user.id,
+          lastReadAt: null,
+          conversation: {
+            messages: {
+              some: { senderId: { not: session.user.id } },
+            },
+          },
+        },
+      })
+    : 0
 
   return (
-    <div className="flex flex-col min-h-screen bg-linen">
+    <>
       <Header unreadCount={unreadCount} />
-      <main className="flex-1 w-full px-4 pt-4 pb-24 md:pb-8 md:max-w-screen-xl md:mx-auto">
+      <main className="flex-1 max-w-screen-xl mx-auto w-full px-4 py-6 pb-20 md:pb-6">
         {children}
       </main>
       <BottomNav unreadCount={unreadCount} />
-    </div>
+    </>
   )
 }

@@ -36,9 +36,7 @@ export async function createListingAction(formData: FormData): Promise<ListingAc
 
   const maxListings = subscription?.plan?.maxActiveListings ?? 5
   if (maxListings !== -1) {
-    const activeCount = await db.listing.count({
-      where: { sellerId: userId, status: "ACTIVE" },
-    })
+    const activeCount = await db.listing.count({ where: { sellerId: userId, status: "ACTIVE" } })
     if (activeCount >= maxListings) {
       const planName = subscription?.plan?.name ?? "Free"
       return {
@@ -47,6 +45,27 @@ export async function createListingAction(formData: FormData): Promise<ListingAc
       }
     }
   }
+
+  // Resolver categoria a partir do caminho selecionado no formulário
+  const subcategoryName = (formData.get("subcategory") as string) || ""
+  const categoryName = (formData.get("category") as string) || ""
+  const searchName = subcategoryName || categoryName
+
+  let resolvedCategory = searchName
+    ? await db.category.findFirst({
+        where: { name: { contains: searchName, mode: "insensitive" } },
+        select: { id: true },
+      })
+    : null
+
+  if (!resolvedCategory) {
+    resolvedCategory = await db.category.findFirst({
+      orderBy: { sortOrder: "asc" },
+      select: { id: true },
+    })
+  }
+
+  if (!resolvedCategory) return { success: false, error: "Nenhuma categoria disponível. Contate o suporte." }
 
   const priceRaw = formData.get("price") as string
   const priceCents = parsePriceCents(priceRaw)
@@ -58,10 +77,10 @@ export async function createListingAction(formData: FormData): Promise<ListingAc
     title: formData.get("title"),
     description: formData.get("description"),
     priceCents,
-    categoryId: formData.get("categoryId"),
+    categoryId: resolvedCategory.id,
     condition: formData.get("condition"),
     brand: formData.get("brand") || undefined,
-    size: formData.get("size") || undefined,
+    size: formData.get("weight") || undefined,
     imageUrls: extractImageUrls(formData),
   })
 
@@ -95,6 +114,7 @@ export async function createListingAction(formData: FormData): Promise<ListingAc
   revalidatePath("/")
   return { success: true, slug }
 }
+
 
 export async function updateListingAction(
   listingId: string,

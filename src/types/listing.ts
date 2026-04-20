@@ -6,6 +6,7 @@ export type ListingWithDetails = {
   slug: string
   priceCents: number
   condition: ListingCondition
+  brand: string | null
   category: {
     id: string
     name: string

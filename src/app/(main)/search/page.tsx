@@ -1,61 +1,181 @@
 export const dynamic = 'force-dynamic'
 
-import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { SearchFilters } from '@/components/search/SearchFilters'
-import { ListingGrid } from '@/components/listing/ListingGrid'
+import { auth } from '@/lib/auth'
+import { ListingStatus, ListingCondition } from '@prisma/client'
+import { SearchPageClient } from '@/components/search/SearchPageClient'
+import { SearchVitrine } from '@/components/search/SearchVitrine'
 import type { ListingWithDetails } from '@/types/listing'
-import type { Prisma, ListingCondition } from '@prisma/client'
 
-type SearchParams = Promise<{
-  q?: string
-  category?: string
-  condition?: string
-  priceMin?: string
-  priceMax?: string
-  sort?: string
-}>
-
-const VALID_CONDITIONS: ListingCondition[] = ['NEW', 'LIKE_NEW', 'GOOD', 'FAIR']
-
-function parseCondition(value: string | undefined): ListingCondition | undefined {
-  if (!value) return undefined
-  return VALID_CONDITIONS.includes(value as ListingCondition)
-    ? (value as ListingCondition)
-    : undefined
+interface PageProps {
+  searchParams: Promise<Record<string, string | undefined>>
 }
 
-export default async function SearchPage({ searchParams }: { searchParams: SearchParams }) {
-  const params = await searchParams
+async function resolveCategoryIds(dept?: string, cat?: string, sub?: string): Promise<string[]> {
+  if (!dept) return []
 
-  const q = params.q?.trim() || undefined
-  const validCondition = parseCondition(params.condition)
+  const deptRecord = await db.category.findFirst({
+    where: { slug: dept, parentId: null },
+    select: { id: true },
+  })
+  if (!deptRecord) return []
 
-  const rawPriceMin = parseInt(params.priceMin ?? '', 10)
-  const rawPriceMax = parseInt(params.priceMax ?? '', 10)
-  const priceMin = !isNaN(rawPriceMin) && rawPriceMin > 0 ? rawPriceMin : undefined
-  const priceMax = !isNaN(rawPriceMax) && rawPriceMax > 0 ? rawPriceMax : undefined
+  if (!cat) {
+    const cats = await db.category.findMany({ where: { parentId: deptRecord.id }, select: { id: true } })
+    const catIds = cats.map((c) => c.id)
+    const subcats = catIds.length > 0
+      ? await db.category.findMany({ where: { parentId: { in: catIds } }, select: { id: true } })
+      : []
+    return [deptRecord.id, ...catIds, ...subcats.map((s) => s.id)]
+  }
 
-  const orderBy: Prisma.ListingOrderByWithRelationInput =
-    params.sort === 'price_asc'
-      ? { priceCents: 'asc' }
-      : params.sort === 'price_desc'
-      ? { priceCents: 'desc' }
-      : { createdAt: 'desc' }
+  const catRecord = await db.category.findFirst({
+    where: { name: { equals: cat, mode: 'insensitive' }, parentId: deptRecord.id },
+    select: { id: true },
+  })
+  if (!catRecord) return [deptRecord.id]
 
-  const [categories, categoryRecord, rawListings, session] = await Promise.all([
-    db.category.findMany({ orderBy: { name: 'asc' } }),
-    params.category
-      ? db.category.findUnique({ where: { slug: params.category } })
-      : Promise.resolve(null),
+  if (!sub) {
+    const subcats = await db.category.findMany({ where: { parentId: catRecord.id }, select: { id: true } })
+    return [catRecord.id, ...subcats.map((s) => s.id)]
+  }
+
+  const subRecord = await db.category.findFirst({
+    where: { name: { equals: sub, mode: 'insensitive' }, parentId: catRecord.id },
+    select: { id: true },
+  })
+  return subRecord ? [subRecord.id] : [catRecord.id]
+}
+
+async function buildBreadcrumbs(dept?: string, cat?: string, sub?: string) {
+  const crumbs: { label: string; href: string }[] = []
+  if (!dept) return crumbs
+
+  const deptRecord = await db.category.findFirst({
+    where: { slug: dept, parentId: null },
+    select: { name: true },
+  })
+  if (!deptRecord) return crumbs
+  crumbs.push({ label: deptRecord.name, href: `/search?dept=${dept}` })
+  if (!cat) return crumbs
+
+  crumbs.push({ label: cat, href: `/search?dept=${dept}&cat=${encodeURIComponent(cat)}` })
+  if (!sub) return crumbs
+
+  crumbs.push({ label: sub, href: `/search?dept=${dept}&cat=${encodeURIComponent(cat)}&sub=${encodeURIComponent(sub)}` })
+  return crumbs
+}
+
+async function buildPills(dept?: string, cat?: string, sub?: string) {
+  if (!dept || sub) return []
+
+  const deptRecord = await db.category.findFirst({
+    where: { slug: dept, parentId: null },
+    select: { id: true },
+  })
+  if (!deptRecord) return []
+
+  if (!cat) {
+    const cats = await db.category.findMany({
+      where: { parentId: deptRecord.id },
+      select: { name: true },
+      orderBy: { sortOrder: 'asc' },
+    })
+    return cats.map((c) => ({ name: c.name, href: `/search?dept=${dept}&cat=${encodeURIComponent(c.name)}` }))
+  }
+
+  const catRecord = await db.category.findFirst({
+    where: { name: { equals: cat, mode: 'insensitive' }, parentId: deptRecord.id },
+    select: { id: true },
+  })
+  if (!catRecord) return []
+
+  const subcats = await db.category.findMany({
+    where: { parentId: catRecord.id },
+    select: { name: true },
+    orderBy: { sortOrder: 'asc' },
+  })
+  return subcats.map((s) => ({
+    name: s.name,
+    href: `/search?dept=${dept}&cat=${encodeURIComponent(cat)}&sub=${encodeURIComponent(s.name)}`,
+  }))
+}
+
+export default async function SearchPage({ searchParams }: PageProps) {
+  const sp = await searchParams
+
+  const q = sp.q ?? ''
+  const dept = sp.dept
+  const cat = sp.cat
+  const sub = sp.sub
+  const brand = sp.brand
+  const condition = sp.condition as ListingCondition | undefined
+  const minPriceCents = sp.minPrice ? Math.round(parseFloat(sp.minPrice) * 100) : undefined
+  const maxPriceCents = sp.maxPrice ? Math.round(parseFloat(sp.maxPrice) * 100) : undefined
+  const newness = sp.newness ? parseInt(sp.newness) : undefined
+  const sort = sp.sort ?? 'recent'
+
+  // ── Lógica de Decisão: Vitrine vs Resultados ──
+  // Se não houver nenhum query param (ex: acessou apenas /search), mostra a Vitrine.
+  const hasSearchParams = Object.keys(sp).length > 0
+  const isSearchEmpty = !hasSearchParams || (Object.keys(sp).length === 1 && q === '')
+
+  if (isSearchEmpty) {
+    return <SearchVitrine />
+  }
+
+  const [categoryIds, breadcrumbs, pills] = await Promise.all([
+    resolveCategoryIds(dept, cat, sub),
+    buildBreadcrumbs(dept, cat, sub),
+    buildPills(dept, cat, sub),
+  ])
+
+  const newerThan = newness
+    ? new Date(Date.now() - newness * 24 * 60 * 60 * 1000)
+    : undefined
+
+  // Base where — sem filtro de condição (para facets corretos)
+  const whereBase = {
+    status: ListingStatus.ACTIVE,
+    ...(categoryIds.length > 0 && { categoryId: { in: categoryIds } }),
+    ...(brand && { brand: { equals: brand, mode: 'insensitive' as const } }),
+    ...(newerThan && { createdAt: { gte: newerThan } }),
+    ...(q && {
+      OR: [
+        { title: { contains: q, mode: 'insensitive' as const } },
+        { description: { contains: q, mode: 'insensitive' as const } },
+        { brand: { contains: q, mode: 'insensitive' as const } },
+      ],
+    }),
+  }
+
+  // Where completo — com condição e faixa de preço
+  const where = {
+    ...whereBase,
+    ...(condition && { condition }),
+    ...((minPriceCents !== undefined || maxPriceCents !== undefined) && {
+      priceCents: {
+        ...(minPriceCents !== undefined && { gte: minPriceCents }),
+        ...(maxPriceCents !== undefined && { lte: maxPriceCents }),
+      },
+    }),
+  }
+
+  const orderBy =
+    sort === 'price_asc' || sort === 'discount' ? { priceCents: 'asc' as const } :
+    sort === 'price_desc' ? { priceCents: 'desc' as const } :
+    sort === 'popular' ? { viewsCount: 'desc' as const } :
+    { createdAt: 'desc' as const }
+
+  const [rawListings, brandGroups, conditionFacets, session] = await Promise.all([
     db.listing.findMany({
-      where: buildWhere({ q, categorySlug: params.category, validCondition, priceMin, priceMax }),
+      where,
       include: {
         category: { select: { id: true, name: true, slug: true } },
         images: {
-          select: { url: true, altText: true },
           orderBy: { displayOrder: 'asc' },
           take: 1,
+          select: { url: true, altText: true },
         },
         seller: {
           select: {
@@ -63,134 +183,57 @@ export default async function SearchPage({ searchParams }: { searchParams: Searc
             name: true,
             avatarUrl: true,
             addresses: {
-              select: { city: true, state: true },
               where: { isDefault: true },
+              select: { city: true, state: true },
               take: 1,
             },
           },
         },
       },
       orderBy,
+      take: 60,
+    }),
+    // Marcas disponíveis no contexto atual (sem filtro de brand)
+    db.listing.groupBy({
+      by: ['brand'],
+      where: { ...whereBase, brand: { not: null } },
+      _count: { brand: true },
+      orderBy: { _count: { brand: 'desc' } },
+      take: 15,
+    }),
+    // Condições com produtos — usadas para mostrar apenas filtros válidos
+    db.listing.groupBy({
+      by: ['condition'],
+      where: whereBase,
+      _count: { condition: true },
     }),
     auth(),
   ])
 
-  // categoryRecord is resolved before we build where, but we pass category slug and resolve
-  // within the where builder using the resolved id. Re-use categoryRecord here.
-  void categoryRecord
+  const favoriteIds = session?.user?.id
+    ? await db.favorite
+        .findMany({ where: { userId: session.user.id }, select: { listingId: true } })
+        .then((favs) => favs.map((f) => f.listingId))
+    : []
 
-  let favoriteIds: string[] = []
-  if (session?.user?.id) {
-    const favs = await db.favorite.findMany({
-      where: { userId: session.user.id },
-      select: { listingId: true },
-    })
-    favoriteIds = favs.map((f) => f.listingId)
-  }
-
-  const listings = rawListings as ListingWithDetails[]
-
-  const hasFilters = !!(
-    params.category ||
-    params.condition ||
-    params.priceMin ||
-    params.priceMax ||
-    params.sort
-  )
+  const listings: ListingWithDetails[] = rawListings
+  const brands = brandGroups
+    .map((g) => g.brand)
+    .filter((b): b is string => typeof b === 'string' && b.trim() !== '')
+  const availableConditions = conditionFacets.map((f) => f.condition)
 
   return (
-    <div>
-      {/* Page title / summary */}
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-airforce">
-          {q ? `resultados para "${q}"` : 'todos os desapegos'}
-        </h1>
-        <p className="text-sm text-teal-muted mt-1">
-          {listings.length}{' '}
-          {listings.length === 1 ? 'desapego encontrado' : 'desapegos encontrados'}
-        </p>
-      </div>
-
-      <div className="flex gap-6">
-        {/* Desktop sidebar — SearchFilters renders its own <aside> for lg screens */}
-        <div className="hidden lg:block shrink-0">
-          <SearchFilters categories={categories} searchParams={params} />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          {/* Mobile filter trigger */}
-          <div className="lg:hidden mb-4">
-            <SearchFilters categories={categories} searchParams={params} />
-          </div>
-
-          {/* Results */}
-          {listings.length === 0 ? (
-            <div className="text-center py-16 space-y-4">
-              <p className="text-lg font-semibold text-airforce">Nenhum desapego encontrado</p>
-              <p className="text-sm text-teal-muted">
-                {q
-                  ? `Tente outros termos além de "${q}"`
-                  : 'Tente ajustar os filtros'}
-              </p>
-              {(q || hasFilters) && (
-                <a
-                  href="/search"
-                  className="inline-flex items-center gap-2 bg-teal text-linen font-semibold px-6 py-2.5 rounded-full hover:bg-airforce transition-colors text-sm"
-                >
-                  limpar filtros
-                </a>
-              )}
-            </div>
-          ) : (
-            <ListingGrid listings={listings} favoriteIds={favoriteIds} compact />
-          )}
-        </div>
-      </div>
+    <div className="max-w-screen-xl mx-auto px-4 py-6">
+      <SearchPageClient
+        listings={listings}
+        favoriteIds={favoriteIds}
+        breadcrumbs={breadcrumbs}
+        pills={pills}
+        brands={brands}
+        availableConditions={availableConditions}
+        totalCount={rawListings.length}
+        currentParams={sp}
+      />
     </div>
   )
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-type WhereArgs = {
-  q: string | undefined
-  categorySlug: string | undefined
-  validCondition: ListingCondition | undefined
-  priceMin: number | undefined
-  priceMax: number | undefined
-}
-
-function buildWhere({
-  q,
-  categorySlug,
-  validCondition,
-  priceMin,
-  priceMax,
-}: WhereArgs): Prisma.ListingWhereInput {
-  const priceCents: Prisma.IntFilter | undefined =
-    priceMin !== undefined && priceMax !== undefined
-      ? { gte: priceMin, lte: priceMax }
-      : priceMin !== undefined
-      ? { gte: priceMin }
-      : priceMax !== undefined
-      ? { lte: priceMax }
-      : undefined
-
-  return {
-    status: 'ACTIVE',
-    ...(q
-      ? {
-          OR: [
-            { title: { contains: q, mode: 'insensitive' } },
-            { description: { contains: q, mode: 'insensitive' } },
-            { brand: { contains: q, mode: 'insensitive' } },
-          ],
-        }
-      : {}),
-    ...(categorySlug ? { category: { slug: categorySlug } } : {}),
-    ...(validCondition ? { condition: validCondition } : {}),
-    ...(priceCents ? { priceCents } : {}),
-  }
 }
