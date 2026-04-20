@@ -1,29 +1,40 @@
 @import "tailwindcss";
 
+/* Dark mode via classe .dark no <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #F1F1E6;
-  --foreground: #171717;
+  --background: #F8FAF8;
+  --foreground: #1B4332;
+}
+
+.dark {
+  --background: #081C15;
+  --foreground: #D8F3DC;
 }
 
 @theme {
-  --color-linen: #F1F1E6;
-  --color-celadon: #A3C9A8;
-  --color-teal-muted: #84B59F;
-  --color-teal: #69A297;
-  --color-airforce: #50808E;
+  /* Off-white */
+  --color-linen: #F8FAF8;
+
+  /* Escala verde completa (do mais claro ao mais escuro) */
+  --color-frosted: #D8F3DC;   /* Frosted Mint */
+  --color-celadon: #B7E4C7;   /* Celadon */
+  --color-sage: #95D5B2;      /* Celadon 2 */
+  --color-mint: #74C69D;      /* Mint Leaf */
+  --color-teal-muted: #52B788; /* Mint Leaf 2 */
+  --color-teal: #40916C;      /* Sea Green — CTA principal */
+  --color-airforce: #40916C;  /* alias para compatibilidade — mesmo que teal */
+  --color-emerald: #2D6A4F;   /* Dark Emerald */
+  --color-pine: #1B4332;      /* Pine Teal */
+  --color-forest: #081C15;    /* Evergreen */
 
   --font-sans: "Inter", "system-ui", "sans-serif";
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  transition: background-color 0.2s, color 0.2s;
 }
