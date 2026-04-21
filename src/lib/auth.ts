@@ -9,7 +9,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(db),
   session: { strategy: "jwt" },
   pages: {
-    signIn: '/', // O modal de login ficará na Home
+    signIn: "/",
   },
   providers: [
     Google({
@@ -20,13 +20,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Senha", type: "password" }
+        password: { label: "Senha", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
         const user = await db.user.findUnique({
-          where: { email: credentials.email as string }
+          where: { email: credentials.email as string },
         })
 
         if (!user || !user.password) return null
@@ -36,12 +36,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.password
         )
 
-        if (passwordsMatch) return user
-        return null
-      }
-    })
+        if (!passwordsMatch) return null
+
+        return user
+      },
+    }),
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      // Google: emailVerified chega preenchido pelo PrismaAdapter — deixar passar
+      if (account?.provider === "google") return true
+
+      // Credentials: bloquear se email não verificado
+      // Retornar false → res.error = "AccessDenied" no client (distinguível de "CredentialsSignin")
+      if (account?.provider === "credentials") {
+        const dbUser = await db.user.findUnique({ where: { id: user.id } })
+        if (!dbUser?.emailVerified) return false
+      }
+
+      return true
+    },
     async session({ session, token }) {
       if (token.sub && session.user) {
         session.user.id = token.sub
@@ -53,6 +67,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.sub = user.id
       }
       return token
-    }
-  }
+    },
+  },
 })
