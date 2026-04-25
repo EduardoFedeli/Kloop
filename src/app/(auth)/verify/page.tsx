@@ -2,11 +2,11 @@ import Link from "next/link"
 import { verifyToken } from "@/lib/auth/verify-token"
 
 interface VerifyPageProps {
-  searchParams: { token?: string }
+  searchParams: Promise<{ token?: string }>
 }
 
 export default async function VerifyPage({ searchParams }: VerifyPageProps) {
-  const token = searchParams.token
+  const { token } = await searchParams
 
   if (!token) {
     return <VerifyResult status="invalid" />

@@ -256,6 +256,7 @@ model ListingImage {
   id           String   @id @default(cuid())
   listingId    String   @map("listing_id")
   url          String
+  publicId     String?  @map("public_id")
   displayOrder Int      @default(0) @map("display_order")
   altText      String?  @map("alt_text")
   createdAt    DateTime @default(now()) @map("created_at")

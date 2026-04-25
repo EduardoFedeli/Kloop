@@ -122,6 +122,7 @@ export default async function ProdutoPage({ params }: Props) {
           title={listing.title}
           listingId={listing.id}
           initialFavorited={isFavorited}
+          initialFavoritesCount={listing._count.favorites}
           categorySlug={listing.category.slug}
         />
 
