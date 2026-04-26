@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { Search, ArrowLeft, X, History, TrendingUp } from "lucide-react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
 interface Props {

@@ -2,10 +2,13 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { formatPrice, formatDate } from '@/lib/utils'
-import { Star, MapPin, Package, ShoppingBag, CalendarDays, Clock, Shield, Tag, RotateCcw, AlertTriangle, Lock } from 'lucide-react'
+import { formatPrice, formatDate, formatZipCode } from '@/lib/utils'
+import { calculateShipping } from '@/lib/shipping'
+import Image from 'next/image'
+import { Star, Package, RotateCcw, AlertTriangle, Lock } from 'lucide-react'
 import { ProductImageCarousel } from '@/components/produto/ProductImageCarousel'
 import { ProductActions } from '@/components/produto/ProductActions'
+import { ViewTracker } from '@/components/produto/ViewTracker'
 import type { ListingCondition } from '@prisma/client'
 
 const conditionLabel: Record<ListingCondition, string> = {
@@ -42,10 +45,16 @@ export default async function ProdutoPage({ params }: Props) {
 
   if (!listing || listing.status === 'DRAFT') notFound()
 
-  void db.listing.update({ where: { id: listing.id }, data: { viewsCount: { increment: 1 } } }).catch(() => {})
-
   const isOwner = session?.user?.id === listing.sellerId
-  const isFavorited = session?.user?.id ? (await db.favorite.findUnique({ where: { userId_listingId: { userId: session.user.id, listingId: listing.id } } })) !== null : false
+  const [isFavoritedResult, buyerAddress] = await Promise.all([
+    session?.user?.id
+      ? db.favorite.findUnique({ where: { userId_listingId: { userId: session.user.id, listingId: listing.id } } })
+      : Promise.resolve(null),
+    session?.user?.id
+      ? db.address.findFirst({ where: { userId: session.user.id, isDefault: true }, select: { zipCode: true } })
+      : Promise.resolve(null),
+  ])
+  const isFavorited = isFavoritedResult !== null
 
   const { seller } = listing
   const sellerAddress = seller.addresses[0]
@@ -58,10 +67,15 @@ export default async function ProdutoPage({ params }: Props) {
   const bateVoltaCents = Math.round(listing.priceCents * 0.10)
   const breadcrumbs = [listing.category.parent?.name, listing.category.name].filter(Boolean).join(' / ').toLowerCase()
 
+  const shipping = sellerAddress && buyerAddress
+    ? calculateShipping(sellerAddress.zipCode, buyerAddress.zipCode)
+    : null
+
   return (
     <div className="min-h-screen bg-[var(--background)]">
       <div className="max-w-2xl mx-auto pb-36 bg-white dark:bg-[var(--color-pine)] min-h-screen">
-        <ProductImageCarousel images={listing.images} title={listing.title} listingId={listing.id} initialFavorited={isFavorited} categorySlug={listing.category.slug} />
+        <ViewTracker listingId={listing.id} />
+        <ProductImageCarousel images={listing.images} title={listing.title} listingId={listing.id} initialFavorited={isFavorited} initialFavoritesCount={listing._count.favorites} categorySlug={listing.category.slug} />
         <div className="px-5 mt-5 space-y-8">
           <section className="space-y-1">
             {breadcrumbs && <p className="text-[13px] text-gray-500 dark:text-sage font-medium tracking-tight">{breadcrumbs}</p>}
@@ -75,13 +89,20 @@ export default async function ProdutoPage({ params }: Props) {
             <div className="inline-flex items-center gap-1.5 bg-[#b7e4c7] dark:bg-[var(--color-teal)] text-[var(--color-pine)] dark:text-white text-xs font-bold px-3 py-1.5 rounded-md">
               <RotateCcw size={14} className="stroke-[2.5px]" /> receba {formatPrice(cashbackCents)} de volta
             </div>
-            <div className="flex items-center justify-between text-[13px] text-gray-500 dark:text-sage pt-2">
-              <div className="flex gap-1.5">
-                <span>R$ 4,99 de frete para o cep</span>
-                <span className="font-bold text-[var(--foreground)]">{sellerAddress?.zipCode || '01310-100'}</span>
+            {shipping ? (
+              <div className="flex items-center justify-between text-[13px] text-gray-500 dark:text-sage pt-2">
+                <div className="flex gap-1.5">
+                  <span>{formatPrice(shipping.priceCents)} de frete · {shipping.estimatedDays} dias úteis · cep</span>
+                  <span className="font-bold text-[var(--foreground)]">{formatZipCode(buyerAddress!.zipCode)}</span>
+                </div>
+                <Link href={`/completar-perfil?redirectTo=/listing/${listing.slug}`} className="text-[var(--color-teal)] dark:text-[var(--color-celadon)] font-bold">alterar cep</Link>
               </div>
-              <button className="text-[var(--color-teal)] dark:text-[var(--color-celadon)] font-bold">alterar cep</button>
-            </div>
+            ) : (
+              <div className="flex items-center justify-between text-[13px] pt-2">
+                <span className="text-gray-400 dark:text-sage">calcule o frete informando seu CEP</span>
+                <Link href={`/completar-perfil?redirectTo=/listing/${listing.slug}`} className="text-[var(--color-teal)] dark:text-[var(--color-celadon)] font-bold text-[13px]">informe seu CEP</Link>
+              </div>
+            )}
             <div className="bg-[#e9f5db] dark:bg-[var(--color-emerald)]/30 border border-[#b7e4c7] dark:border-[var(--color-teal)]/30 rounded-xl p-4 flex items-center justify-between">
               <div>
                 <p className="text-[14px] text-[var(--color-pine)] dark:text-[var(--color-frosted)]">use <span className="font-black text-[var(--color-pine)] dark:text-white">{formatPrice(bateVoltaCents)}</span> do seu bate e volta</p>
@@ -119,8 +140,8 @@ export default async function ProdutoPage({ params }: Props) {
           <hr className="border-gray-200 dark:border-white/10" />
           <section>
             <div className="flex gap-4 items-center">
-              <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-[var(--color-forest)] overflow-hidden flex-shrink-0">
-                {listing.images[0] && <img src={listing.images[0].url} alt="Thumbnail" className="w-full h-full object-cover" />}
+              <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-[var(--color-forest)] overflow-hidden flex-shrink-0 relative">
+                {listing.images[0] && <Image src={listing.images[0].url} alt="Thumbnail" fill sizes="64px" className="object-cover" />}
               </div>
               <div><p className="text-[14px] font-bold text-[var(--foreground)]">tem um produto parecido parado no armário?</p><p className="text-[13px] text-gray-500 dark:text-sage mt-0.5">use este anúncio como modelo.</p></div>
             </div>
@@ -130,7 +151,7 @@ export default async function ProdutoPage({ params }: Props) {
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <Link href={`/profile/${seller.id}`} className="flex items-center gap-3">
-                {seller.avatarUrl ? <img src={seller.avatarUrl} alt={seller.name} className="w-12 h-12 rounded-full object-cover" /> : <div className="w-12 h-12 rounded-full bg-[var(--color-teal)] flex items-center justify-center text-white font-bold text-sm">{sellerInitials}</div>}
+                {seller.avatarUrl ? <Image src={seller.avatarUrl} alt={seller.name} width={48} height={48} sizes="48px" className="w-12 h-12 rounded-full object-cover" /> : <div className="w-12 h-12 rounded-full bg-[var(--color-teal)] flex items-center justify-center text-white font-bold text-sm">{sellerInitials}</div>}
                 <div><p className="font-bold text-[15px] text-[var(--foreground)] hover:underline">{seller.name.toLowerCase()}</p>{sellerAddress && <p className="text-[12px] text-gray-500 dark:text-sage mt-0.5">{sellerAddress.city.toLowerCase()}, {sellerAddress.state.toLowerCase()}</p>}</div>
               </Link>
               <button className="text-[13px] font-bold text-[var(--color-pine)] dark:text-white border border-[var(--color-pine)] dark:border-white rounded-full px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-white/5 transition">seguir</button>
@@ -153,7 +174,7 @@ export default async function ProdutoPage({ params }: Props) {
             <section>
               <h2 className="text-[15px] font-bold text-[var(--foreground)] mb-1">faça sua pergunta</h2>
               <p className="text-[13px] text-gray-500 dark:text-sage mb-4">tire suas dúvidas com a gente</p>
-              <ProductActions listingId={listing.id} listingStatus={listing.status} currentUserId={session?.user?.id} chatOnly />
+              <ProductActions listingId={listing.id} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} buyerHasAddress={!!buyerAddress} chatOnly />
             </section>
           )}
           <section className="bg-gray-50 dark:bg-[var(--color-forest)] rounded-2xl p-5 space-y-6">
@@ -165,7 +186,7 @@ export default async function ProdutoPage({ params }: Props) {
           </section>
         </div>
       </div>
-      {!isOwner && <ProductActions listingId={listing.id} listingStatus={listing.status} currentUserId={session?.user?.id} />}
+      {!isOwner && <ProductActions listingId={listing.id} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} buyerHasAddress={!!buyerAddress} />}
     </div>
   )
 }
