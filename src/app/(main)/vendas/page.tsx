@@ -12,7 +12,7 @@ export default async function VendasPage() {
   const myId = session.user.id
   const user = session.user
 
-  const [listings, completedTxs] = await Promise.all([
+  const [listings, completedTxs, pendingCount] = await Promise.all([
     db.listing.findMany({
       where: { sellerId: myId },
       select: {
@@ -22,6 +22,9 @@ export default async function VendasPage() {
     db.transaction.findMany({
       where: { sellerId: myId, status: 'COMPLETED' },
       select: { amountCents: true, commissionCents: true },
+    }),
+    db.transaction.count({
+      where: { sellerId: myId, status: { in: ['PAID', 'SHIPPED', 'DELIVERED'] } },
     }),
   ])
 
@@ -102,15 +105,17 @@ export default async function VendasPage() {
           <p className="text-[14px] font-bold text-[var(--foreground)] tracking-tight mt-2">à venda</p>
         </Link>
         
-        <Link href="/notificacoes" className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col justify-between min-h-[110px] shadow-sm group">
+        <Link href="/vendas/pendentes" className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col justify-between min-h-[110px] shadow-sm group">
           <div className="flex items-start justify-between">
             <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center text-orange-600 dark:text-orange-400 group-hover:bg-orange-200 transition-colors">
               <MessageCircle size={20} />
             </div>
-            {/* Mock: Bolinha de notificação se houver negociações */}
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500 mt-2 mr-1"></span>
+            <div className="flex items-center gap-1">
+              <span className="text-[20px] font-black text-[var(--foreground)]">{pendingCount}</span>
+              {pendingCount > 0 && <span className="w-2.5 h-2.5 rounded-full bg-red-500 mb-3"></span>}
+            </div>
           </div>
-          <p className="text-[14px] font-bold text-[var(--foreground)] tracking-tight mt-2">negociações</p>
+          <p className="text-[14px] font-bold text-[var(--foreground)] tracking-tight mt-2">pedidos pendentes</p>
         </Link>
 
         <Link href="/vendas/inativos" className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col justify-between min-h-[110px] shadow-sm group">

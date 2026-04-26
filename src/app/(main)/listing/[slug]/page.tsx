@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 import { formatPrice, formatDate, formatZipCode } from '@/lib/utils'
 import { calculateShipping } from '@/lib/shipping'
 import Image from 'next/image'
-import { Star, MapPin, Package, ShoppingBag, CalendarDays, Clock, Shield, Tag, RotateCcw, AlertTriangle, Lock } from 'lucide-react'
+import { Star, Package, RotateCcw, AlertTriangle, Lock } from 'lucide-react'
 import { ProductImageCarousel } from '@/components/produto/ProductImageCarousel'
 import { ProductActions } from '@/components/produto/ProductActions'
 import { ViewTracker } from '@/components/produto/ViewTracker'
@@ -174,7 +174,7 @@ export default async function ProdutoPage({ params }: Props) {
             <section>
               <h2 className="text-[15px] font-bold text-[var(--foreground)] mb-1">faça sua pergunta</h2>
               <p className="text-[13px] text-gray-500 dark:text-sage mb-4">tire suas dúvidas com a gente</p>
-              <ProductActions listingId={listing.id} listingStatus={listing.status} currentUserId={session?.user?.id} chatOnly />
+              <ProductActions listingId={listing.id} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} buyerHasAddress={!!buyerAddress} chatOnly />
             </section>
           )}
           <section className="bg-gray-50 dark:bg-[var(--color-forest)] rounded-2xl p-5 space-y-6">
@@ -186,7 +186,7 @@ export default async function ProdutoPage({ params }: Props) {
           </section>
         </div>
       </div>
-      {!isOwner && <ProductActions listingId={listing.id} listingStatus={listing.status} currentUserId={session?.user?.id} />}
+      {!isOwner && <ProductActions listingId={listing.id} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} buyerHasAddress={!!buyerAddress} />}
     </div>
   )
 }

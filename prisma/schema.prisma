@@ -149,7 +149,8 @@ model Address {
   isDefault    Boolean  @default(false) @map("is_default")
   createdAt    DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
 
   @@map("addresses")
 }
@@ -286,9 +287,17 @@ model Transaction {
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
 
-  listing Listing @relation(fields: [listingId], references: [id])
-  buyer   User    @relation("BuyerTransactions", fields: [buyerId], references: [id])
-  seller  User    @relation("SellerTransactions", fields: [sellerId], references: [id])
+  shippingCents  Int               @default(0) @map("shipping_cents")
+  trackingCode   String?           @map("tracking_code")
+  paidAt         DateTime?         @map("paid_at")
+  cancelledAt    DateTime?         @map("cancelled_at")
+  completedAt    DateTime?         @map("completed_at")
+  addressId      String?           @map("address_id")
+
+  listing Listing  @relation(fields: [listingId], references: [id])
+  buyer   User     @relation("BuyerTransactions", fields: [buyerId], references: [id])
+  seller  User     @relation("SellerTransactions", fields: [sellerId], references: [id])
+  address Address? @relation(fields: [addressId], references: [id])
   review  Review?
 
   @@index([buyerId])
@@ -529,3 +538,4 @@ model EmailVerificationToken {
 
   @@map("email_verification_tokens")
 }
+
