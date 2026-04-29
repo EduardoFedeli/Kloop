@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { canTransitionTo } from '@/lib/transaction-rules'
 import type { ActorRole } from '@/lib/transaction-rules'
+import { refundCashback, reverseCashback } from '@/lib/cashback'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -19,7 +20,7 @@ export async function POST(_req: NextRequest, { params }: RouteParams) {
 
   const transaction = await db.transaction.findUnique({
     where: { id },
-    select: { id: true, buyerId: true, sellerId: true, listingId: true, status: true },
+    select: { id: true, buyerId: true, sellerId: true, listingId: true, status: true, cashbackUsedCents: true },
   })
 
   if (!transaction) {
@@ -51,6 +52,26 @@ export async function POST(_req: NextRequest, { params }: RouteParams) {
         data: { status: 'ACTIVE' },
       })
     }
+
+    if (transaction.cashbackUsedCents > 0) {
+      const debitRecord = await tx.cashbackTransaction.findFirst({
+        where: { transactionId: id, type: 'DEBIT_PURCHASE' },
+        select: { id: true },
+      })
+      if (debitRecord) {
+        await refundCashback(tx, {
+          buyerId: transaction.buyerId,
+          amountCents: transaction.cashbackUsedCents,
+          transactionId: id,
+          debitRecordId: debitRecord.id,
+        })
+      }
+    }
+
+    if (transaction.status === 'COMPLETED') {
+      await reverseCashback(tx, id)
+    }
+
     return tx.transaction.update({
       where: { id },
       data: { status: 'CANCELLED', cancelledAt: new Date() },
