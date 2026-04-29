@@ -2,19 +2,26 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { CreateListingForm } from "@/components/listing/CreateListingForm"
+import { requireAddress } from "@/lib/guards/require-address"
 
 export default async function CreateListingPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/")
 
+  await requireAddress("/create")
+
   const userId = session.user.id
 
-  const [subscription, activeCount] = await Promise.all([
+  const [subscription, activeCount, categories] = await Promise.all([
     db.userSubscription.findUnique({
       where: { userId },
       include: { plan: { select: { name: true, maxActiveListings: true } } },
     }),
     db.listing.count({ where: { sellerId: userId, status: "ACTIVE" } }),
+    db.category.findMany({
+      select: { id: true, name: true, parentId: true },
+      orderBy: [{ parentId: "asc" }, { sortOrder: "asc" }],
+    }),
   ])
 
   const maxListings = subscription?.plan?.maxActiveListings ?? 5
@@ -32,6 +39,7 @@ export default async function CreateListingPage() {
         activeCount={activeCount}
         maxListings={maxListings}
         planName={planName}
+        categories={categories}
       />
     </div>
   )

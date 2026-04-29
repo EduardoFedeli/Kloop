@@ -32,13 +32,6 @@ export function SearchPageClient({
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const q = currentParams.q || ""
 
-  // Função para aplicar ordenação rápida
-  const handleSort = (sort: string) => {
-    const params = new URLSearchParams(window.location.search)
-    params.set("sort", sort)
-    router.push(`/search?${params.toString()}`)
-  }
-
   return (
     <div className="min-h-screen bg-[var(--background)] pb-24">
       {/* ── Topo: Barra Global + Subcategorias ── */}

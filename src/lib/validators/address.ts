@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 export const addressSchema = z.object({
-  label: z.string().min(1, "Rótulo obrigatório").max(30),
+  label: z.string().min(1).max(30).optional().default("Casa"),
   street: z.string().min(3, "Rua obrigatória").max(200),
   number: z.string().min(1, "Número obrigatório").max(20),
   complement: z.string().max(100).optional(),

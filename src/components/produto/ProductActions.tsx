@@ -1,10 +1,8 @@
-// Ações do produto: modo chatOnly (inline) ou barra fixa com eu quero, sacolinha e fazer oferta.
-
 'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ShoppingBag, MessageCircle, Tag } from 'lucide-react'
+import { ShoppingBag, MessageCircle, Tag, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { startConversation } from '@/app/actions/chat'
@@ -14,12 +12,15 @@ type Props = {
   listingId: string
   listingStatus: ListingStatus
   currentUserId?: string
+  sellerId?: string
+  buyerHasAddress?: boolean
   chatOnly?: boolean
 }
 
-export function ProductActions({ listingId, listingStatus, currentUserId, chatOnly = false }: Props) {
+export function ProductActions({ listingId, listingStatus, currentUserId, buyerHasAddress, chatOnly = false }: Props) {
   const router = useRouter()
   const [isStartingChat, setIsStartingChat] = useState(false)
+  const [isBuying, setIsBuying] = useState(false)
   const isAvailable = listingStatus === 'ACTIVE'
 
   const handleChat = async () => {
@@ -60,21 +61,56 @@ export function ProductActions({ listingId, listingStatus, currentUserId, chatOn
     )
   }
 
+  const handleBuy = async () => {
+    if (!currentUserId) {
+      router.push('/login')
+      return
+    }
+    if (buyerHasAddress === false) {
+      toast.error('Adicione um endereço antes de comprar.')
+      return
+    }
+    setIsBuying(true)
+    try {
+      const res = await fetch('/api/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listingId }),
+      })
+      const data = (await res.json()) as { transactionId?: string; error?: string }
+      if (!res.ok || !data.transactionId) {
+        toast.error(data.error ?? 'Erro ao iniciar compra.')
+        return
+      }
+      router.push(`/checkout/${data.transactionId}`)
+    } catch {
+      toast.error('Erro de conexão. Tente novamente.')
+    } finally {
+      setIsBuying(false)
+    }
+  }
+
   // Fixed bottom bar mode
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-pine border-t border-gray-100 dark:border-forest px-4 py-3 safe-area-inset-bottom">
       <div className="max-w-2xl mx-auto space-y-2">
         <button
-          disabled={!isAvailable}
-          onClick={() => toast.info('Checkout em breve! 🛍️')}
+          disabled={!isAvailable || isBuying}
+          onClick={() => void handleBuy()}
           className={cn(
-            'w-full py-3.5 rounded-2xl text-base font-black transition-opacity',
-            isAvailable
+            'w-full py-3.5 rounded-2xl text-base font-black transition-opacity flex items-center justify-center gap-2',
+            isAvailable && !isBuying
               ? 'bg-teal dark:bg-emerald text-white hover:opacity-90'
               : 'bg-gray-200 dark:bg-emerald/20 text-gray-400 cursor-not-allowed',
           )}
         >
-          {isAvailable ? 'eu quero! 💚' : 'produto indisponível'}
+          {isBuying ? (
+            <Loader2 size={18} className="animate-spin" />
+          ) : isAvailable ? (
+            'eu quero! 💚'
+          ) : (
+            'produto indisponível'
+          )}
         </button>
 
         {isAvailable && (

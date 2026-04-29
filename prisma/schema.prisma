@@ -93,6 +93,15 @@ enum CommunityMemberStatus {
   REMOVED
 }
 
+enum CashbackTransactionType {
+  CREDIT_SELLER       // Vendedor ganhou 5% por venda concluída
+  CREDIT_BUYER        // Comprador ganhou 2% por compra concluída
+  DEBIT_PURCHASE      // Comprador usou no checkout
+  REFUND_CANCELLATION // Cashback devolvido após cancelamento
+  REVERSAL            // Reverte crédito anterior (transação cancelada pós-COMPLETED)
+  EXPIRATION          // Saldo expirou após 120 dias
+}
+
 // ──────────────────────────────────────────
 // CORE: USERS & AUTH
 // ──────────────────────────────────────────
@@ -106,6 +115,7 @@ model User {
   image         String?   // <- NOVO: O Auth.js exige/espera esse campo para OAuth
   phone         String?
   avatarUrl     String?   @map("avatar_url")
+  coverUrl      String?   @map("cover_url")
   bio           String?
   role          UserRole  @default(USER)
   isVerified    Boolean   @default(false) @map("is_verified")
@@ -125,6 +135,8 @@ model User {
   messagesSent           Message[]
   accounts      Account[]
   sessions      Session[]
+  emailVerificationTokens EmailVerificationToken[]
+  cashbackTransactions    CashbackTransaction[]
 
   // Relações Futuras (Modelo 3 + 4)
   store                  Store?
@@ -148,7 +160,8 @@ model Address {
   isDefault    Boolean  @default(false) @map("is_default")
   createdAt    DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
 
   @@map("addresses")
 }
@@ -232,7 +245,7 @@ model Listing {
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
 
-  seller       User           @relation("SellerListings", fields: [sellerId], references: [id])
+  seller      User     @relation("SellerListings", fields: [sellerId], references: [id], onDelete: Cascade)
   store        Store?         @relation(fields: [storeId], references: [id])
   community    Community?     @relation(fields: [communityId], references: [id])
   category     Category       @relation(fields: [categoryId], references: [id])
@@ -255,6 +268,7 @@ model ListingImage {
   id           String   @id @default(cuid())
   listingId    String   @map("listing_id")
   url          String
+  publicId     String?  @map("public_id")
   displayOrder Int      @default(0) @map("display_order")
   altText      String?  @map("alt_text")
   createdAt    DateTime @default(now()) @map("created_at")
@@ -284,15 +298,47 @@ model Transaction {
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
 
-  listing Listing @relation(fields: [listingId], references: [id])
-  buyer   User    @relation("BuyerTransactions", fields: [buyerId], references: [id])
-  seller  User    @relation("SellerTransactions", fields: [sellerId], references: [id])
-  review  Review?
+  shippingCents  Int               @default(0) @map("shipping_cents")
+  trackingCode   String?           @map("tracking_code")
+  paidAt         DateTime?         @map("paid_at")
+  cancelledAt    DateTime?         @map("cancelled_at")
+  completedAt    DateTime?         @map("completed_at")
+  addressId      String?           @map("address_id")
+
+  cashbackUsedCents Int @default(0) @map("cashback_used_cents")
+
+  listing              Listing               @relation(fields: [listingId], references: [id])
+  buyer                User                  @relation("BuyerTransactions", fields: [buyerId], references: [id])
+  seller               User                  @relation("SellerTransactions", fields: [sellerId], references: [id])
+  address              Address?              @relation(fields: [addressId], references: [id])
+  review               Review?
+  cashbackTransactions CashbackTransaction[]
 
   @@index([buyerId])
   @@index([sellerId])
   @@index([status])
   @@map("transactions")
+}
+
+model CashbackTransaction {
+  id            String                  @id @default(cuid())
+  userId        String                  @map("user_id")
+  type          CashbackTransactionType
+  amountCents   Int                     @map("amount_cents")
+  expiresAt     DateTime?               @map("expires_at")
+  transactionId String?                 @map("transaction_id")
+  parentId      String?                 @map("parent_id")
+  description   String
+  createdAt     DateTime                @default(now()) @map("created_at")
+
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction Transaction?         @relation(fields: [transactionId], references: [id])
+  parent      CashbackTransaction? @relation("CashbackParent", fields: [parentId], references: [id])
+  children    CashbackTransaction[] @relation("CashbackParent")
+
+  @@index([userId, createdAt])
+  @@index([userId, expiresAt])
+  @@map("cashback_transactions")
 }
 
 model Review {
@@ -515,3 +561,16 @@ model VerificationToken {
   @@unique([identifier, token])
   @@map("verification_tokens")
 }
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_verification_tokens")
+}
+

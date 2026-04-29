@@ -20,6 +20,11 @@ export function formatDate(date: Date | string): string {
   }).format(new Date(date));
 }
 
+export function formatZipCode(zip: string): string {
+  const digits = zip.replace(/\D/g, "")
+  return digits.length === 8 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : zip
+}
+
 export function timeAgo(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date
   const diff = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000))

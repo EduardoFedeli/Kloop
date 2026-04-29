@@ -1,12 +1,10 @@
-// Carrossel de imagens do produto com botões sobrepostos de voltar, compartilhar e favoritar.
 'use client'
-
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { ChevronLeft, Share2, Heart, LayoutGrid } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { toggleFavorite } from '@/app/actions/favorites'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
@@ -21,7 +19,13 @@ type Props = {
   title: string
   listingId: string
   initialFavorited: boolean
+  initialFavoritesCount: number
   categorySlug: string
+}
+
+interface FavoriteResponse {
+  favorited: boolean
+  count: number
 }
 
 export function ProductImageCarousel({
@@ -29,11 +33,13 @@ export function ProductImageCarousel({
   title,
   listingId,
   initialFavorited,
+  initialFavoritesCount,
   categorySlug,
 }: Props) {
   const router = useRouter()
   const [current, setCurrent] = useState(0)
   const [favorited, setFavorited] = useState(initialFavorited)
+  const [favCount, setFavCount] = useState(initialFavoritesCount)
   const [favPending, setFavPending] = useState(false)
 
   const displayImages =
@@ -43,20 +49,42 @@ export function ProductImageCarousel({
 
   const handleFavorite = async () => {
     if (favPending) return
-    const prev = favorited
-    setFavorited(!prev)
+
+    const prevFavorited = favorited
+    const prevCount = favCount
+    const nextFavorited = !prevFavorited
+    setFavorited(nextFavorited)
+    setFavCount(nextFavorited ? prevCount + 1 : Math.max(0, prevCount - 1))
     setFavPending(true)
-    const result = await toggleFavorite(listingId)
-    setFavPending(false)
-    if ('error' in result) {
-      setFavorited(prev)
-      if (result.error === 'unauthenticated') {
+
+    try {
+      const res = await fetch(`/api/listings/${listingId}/favorite`, {
+        method: nextFavorited ? 'POST' : 'DELETE',
+      })
+
+      if (res.status === 401) {
+        setFavorited(prevFavorited)
+        setFavCount(prevCount)
         router.push('/login')
-      } else {
-        toast.error('Erro ao favoritar.')
+        return
       }
-    } else {
-      setFavorited(result.favorited)
+
+      if (!res.ok) {
+        setFavorited(prevFavorited)
+        setFavCount(prevCount)
+        toast.error('Erro ao favoritar.')
+        return
+      }
+
+      const data = await res.json() as FavoriteResponse
+      setFavorited(data.favorited)
+      setFavCount(data.count)
+    } catch {
+      setFavorited(prevFavorited)
+      setFavCount(prevCount)
+      toast.error('Erro ao favoritar.')
+    } finally {
+      setFavPending(false)
     }
   }
 
@@ -69,13 +97,17 @@ export function ProductImageCarousel({
     }
   }
 
+  const currentImage = displayImages[current]
+
   return (
     <div className="relative w-full aspect-square bg-gray-100 dark:bg-emerald/10">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={displayImages[current]?.url}
-        alt={displayImages[current]?.altText ?? title}
-        className="w-full h-full object-cover"
+      <Image
+        src={currentImage?.url ?? ''}
+        alt={currentImage?.altText ?? title}
+        fill
+        sizes="(max-width: 768px) 100vw, 672px"
+        className="object-cover"
+        priority={current === 0}
       />
 
       {/* Overlaid header */}
@@ -101,7 +133,7 @@ export function ProductImageCarousel({
             aria-label={favorited ? 'Remover dos favoritos' : 'Favoritar'}
             disabled={favPending}
             className={cn(
-              'w-9 h-9 rounded-full backdrop-blur-sm flex items-center justify-center transition-all',
+              'h-9 rounded-full backdrop-blur-sm flex items-center gap-1.5 px-3 transition-all',
               favorited ? 'bg-teal/90 hover:bg-teal' : 'bg-white/80 hover:bg-white',
               favPending && 'opacity-60 cursor-not-allowed',
             )}
@@ -109,10 +141,15 @@ export function ProductImageCarousel({
             <Heart
               size={17}
               className={cn(
-                'transition-colors',
+                'transition-colors flex-shrink-0',
                 favorited ? 'fill-white text-white' : 'text-gray-800',
               )}
             />
+            {favCount > 0 && (
+              <span className={cn('text-[11px] font-bold leading-none', favorited ? 'text-white' : 'text-gray-800')}>
+                {favCount}
+              </span>
+            )}
           </button>
         </div>
       </div>

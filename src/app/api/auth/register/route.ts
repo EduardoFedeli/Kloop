@@ -1,48 +1,54 @@
 import { NextResponse } from "next/server"
-import { z } from "zod"
 import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
-
-const registerSchema = z.object({
-  name: z.string().min(2, "Nome é obrigatório"),
-  email: z.string().email("Email inválido"),
-  password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
-})
+import { registerSchema } from "@/lib/validators/auth"
+import { sendVerificationEmail } from "@/lib/email/send-verification"
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { name, email, password } = registerSchema.parse(body)
+    const parsed = registerSchema.safeParse(body)
 
-    const existingUser = await db.user.findUnique({
-      where: { email }
-    })
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "dados inválidos", fieldErrors: parsed.error.flatten().fieldErrors },
+        { status: 422 }
+      )
+    }
 
+    const { name, email, password } = parsed.data
+
+    const existingUser = await db.user.findUnique({ where: { email } })
     if (existingUser) {
       return NextResponse.json(
-        { error: "Este email já está em uso." },
+        { error: "este email já está cadastrado. faça login ou recupere sua senha" },
         { status: 400 }
       )
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const newUser = await db.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-      }
+    const user = await db.user.create({
+      data: { name, email, password: hashedPassword },
     })
 
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
+    const token = crypto.randomUUID()
+
+    await db.emailVerificationToken.create({
+      data: { token, userId: user.id, expiresAt },
+    })
+
+    await sendVerificationEmail(email, token)
+
     return NextResponse.json(
-      { message: "Usuário criado com sucesso", userId: newUser.id },
+      { redirectTo: "/verify-pending", email: user.email },
       { status: 201 }
     )
   } catch (error) {
-    console.error("Erro no registro:", error)
+    console.error("[register] erro:", error)
     return NextResponse.json(
-      { error: "Erro interno ao criar conta." },
+      { error: "não foi possível criar sua conta. tente novamente" },
       { status: 500 }
     )
   }
