@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { CheckoutForm } from '@/components/checkout/CheckoutForm'
+import { getCashbackBalance, getMaxApplicable } from '@/lib/cashback'
 
 interface Props {
   params: Promise<{ transactionId: string }>
@@ -36,6 +37,11 @@ export default async function CheckoutPage({ params }: Props) {
 
   const imageUrl = transaction.listing.images[0]?.url
 
+  const [cashbackBalanceCents, cashbackMaxCents] = await Promise.all([
+    getCashbackBalance(session.user.id),
+    getMaxApplicable(session.user.id, transaction.listing.priceCents),
+  ])
+
   return (
     <div className="min-h-screen bg-[var(--background)]">
       <div className="sticky top-0 z-10 bg-white/90 dark:bg-[var(--color-pine)]/90 backdrop-blur-sm border-b border-gray-100 dark:border-white/5 px-4 py-3 flex items-center gap-3">
@@ -55,6 +61,8 @@ export default async function CheckoutPage({ params }: Props) {
           }}
           shippingCents={transaction.shippingCents}
           amountCents={transaction.amountCents}
+          cashbackBalanceCents={cashbackBalanceCents}
+          cashbackMaxCents={cashbackMaxCents}
         />
       </div>
     </div>

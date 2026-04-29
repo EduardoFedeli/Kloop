@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import { CreditCard, QrCode, FileText, ChevronRight, Loader2 } from 'lucide-react'
+import { CashbackInput } from '@/components/cashback/CashbackInput'
 
 type PaymentMethod = 'PIX' | 'CREDIT_CARD' | 'BOLETO'
 
@@ -18,17 +19,22 @@ interface Props {
   }
   shippingCents: number
   amountCents: number
+  cashbackBalanceCents: number
+  cashbackMaxCents: number
 }
 
-export function CheckoutForm({ transactionId, listing, shippingCents, amountCents }: Props) {
+export function CheckoutForm({ transactionId, listing, shippingCents, amountCents, cashbackBalanceCents, cashbackMaxCents }: Props) {
   const router = useRouter()
   const [method, setMethod] = useState<PaymentMethod>('PIX')
   const [loading, setLoading] = useState(false)
+  const [cashbackUsedCents, setCashbackUsedCents] = useState(0)
 
   const [cardNumber, setCardNumber] = useState('')
   const [cardExpiry, setCardExpiry] = useState('')
   const [cardCvv, setCardCvv] = useState('')
   const [cardName, setCardName] = useState('')
+
+  const finalAmountCents = Math.max(0, amountCents - cashbackUsedCents)
 
   const handlePay = async () => {
     if (method === 'CREDIT_CARD') {
@@ -40,7 +46,11 @@ export function CheckoutForm({ transactionId, listing, shippingCents, amountCent
 
     setLoading(true)
     try {
-      const res = await fetch(`/api/transactions/${transactionId}/pay`, { method: 'POST' })
+      const res = await fetch(`/api/transactions/${transactionId}/pay`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cashbackUsedCents }),
+      })
       const data = (await res.json()) as { error?: string }
       if (!res.ok) {
         toast.error(data.error ?? 'Erro ao processar pagamento.')
@@ -63,7 +73,7 @@ export function CheckoutForm({ transactionId, listing, shippingCents, amountCent
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 pb-32">
+    <div className="max-w-lg mx-auto px-4 pb-44 md:pb-32">
       {/* Order summary */}
       <div className="bg-white dark:bg-[var(--color-pine)] rounded-2xl border border-gray-100 dark:border-white/5 p-4 mb-6">
         <div className="flex gap-3">
@@ -93,16 +103,29 @@ export function CheckoutForm({ transactionId, listing, shippingCents, amountCent
                 <span>frete</span>
                 <span>{formatPrice(shippingCents)}</span>
               </div>
+              {cashbackUsedCents > 0 && (
+                <div className="flex justify-between text-[13px] text-[var(--color-teal)] dark:text-[var(--color-celadon)]">
+                  <span>cashback</span>
+                  <span>− {formatPrice(cashbackUsedCents)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-[15px] font-black text-[var(--foreground)] pt-1 border-t border-gray-100 dark:border-white/5 mt-1">
                 <span>total</span>
                 <span className="text-[var(--color-airforce)] dark:text-[var(--color-celadon)]">
-                  {formatPrice(amountCents)}
+                  {formatPrice(finalAmountCents)}
                 </span>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Cashback */}
+      <CashbackInput
+        balanceCents={cashbackBalanceCents}
+        maxApplicableCents={cashbackMaxCents}
+        onChange={setCashbackUsedCents}
+      />
 
       {/* Payment method selector */}
       <p className="text-[16px] font-black text-[var(--foreground)] mb-3">como você quer pagar?</p>
@@ -237,8 +260,8 @@ export function CheckoutForm({ transactionId, listing, shippingCents, amountCent
         )}
       </div>
 
-      {/* Confirm — fixed bottom */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-[var(--color-pine)]/90 backdrop-blur-sm border-t border-gray-100 dark:border-white/5">
+      {/* Confirm — fixed bottom, above BottomNav (z-40) on mobile */}
+      <div className="fixed bottom-20 md:bottom-0 left-0 right-0 z-50 p-4 bg-white/90 dark:bg-[var(--color-pine)]/90 backdrop-blur-sm border-t border-gray-100 dark:border-white/5">
         <div className="max-w-lg mx-auto">
           <button
             onClick={() => void handlePay()}
@@ -255,7 +278,7 @@ export function CheckoutForm({ transactionId, listing, shippingCents, amountCent
             ) : (
               <>
                 {method === 'PIX' && 'já paguei (simular) ✓'}
-                {method === 'CREDIT_CARD' && `pagar ${formatPrice(amountCents)}`}
+                {method === 'CREDIT_CARD' && `pagar ${formatPrice(finalAmountCents)}`}
                 {method === 'BOLETO' && 'já paguei (simular) ✓'}
                 <ChevronRight size={18} />
               </>

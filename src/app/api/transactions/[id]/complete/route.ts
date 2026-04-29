@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { canTransitionTo } from '@/lib/transaction-rules'
+import { creditCashback, calcSellerCashback, calcBuyerCashback } from '@/lib/cashback'
+import { CashbackTransactionType } from '@prisma/client'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -17,7 +19,13 @@ export async function POST(_req: NextRequest, { params }: RouteParams) {
 
   const transaction = await db.transaction.findUnique({
     where: { id },
-    select: { id: true, buyerId: true, status: true },
+    select: {
+      id: true,
+      buyerId: true,
+      sellerId: true,
+      status: true,
+      listing: { select: { priceCents: true } },
+    },
   })
 
   if (!transaction) {
@@ -33,9 +41,29 @@ export async function POST(_req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: check.error }, { status: 400 })
   }
 
-  const updated = await db.transaction.update({
-    where: { id },
-    data: { status: 'COMPLETED', completedAt: new Date() },
+  const updated = await db.$transaction(async (tx) => {
+    const result = await tx.transaction.update({
+      where: { id },
+      data: { status: 'COMPLETED', completedAt: new Date() },
+    })
+
+    await creditCashback(tx, {
+      userId: transaction.sellerId,
+      type: CashbackTransactionType.CREDIT_SELLER,
+      amountCents: calcSellerCashback(transaction.listing.priceCents),
+      description: `Cashback de vendedor — venda #${id.slice(-6)}`,
+      transactionId: id,
+    })
+
+    await creditCashback(tx, {
+      userId: transaction.buyerId,
+      type: CashbackTransactionType.CREDIT_BUYER,
+      amountCents: calcBuyerCashback(transaction.listing.priceCents),
+      description: `Cashback de comprador — compra #${id.slice(-6)}`,
+      transactionId: id,
+    })
+
+    return result
   })
 
   return NextResponse.json({ transaction: updated })
