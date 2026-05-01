@@ -1,4 +1,3 @@
-// Card de produto exibido no feed e nas buscas — clicável, com favorito e badge.
 import Link from 'next/link'
 import { ListingCondition } from '@prisma/client'
 import { formatPrice } from '@/lib/utils'
@@ -16,41 +15,65 @@ type Props = {
   listing: ListingWithDetails
   isFavorited: boolean
   minimal?: boolean
+  showSeller?: boolean // Nova prop que permite mostrar quem está vendendo
 }
 
-export function ListingCard({ listing, isFavorited, minimal = false }: Props) {
+export function ListingCard({ listing, isFavorited, minimal = false, showSeller = false }: Props) {
   const image = listing.images[0]
   const location = listing.seller.addresses[0]
+  
+  // Helpers para o nome e iniciais do vendedor
+  const firstName = listing.seller.name?.split(' ')[0].toLowerCase() || 'vendedor'
+  const initials = listing.seller.name?.substring(0, 2).toUpperCase() || 'KL'
 
-  // ── Versão Minimalista (Estilo Enjoei Mobile para a Home) ──
+  // ── Versão Minimalista (Estilo Enjoei Mobile para a Home e Lojinhas) ──
   if (minimal) {
     return (
-      <article className="group relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-100 dark:bg-[var(--color-forest)]">
-        <Link href={`/listing/${listing.slug}`} className="block w-full h-full">
-          {image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={image.url}
-              alt={image.altText ?? listing.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              loading="lazy"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-4xl text-gray-300">
-              📦
-            </div>
-          )}
-        </Link>
+      <article className="group flex flex-col gap-2">
+        <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-100 dark:bg-[var(--color-forest)]">
+          <Link href={`/listing/${listing.slug}`} className="block w-full h-full">
+            {image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={image.url}
+                alt={image.altText ?? listing.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-4xl text-gray-300">
+                📦
+              </div>
+            )}
+          </Link>
 
-        {/* Botão de favoritar — top right */}
-        <FavoriteButton listingId={listing.id} initialFavorited={isFavorited} />
+          {/* Botão de favoritar — top right */}
+          <FavoriteButton listingId={listing.id} initialFavorited={isFavorited} />
 
-        {/* Tag flutuante de preço — bottom left */}
-        <Link href={`/listing/${listing.slug}`} className="absolute bottom-2 left-2 z-10 block">
-          <span className="font-bold text-[13px] px-2 py-1 rounded bg-white/95 dark:bg-[var(--color-pine)]/95 backdrop-blur-sm text-[var(--foreground)] shadow-sm">
-            {formatPrice(listing.priceCents)}
-          </span>
-        </Link>
+          {/* Tag flutuante de preço — bottom left */}
+          <Link href={`/listing/${listing.slug}`} className="absolute bottom-2 left-2 z-10 block">
+            <span className="font-bold text-[13px] px-2 py-1 rounded bg-white/95 dark:bg-[var(--color-pine)]/95 backdrop-blur-sm text-[var(--foreground)] shadow-sm">
+              {formatPrice(listing.priceCents)}
+            </span>
+          </Link>
+        </div>
+
+        {/* Rodapé com foto e nome da lojinha (Ativado na aba Lojinhas) */}
+        {showSeller && listing.seller && (
+          <Link href={`/profile/${listing.seller.id}`} className="flex items-center gap-2 px-1 hover:opacity-80 transition-opacity">
+            {listing.seller.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={listing.seller.avatarUrl} alt={firstName} className="w-5 h-5 rounded-full object-cover" />
+            ) : (
+              <div className="w-5 h-5 rounded-full bg-[var(--color-teal)] dark:bg-[var(--color-celadon)] flex items-center justify-center text-[8px] text-white dark:text-[var(--color-pine)] font-bold">
+                {initials}
+              </div>
+            )}
+            <span className="text-[11px] font-bold truncate text-gray-600 dark:text-sage">
+              {firstName}
+            </span>
+          </Link>
+        )}
       </article>
     )
   }
@@ -80,24 +103,45 @@ export function ListingCard({ listing, isFavorited, minimal = false }: Props) {
         </span>
       </Link>
 
-      <Link href={`/listing/${listing.slug}`} className="block pt-2 pb-3 px-0.5 space-y-0.5">
-        <p className="text-sm font-bold text-[var(--foreground)] leading-snug">
-          {formatPrice(listing.priceCents)}
-        </p>
-        <p className="text-xs text-gray-600 dark:text-sage line-clamp-2 leading-snug">
-          {listing.title}
-        </p>
-        {listing.brand && (
-          <p className="text-[11px] text-gray-400 dark:text-sage/70">
-            {listing.brand}
+      <div className="pt-2 pb-3 px-0.5 space-y-0.5">
+        <Link href={`/listing/${listing.slug}`} className="block">
+          <p className="text-sm font-bold text-[var(--foreground)] leading-snug">
+            {formatPrice(listing.priceCents)}
           </p>
-        )}
-        {location && (
-          <p className="text-[10px] text-gray-300 dark:text-sage/50">
-            {location.city}, {location.state}
+          <p className="text-xs text-gray-600 dark:text-sage line-clamp-2 leading-snug mt-0.5">
+            {listing.title}
           </p>
+          {listing.brand && (
+            <p className="text-[11px] text-gray-400 dark:text-sage/70">
+              {listing.brand}
+            </p>
+          )}
+          {location && (
+            <p className="text-[10px] text-gray-300 dark:text-sage/50">
+              {location.city}, {location.state}
+            </p>
+          )}
+        </Link>
+
+        {/* Rodapé do Vendedor na Versão Padrão (Opcional) */}
+        {showSeller && listing.seller && (
+          <div className="pt-2 mt-1 border-t border-gray-100 dark:border-white/5">
+            <Link href={`/profile/${listing.seller.id}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              {listing.seller.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={listing.seller.avatarUrl} alt={firstName} className="w-5 h-5 rounded-full object-cover" />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-[var(--color-teal)] dark:bg-[var(--color-celadon)] flex items-center justify-center text-[8px] text-white dark:text-[var(--color-pine)] font-bold">
+                  {initials}
+                </div>
+              )}
+              <span className="text-[11px] font-bold truncate text-gray-500 dark:text-sage">
+                {firstName}
+              </span>
+            </Link>
+          </div>
         )}
-      </Link>
+      </div>
     </article>
   )
 }

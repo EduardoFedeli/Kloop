@@ -102,6 +102,15 @@ enum CashbackTransactionType {
   EXPIRATION          // Saldo expirou após 120 dias
 }
 
+enum OfferStatus {
+  PENDING_SELLER // Aguardando o vendedor responder
+  PENDING_BUYER  // Aguardando o comprador responder (após contra-proposta)
+  ACCEPTED       // Aceita; Transaction criada e linkada
+  REJECTED       // Rejeitada explicitamente por uma das partes
+  EXPIRED        // Não respondida em 24h
+  CANCELLED      // Cancelada em cascata (outra venda do mesmo Listing concretizou)
+}
+
 // ──────────────────────────────────────────
 // CORE: USERS & AUTH
 // ──────────────────────────────────────────
@@ -128,6 +137,7 @@ model User {
   listings               Listing[]               @relation("SellerListings")
   purchaseTransactions   Transaction[]            @relation("BuyerTransactions")
   saleTransactions       Transaction[]            @relation("SellerTransactions")
+  viewHistories         ViewHistory[]
   reviewsWritten         Review[]                 @relation("ReviewAuthor")
   reviewsReceived        Review[]                 @relation("ReviewTarget")
   favorites              Favorite[]
@@ -137,6 +147,16 @@ model User {
   sessions      Session[]
   emailVerificationTokens EmailVerificationToken[]
   cashbackTransactions    CashbackTransaction[]
+  
+  // Novas Relações (Follows e Reports)
+  following Follow[] @relation("UserFollows")
+  followers Follow[] @relation("UserFollowers")
+  reportsWritten Report[] @relation("UserReports")
+
+  // Relações de Ofertas
+  buyerOffers  Offer[]      @relation("BuyerOffers")
+  sellerOffers Offer[]      @relation("SellerOffers")
+  offerRounds  OfferRound[]
 
   // Relações Futuras (Modelo 3 + 4)
   store                  Store?
@@ -251,9 +271,11 @@ model Listing {
   category     Category       @relation(fields: [categoryId], references: [id])
   images       ListingImage[]
   transactions Transaction[]
+  viewHistories ViewHistory[]
   favorites    Favorite[]
   conversations Conversation[]
   boosts       StoreBoost[]
+  offers       Offer[]
 
   @@index([sellerId])
   @@index([categoryId])
@@ -313,6 +335,7 @@ model Transaction {
   address              Address?              @relation(fields: [addressId], references: [id])
   review               Review?
   cashbackTransactions CashbackTransaction[]
+  offer                Offer?
 
   @@index([buyerId])
   @@index([sellerId])
@@ -519,6 +542,67 @@ model CommunityRule {
 
 
 // ──────────────────────────────────────────
+// MVP: SISTEMA DE OFERTAS
+// ──────────────────────────────────────────
+
+model Offer {
+  id                          String      @id @default(cuid())
+  listingId                   String      @map("listing_id")
+  buyerId                     String      @map("buyer_id")
+  sellerId                    String      @map("seller_id")
+  status                      OfferStatus @default(PENDING_SELLER)
+
+  // Snapshot do preço do anúncio no momento da criação da oferta
+  listingPriceCentsAtCreation Int         @map("listing_price_cents_at_creation")
+
+  // Valor atual em negociação (último lance feito)
+  currentPriceCents           Int         @map("current_price_cents")
+
+  // Quem deve agir agora (null quando status é terminal)
+  currentTurnUserId           String?     @map("current_turn_user_id")
+
+  // Quando a oferta atual expira (24h após o último lance)
+  expiresAt                   DateTime    @map("expires_at")
+
+  // Contagem de lances (1 inicial + até 3 contra-propostas = máx. 4)
+  roundsCount                 Int         @default(1) @map("rounds_count")
+
+  // Linkagem com a Transaction criada quando aceita (null até aceitar)
+  transactionId               String?     @unique @map("transaction_id")
+
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+
+  listing     Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyer       User         @relation("BuyerOffers", fields: [buyerId], references: [id])
+  seller      User         @relation("SellerOffers", fields: [sellerId], references: [id])
+  transaction Transaction? @relation(fields: [transactionId], references: [id])
+  rounds      OfferRound[]
+
+  @@index([listingId, status])
+  @@index([buyerId, status])
+  @@index([sellerId, status])
+  @@index([expiresAt, status])
+  @@map("offers")
+}
+
+model OfferRound {
+  id          String   @id @default(cuid())
+  offerId     String   @map("offer_id")
+  roundNumber Int      @map("round_number")
+  proposedBy  String   @map("proposed_by")
+  priceCents  Int      @map("price_cents")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  offer    Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  proposer User  @relation(fields: [proposedBy], references: [id])
+
+  @@unique([offerId, roundNumber])
+  @@index([offerId, createdAt])
+  @@map("offer_rounds")
+}
+
+// ──────────────────────────────────────────
 // NEXTAUTH (AUTH.JS) MODELS
 // ──────────────────────────────────────────
 
@@ -574,3 +658,58 @@ model EmailVerificationToken {
   @@map("email_verification_tokens")
 }
 
+// ──────────────────────────────────────────
+// NOVAS TABELAS: FOLLOWS & REPORTS
+// ──────────────────────────────────────────
+
+model Follow {
+  id                   String   @id @default(cuid())
+  followerId           String   @map("follower_id")
+  followingId          String   @map("following_id")
+  notificationsEnabled Boolean  @default(true) @map("notifications_enabled")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  follower  User @relation("UserFollows", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("follows")
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  reporterId  String   @map("reporter_id")
+  targetId    String   @map("target_id") // Pode ser ID de Usuário ou Listing
+  targetType  String   @map("target_type") // "USER" ou "LISTING"
+  reason      String
+  description String?  @db.Text
+  status      String   @default("PENDING") // PENDING, INVESTIGATING, RESOLVED, DISMISSED
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  reporter User @relation("UserReports", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([targetId])
+  @@map("reports")
+}
+
+// ──────────────────────────────────────────
+// MVP: HISTÓRICO DE VISUALIZAÇÕES
+// ──────────────────────────────────────────
+
+model ViewHistory {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  listingId  String   @map("listing_id")
+  viewedAt   DateTime @default(now()) @map("viewed_at")
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  // Garante que o mesmo usuário não crie 500 linhas para o mesmo produto
+  @@unique([userId, listingId])
+  // Index para a aba "Visualizados" carregar rápido
+  @@index([userId, viewedAt(sort: Desc)])
+  @@map("view_history")
+}

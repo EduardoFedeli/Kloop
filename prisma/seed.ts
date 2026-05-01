@@ -1,11 +1,16 @@
 import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcryptjs'
+import * as bcrypt from 'bcryptjs'
+import { seedCategories } from './seed-categories'
 
 const prisma = new PrismaClient()
 
 async function main() {
   console.log('🧹 Limpando o banco de dados...')
-
+  
+  // Limpeza de baixo pra cima nas relações para não dar erro de Foreign Key
+  await prisma.cashbackTransaction.deleteMany()
+  await prisma.follow.deleteMany()
+  await prisma.report.deleteMany()
   await prisma.review.deleteMany()
   await prisma.message.deleteMany()
   await prisma.conversation.deleteMany()
@@ -15,198 +20,130 @@ async function main() {
   await prisma.listing.deleteMany()
   await prisma.address.deleteMany()
   await prisma.category.deleteMany()
-  await prisma.account.deleteMany()
-  await prisma.session.deleteMany()
   await prisma.user.deleteMany()
 
-  console.log('🌱 Criando usuários oficiais do grupo...')
-  const defaultPassword = await bcrypt.hash('kloop123', 10)
-  const now = new Date()
+  console.log('🌱 Criando categorias...')
+  await seedCategories(prisma)
+  
+  console.log('🔍 Buscando categorias para os produtos...')
+  // Busca flexível em vez de slug engessado
+  const catEletronicos = await prisma.category.findFirst({ where: { slug: { contains: 'smartphone' } } })
+  const catCasa = await prisma.category.findFirst({ where: { slug: { contains: 'sofa' } } })
+  const fallbackCat = await prisma.category.findFirst()
 
-  const groupMembers = [
-    { name: 'Otavio Vitoriano', email: 'otavio@kloop.com.br' },
-    { name: 'Caique Chagas', email: 'caique@kloop.com.br' },
-    { name: 'Rodrigo Resende', email: 'rodrigo@kloop.com.br' },
-    { name: 'Gabriel Torres', email: 'gabriel@kloop.com.br' },
-    { name: 'Eduardo Fedeli', email: 'eduardo@kloop.com.br' },
-    { name: 'Usuário Teste 1', email: 'teste1@kloop.com.br' },
-    { name: 'Usuário Teste 2', email: 'teste2@kloop.com.br' },
-  ]
+  const idEletronicos = catEletronicos?.id || fallbackCat?.id
+  const idCasa = catCasa?.id || fallbackCat?.id
 
-  const createdUsers = []
-  for (const member of groupMembers) {
-    const user = await prisma.user.upsert({
-      where: { email: member.email },
-      update: { name: member.name, password: defaultPassword, emailVerified: now },
-      create: { name: member.name, email: member.email, password: defaultPassword, emailVerified: now },
-    })
-    createdUsers.push(user)
-    console.log(`✅ Verificado/Criado: ${user.name}`)
+  if (!idEletronicos || !idCasa) {
+    throw new Error('Erro crítico: Nenhuma categoria foi criada no banco.')
   }
 
-  const eduardo = createdUsers.find((u) => u.email === 'eduardo@kloop.com.br')!
-  const otavio = createdUsers.find((u) => u.email === 'otavio@kloop.com.br')!
-  const caique = createdUsers.find((u) => u.email === 'caique@kloop.com.br')!
+  console.log('🌱 Criando usuários oficiais...')
+  const hashedPassword = await bcrypt.hash('kloop123', 10)
 
-  console.log('🏠 Criando endereços para usuários de teste...')
+  const members = [
+    { name: 'Eduardo Fedeli', email: 'eduardo@kloop.com' },
+    { name: 'Otavio Vitoriano', email: 'otavio@kloop.com' },
+    { name: 'Caique Chagas', email: 'caique@kloop.com' },
+    { name: 'Gabriel Torres', email: 'gabriel@kloop.com' },
+    { name: 'Rodrigo Resende', email: 'rodrigo@kloop.com' },
+  ]
 
-  // Eduardo — SP (CEP 01310-100) → frete regional vs MG/RJ
-  await prisma.address.create({
+  const users = []
+  for (const m of members) {
+    const user = await prisma.user.create({
+      data: {
+        name: m.name,
+        email: m.email,
+        password: hashedPassword,
+        image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${m.name}`,
+        
+        // 👇 ADICIONE ESSAS DUAS LINHAS AQUI 👇
+        emailVerified: new Date(), 
+        isVerified: true,
+        // 👆 ------------------------------- 👆
+
+        addresses: {
+          create: {
+            label: 'Casa',
+            street: 'Av. Paulista',
+            number: '1000',
+            neighborhood: 'Bela Vista',
+            city: 'São Paulo',
+            state: 'SP',
+            zipCode: '01310100',
+            isDefault: true
+          }
+        }
+      }
+    })
+    users.push(user)
+  }
+
+  const [eduardo, otavio] = users
+
+  console.log('🌱 Criando produtos de exemplo...')
+  
+  const products = [
+    {
+      sellerId: eduardo.id,
+      title: 'iPhone 13 Pro Max 256GB',
+      slug: 'iphone-13-pro-max-256gb',
+      description: 'Aparelho impecável, sempre usado com capa e película. Saúde da bateria 88%. Acompanha caixa e cabo original.',
+      priceCents: 450000,
+      condition: 'LIKE_NEW' as const,
+      status: 'ACTIVE' as const,
+      brand: 'Apple',
+      size: 'Único',
+      categoryId: idEletronicos,
+      images: ['https://images.unsplash.com/photo-1632661674596-df8be070a5c5?q=80&w=800']
+    },
+    {
+      sellerId: otavio.id,
+      title: 'Sofá Minimalista Cinza',
+      slug: 'sofa-minimalista-cinza',
+      description: 'Sofá de 3 lugares, tecido linho, muito conservado. Motivo da venda: mudança.',
+      priceCents: 120000,
+      condition: 'GOOD' as const,
+      status: 'ACTIVE' as const,
+      brand: 'Tok&Stok',
+      size: '2.10m',
+      categoryId: idCasa,
+      images: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800']
+    }
+  ]
+
+  for (const p of products) {
+    const { images, ...data } = p
+    await prisma.listing.create({
+      data: {
+        ...data,
+        images: {
+          create: images.map((url, index) => ({
+            url,
+            displayOrder: index
+          }))
+        }
+      }
+    })
+  }
+
+  console.log('🌱 Populando Cashback para testes...')
+  await prisma.cashbackTransaction.create({
     data: {
       userId: eduardo.id,
-      label: 'Casa',
-      street: 'Av. Paulista',
-      number: '1578',
-      complement: 'Apto 201',
-      neighborhood: 'Bela Vista',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01310-100',
-      isDefault: true,
-    },
-  })
-
-  // Otavio — RJ (CEP 20040-020) → frete regional vs SP
-  await prisma.address.create({
-    data: {
-      userId: otavio.id,
-      label: 'Casa',
-      street: 'Av. Rio Branco',
-      number: '156',
-      neighborhood: 'Centro',
-      city: 'Rio de Janeiro',
-      state: 'RJ',
-      zipCode: '20040-020',
-      isDefault: true,
-    },
-  })
-
-  // Caique — MG (CEP 30112-000) → frete regional vs SP
-  await prisma.address.create({
-    data: {
-      userId: caique.id,
-      label: 'Casa',
-      street: 'Av. Afonso Pena',
-      number: '800',
-      neighborhood: 'Centro',
-      city: 'Belo Horizonte',
-      state: 'MG',
-      zipCode: '30112-000',
-      isDefault: true,
-    },
-  })
-
-  console.log('🌱 Criando categorias principais...')
-  const categoriesData = [
-    { name: 'Moças', slug: 'mocas', icon: '👗', subcats: ['Roupas', 'Calçados', 'Bolsas', 'Acessórios'] },
-    { name: 'Rapazes', slug: 'rapazes', icon: '👕', subcats: ['Roupas', 'Calçados', 'Acessórios'] },
-    { name: 'Crianças', slug: 'criancas', icon: '🧸', subcats: ['Meninas', 'Meninos', 'Bebês', 'Brinquedos'] },
-    { name: 'Casa & Decor', slug: 'casa-e-decor', icon: '🛋️', subcats: ['Móveis', 'Decoração', 'Cama, Mesa e Banho'] },
-    { name: 'Eletrônicos', slug: 'eletronicos', icon: '📱', subcats: ['Celulares', 'Informática', 'Áudio'] },
-  ]
-
-  const categoryMap = new Map<string, string>()
-
-  for (const [index, dept] of categoriesData.entries()) {
-    const parent = await prisma.category.create({
-      data: { name: dept.name, slug: dept.slug, sortOrder: index },
-    })
-    categoryMap.set(dept.name.toLowerCase(), parent.id)
-
-    for (const [subIndex, sub] of dept.subcats.entries()) {
-      const child = await prisma.category.create({
-        data: {
-          name: sub,
-          slug: `${dept.slug}-${sub.toLowerCase().replace(/\s+/g, '-')}`,
-          parentId: parent.id,
-          sortOrder: subIndex,
-        },
-      })
-      categoryMap.set(sub.toLowerCase(), child.id)
+      amountCents: 5000, 
+      type: 'CREDIT_BUYER',
+      description: 'Bônus de boas-vindas Kloop'
     }
-  }
-
-  console.log('🌱 Injetando anúncios de teste...')
-
-  await prisma.listing.create({
-    data: {
-      sellerId: eduardo.id,
-      categoryId: categoryMap.get('calçados') || categoryMap.get('moças')!,
-      title: 'Tênis Nike Air Max 90',
-      slug: 'tenis-nike-air-max-90',
-      description: 'Tênis original, usado poucas vezes. Acompanha caixa.',
-      priceCents: 25000,
-      condition: 'LIKE_NEW',
-      status: 'ACTIVE',
-      brand: 'Nike',
-      images: {
-        create: [
-          {
-            url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=800',
-            altText: 'Nike Air Max',
-            displayOrder: 0,
-          },
-        ],
-      },
-    },
   })
 
-  await prisma.listing.create({
-    data: {
-      sellerId: otavio.id,
-      categoryId: categoryMap.get('roupas') || categoryMap.get('rapazes')!,
-      title: 'Jaqueta de Couro Vintage',
-      slug: 'jaqueta-couro-vintage',
-      description: 'Jaqueta de couro legítimo, estilo biker. Perfeita para o inverno.',
-      priceCents: 18000,
-      condition: 'GOOD',
-      status: 'ACTIVE',
-      brand: 'Zara',
-      images: {
-        create: [
-          {
-            url: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=80&w=800',
-            altText: 'Jaqueta Couro',
-            displayOrder: 0,
-          },
-        ],
-      },
-    },
-  })
-
-  await prisma.listing.create({
-    data: {
-      sellerId: eduardo.id,
-      categoryId: categoryMap.get('bolsas') || categoryMap.get('moças')!,
-      title: 'Bolsa Schutz Crossbody',
-      slug: 'bolsa-schutz-crossbody',
-      description: 'Bolsa transversal Schutz, preta, tamanho médio.',
-      priceCents: 32000,
-      condition: 'NEW',
-      status: 'ACTIVE',
-      brand: 'Schutz',
-      images: {
-        create: [
-          {
-            url: 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&q=80&w=800',
-            altText: 'Bolsa Schutz',
-            displayOrder: 0,
-          },
-        ],
-      },
-    },
-  })
-
-  console.log('✅ Banco de dados semeado com sucesso! Kloop está pronto.')
-  console.log('📋 Usuários disponíveis (senha: kloop123):')
-  console.log('   eduardo@kloop.com.br — vendedor (SP)')
-  console.log('   otavio@kloop.com.br  — vendedor (RJ)')
-  console.log('   caique@kloop.com.br  — comprador (MG)')
+  console.log('✅ Banco de dados populado com sucesso!')
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Erro no seed:', e)
+    console.error(e)
     process.exit(1)
   })
   .finally(async () => {

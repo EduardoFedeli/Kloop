@@ -1,4 +1,4 @@
-import { ListingCondition } from '@prisma/client'
+import { ListingCondition, ListingStatus } from '@prisma/client'
 
 export type ListingWithDetails = {
   id: string
@@ -6,6 +6,7 @@ export type ListingWithDetails = {
   slug: string
   priceCents: number
   condition: ListingCondition
+  status: ListingStatus
   brand: string | null
   category: {
     id: string
