@@ -1,4 +1,4 @@
-name: CI T-Hex Garage
+name: CI Kloop
 
 on:
   pull_request:
@@ -8,8 +8,21 @@ jobs:
   build:
     name: Build & Type Check
     runs-on: ubuntu-latest
+    
+    # Injetando as variáveis de ambiente necessárias para o build do Next.js
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+      CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+      CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+      
+      # Descomente as linhas abaixo se o build começar a pedir essas variáveis também.
+      # Lembre-se de adicioná-las na aba "Secrets and variables" > "Actions" no GitHub.
+      # AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      # AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
+      # AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
+      # NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+      # RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
 
     steps:
       - name: Checkout do código
