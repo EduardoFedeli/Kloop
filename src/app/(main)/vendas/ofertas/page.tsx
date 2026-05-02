@@ -24,16 +24,16 @@ type OfferRow = {
 }
 
 const STATUS_LABEL: Record<OfferStatus, string> = {
-  PENDING_SELLER: 'aguardando vendedor',
-  PENDING_BUYER: 'sua vez de responder',
-  ACCEPTED: 'aceita — pague agora',
+  PENDING_SELLER: 'aguardando sua resposta',
+  PENDING_BUYER: 'aguardando comprador',
+  ACCEPTED: 'aceita — comprador pagando',
   REJECTED: 'recusada',
   EXPIRED: 'expirada',
   CANCELLED: 'cancelada',
 }
 
 function OfferCard({ offer }: { offer: OfferRow }) {
-  const isUrgent = offer.status === 'PENDING_BUYER' || (offer.status === 'ACCEPTED' && offer.transaction?.status === 'PENDING')
+  const isUrgent = offer.status === 'PENDING_SELLER'
   const image = offer.listing.images[0]?.url
 
   return (
@@ -67,14 +67,14 @@ function Section({ title, offers }: { title: string; offers: OfferRow[] }) {
   )
 }
 
-export default async function OfertasPage() {
+export default async function VendasOfertasPage() {
   const session = await auth()
   if (!session?.user?.id) redirect('/login')
   const userId = session.user.id
 
   await db.offer.updateMany({
     where: {
-      buyerId: userId,
+      sellerId: userId,
       status: { in: ['PENDING_SELLER', 'PENDING_BUYER'] },
       expiresAt: { lt: new Date() },
     },
@@ -82,7 +82,7 @@ export default async function OfertasPage() {
   })
 
   const offers = await db.offer.findMany({
-    where: { buyerId: userId },
+    where: { sellerId: userId },
     orderBy: { updatedAt: 'desc' },
     select: {
       id: true,
@@ -102,9 +102,9 @@ export default async function OfertasPage() {
     },
   })
 
-  const accepted = offers.filter((o) => o.status === 'ACCEPTED' && o.transaction?.status === 'PENDING')
-  const pendingBuyer = offers.filter((o) => o.status === 'PENDING_BUYER')
   const pendingSeller = offers.filter((o) => o.status === 'PENDING_SELLER')
+  const pendingBuyer = offers.filter((o) => o.status === 'PENDING_BUYER')
+  const accepted = offers.filter((o) => o.status === 'ACCEPTED' && o.transaction?.status === 'PENDING')
   const closed = offers.filter(
     (o) =>
       ['REJECTED', 'EXPIRED', 'CANCELLED'].includes(o.status) ||
@@ -114,18 +114,18 @@ export default async function OfertasPage() {
   if (offers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 px-8 text-center gap-5">
-        <span className="text-7xl select-none">🤝</span>
+        <span className="text-7xl select-none">📬</span>
         <div className="space-y-2">
-          <h3 className="text-[17px] font-black text-[var(--foreground)] tracking-tight">nenhuma oferta ainda</h3>
+          <h3 className="text-[17px] font-black text-[var(--foreground)] tracking-tight">nenhuma oferta recebida</h3>
           <p className="text-[13px] text-gray-500 dark:text-sage leading-relaxed max-w-[280px]">
-            o preço não convenceu? faça uma oferta e negocie diretamente com o vendedor.
+            quando compradores fizerem ofertas nos seus anúncios, elas aparecem aqui.
           </p>
         </div>
         <Link
-          href="/search"
+          href="/vendas"
           className="border-2 border-[var(--color-pine)] dark:border-[var(--color-teal)] text-[var(--color-pine)] dark:text-[var(--color-teal)] px-8 py-3 rounded-full font-bold text-[14px] hover:bg-[var(--color-pine)]/5 dark:hover:bg-[var(--color-teal)]/5 transition-colors"
         >
-          explorar produtos
+          ver painel de vendas
         </Link>
       </div>
     )
@@ -133,9 +133,9 @@ export default async function OfertasPage() {
 
   return (
     <div className="space-y-6">
-      <Section title="aceitas — pague agora" offers={accepted} />
-      <Section title="sua vez de responder" offers={pendingBuyer} />
-      <Section title="aguardando vendedor" offers={pendingSeller} />
+      <Section title="aguardando sua resposta" offers={pendingSeller} />
+      <Section title="aceitas — comprador tem até 24h pra pagar" offers={accepted} />
+      <Section title="aguardando comprador" offers={pendingBuyer} />
       <Section title="encerradas" offers={closed} />
     </div>
   )

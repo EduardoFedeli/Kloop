@@ -238,7 +238,7 @@ export default async function ProdutoPage({ params }: Props) {
             <section>
               <h2 className="text-[15px] font-bold text-[var(--foreground)] mb-1">faça sua pergunta</h2>
               <p className="text-[13px] text-gray-500 dark:text-sage mb-4">tire suas dúvidas com a gente</p>
-              <ProductActions listingId={listing.id} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} buyerHasAddress={!!buyerAddress} chatOnly />
+              <ProductActions listingId={listing.id} listingSlug={listing.slug} listingPriceCents={listing.priceCents} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} buyerHasAddress={!!buyerAddress} chatOnly />
             </section>
           )}
 
@@ -272,7 +272,7 @@ export default async function ProdutoPage({ params }: Props) {
           </section>
         </div>
       </div>
-      {!isOwner && <ProductActions listingId={listing.id} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} buyerHasAddress={!!buyerAddress} />}
+      {!isOwner && <ProductActions listingId={listing.id} listingSlug={listing.slug} listingPriceCents={listing.priceCents} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} buyerHasAddress={!!buyerAddress} />}
     </div>
   )
 }

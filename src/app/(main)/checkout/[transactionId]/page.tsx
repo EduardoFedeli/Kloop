@@ -37,9 +37,12 @@ export default async function CheckoutPage({ params }: Props) {
 
   const imageUrl = transaction.listing.images[0]?.url
 
+  // Use the negotiated price stored in the transaction, not the listing's original price
+  const negotiatedPriceCents = transaction.amountCents - transaction.shippingCents
+
   const [cashbackBalanceCents, cashbackMaxCents] = await Promise.all([
     getCashbackBalance(session.user.id),
-    getMaxApplicable(session.user.id, transaction.listing.priceCents),
+    getMaxApplicable(session.user.id, negotiatedPriceCents),
   ])
 
   return (
@@ -56,7 +59,7 @@ export default async function CheckoutPage({ params }: Props) {
           transactionId={transaction.id}
           listing={{
             title: transaction.listing.title,
-            priceCents: transaction.listing.priceCents,
+            priceCents: negotiatedPriceCents,
             imageUrl,
           }}
           shippingCents={transaction.shippingCents}
