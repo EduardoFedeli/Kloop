@@ -6,10 +6,13 @@ import { ShoppingBag, MessageCircle, Tag, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { startConversation } from '@/app/actions/chat'
+import { MakeOfferModal } from '@/components/produto/MakeOfferModal'
 import type { ListingStatus } from '@prisma/client'
 
 type Props = {
   listingId: string
+  listingSlug: string
+  listingPriceCents: number
   listingStatus: ListingStatus
   currentUserId?: string
   sellerId?: string
@@ -17,10 +20,19 @@ type Props = {
   chatOnly?: boolean
 }
 
-export function ProductActions({ listingId, listingStatus, currentUserId, buyerHasAddress, chatOnly = false }: Props) {
+export function ProductActions({
+  listingId,
+  listingSlug,
+  listingPriceCents,
+  listingStatus,
+  currentUserId,
+  buyerHasAddress,
+  chatOnly = false,
+}: Props) {
   const router = useRouter()
   const [isStartingChat, setIsStartingChat] = useState(false)
   const [isBuying, setIsBuying] = useState(false)
+  const [offerModalOpen, setOfferModalOpen] = useState(false)
   const isAvailable = listingStatus === 'ACTIVE'
 
   const handleChat = async () => {
@@ -90,9 +102,28 @@ export function ProductActions({ listingId, listingStatus, currentUserId, buyerH
     }
   }
 
+  const handleOfferClick = () => {
+    if (!currentUserId) {
+      router.push(`/login?redirectTo=/listing/${listingSlug}`)
+      return
+    }
+    if (buyerHasAddress === false) {
+      toast.error('Adicione um endereço antes de ofertar.')
+      return
+    }
+    setOfferModalOpen(true)
+  }
+
   // Fixed bottom bar mode
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-pine border-t border-gray-100 dark:border-forest px-4 py-3 safe-area-inset-bottom">
+    <>
+      <MakeOfferModal
+        listingId={listingId}
+        listingPriceCents={listingPriceCents}
+        isOpen={offerModalOpen}
+        onClose={() => setOfferModalOpen(false)}
+      />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-pine border-t border-gray-100 dark:border-forest px-4 py-3 safe-area-inset-bottom">
       <div className="max-w-2xl mx-auto space-y-2">
         <button
           disabled={!isAvailable || isBuying}
@@ -123,19 +154,16 @@ export function ProductActions({ listingId, listingStatus, currentUserId, buyerH
               sacolinha
             </button>
             <button
-              onClick={() => void handleChat()}
-              disabled={isStartingChat}
-              className={cn(
-                'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl border border-teal dark:border-celadon text-teal dark:text-celadon text-sm font-bold hover:bg-teal/5 transition-colors',
-                isStartingChat && 'opacity-60 cursor-not-allowed',
-              )}
+              onClick={handleOfferClick}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl border border-teal dark:border-celadon text-teal dark:text-celadon text-sm font-bold hover:bg-teal/5 transition-colors"
             >
               <Tag size={15} />
-              {isStartingChat ? 'aguarde...' : 'fazer oferta'}
+              fazer oferta
             </button>
           </div>
         )}
       </div>
     </div>
+    </>
   )
 }
