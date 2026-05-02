@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { createTransactionSchema } from '@/lib/validators/transaction'
 import { calculateShipping } from '@/lib/shipping'
+import { cancelOtherOffers } from '@/app/actions/offers'
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -94,7 +95,7 @@ export async function POST(req: NextRequest) {
         throw new Error('LISTING_NOT_AVAILABLE')
       }
 
-      return tx.transaction.create({
+      const created = await tx.transaction.create({
         data: {
           listingId,
           buyerId,
@@ -108,6 +109,10 @@ export async function POST(req: NextRequest) {
         },
         select: { id: true },
       })
+
+      await cancelOtherOffers(tx, listingId)
+
+      return created
     })
   } catch (err) {
     if (err instanceof Error && err.message === 'LISTING_NOT_AVAILABLE') {

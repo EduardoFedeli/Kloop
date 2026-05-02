@@ -21,11 +21,13 @@ function SelectField({
   value,
   options,
   onChange,
+  required,
 }: {
   placeholder: string
   value: string
   options: { id: string; name: string }[]
   onChange: (id: string) => void
+  required?: boolean
 }) {
   return (
     <div className="relative">
@@ -40,7 +42,7 @@ function SelectField({
         )}
       >
         <option value="" disabled className="bg-white dark:bg-[var(--color-pine)]">
-          {placeholder}
+          {placeholder}{required ? " *" : ""}
         </option>
         {options.map((opt) => (
           <option
@@ -61,33 +63,73 @@ function SelectField({
   )
 }
 
+function directChildren(parentId: string, all: Category[]): Category[] {
+  return all.filter((c) => c.parentId === parentId)
+}
+
 export function CategoryPicker({ categories, value, onChange, error }: CategoryPickerProps) {
   const roots = useMemo(() => categories.filter((c) => c.parentId === null), [categories])
 
   const [selectedDeptId, setSelectedDeptId] = useState("")
+  const [selectedCatId, setSelectedCatId] = useState("")
+  const [selectedSubId, setSelectedSubId] = useState("")
 
-  const children = useMemo(
-    () => categories.filter((c) => c.parentId === selectedDeptId),
+  const catOptions = useMemo(
+    () => directChildren(selectedDeptId, categories),
     [categories, selectedDeptId],
   )
 
+  const subOptions = useMemo(
+    () => (selectedCatId ? directChildren(selectedCatId, categories) : []),
+    [categories, selectedCatId],
+  )
+
+  const detailOptions = useMemo(
+    () => (selectedSubId ? directChildren(selectedSubId, categories) : []),
+    [categories, selectedSubId],
+  )
+
+  const showSubSelect = selectedCatId !== "" && subOptions.length > 0
+  const showDetailSelect = selectedSubId !== "" && detailOptions.length > 0
+
   const handleDeptChange = (deptId: string) => {
     setSelectedDeptId(deptId)
-    // Reset leaf when department changes
-    onChange("", roots.find((r) => r.id === deptId)?.name ?? "", "")
+    setSelectedCatId("")
+    setSelectedSubId("")
+    const dept = roots.find((r) => r.id === deptId)
+    onChange("", dept?.name ?? "", "")
   }
 
-  const handleLeafChange = (leafId: string) => {
+  const handleCatChange = (catId: string) => {
+    setSelectedCatId(catId)
+    setSelectedSubId("")
     const dept = roots.find((r) => r.id === selectedDeptId)
-    const leaf = children.find((c) => c.id === leafId)
-    onChange(leafId, dept?.name ?? "", leaf?.name ?? "")
+    const cat = catOptions.find((c) => c.id === catId)
+    const isLeaf = directChildren(catId, categories).length === 0
+    onChange(isLeaf ? catId : "", dept?.name ?? "", cat?.name ?? "")
   }
 
-  const selectedLeafId = useMemo(() => {
-    // Keep selected leaf in sync with the form value
-    const isLeafInCurrentDept = children.some((c) => c.id === value)
-    return isLeafInCurrentDept ? value : ""
-  }, [children, value])
+  const handleSubChange = (subId: string) => {
+    setSelectedSubId(subId)
+    const dept = roots.find((r) => r.id === selectedDeptId)
+    const cat = catOptions.find((c) => c.id === selectedCatId)
+    const isLeaf = directChildren(subId, categories).length === 0
+    onChange(isLeaf ? subId : "", dept?.name ?? "", cat?.name ?? "")
+  }
+
+  const handleDetailChange = (detailId: string) => {
+    const dept = roots.find((r) => r.id === selectedDeptId)
+    const cat = catOptions.find((c) => c.id === selectedCatId)
+    onChange(detailId, dept?.name ?? "", cat?.name ?? "")
+  }
+
+  const selectedDetailValue = useMemo(
+    () => (detailOptions.some((c) => c.id === value) ? value : ""),
+    [detailOptions, value],
+  )
+
+  const needsSubcat = showSubSelect && !selectedSubId
+  const needsDetail = showDetailSelect && !selectedDetailValue
 
   return (
     <div className="space-y-3">
@@ -97,16 +139,43 @@ export function CategoryPicker({ categories, value, onChange, error }: CategoryP
         options={roots}
         onChange={handleDeptChange}
       />
-      {selectedDeptId && children.length > 0 && (
+
+      {selectedDeptId && catOptions.length > 0 && (
         <SelectField
           placeholder="Selecione a categoria"
-          value={selectedLeafId}
-          options={children}
-          onChange={handleLeafChange}
+          value={selectedCatId}
+          options={catOptions}
+          onChange={handleCatChange}
+          required
         />
       )}
+
+      {showSubSelect && (
+        <SelectField
+          placeholder="Selecione a subcategoria"
+          value={selectedSubId}
+          options={subOptions}
+          onChange={handleSubChange}
+          required
+        />
+      )}
+
+      {showDetailSelect && (
+        <SelectField
+          placeholder="Selecione o detalhe"
+          value={selectedDetailValue}
+          options={detailOptions}
+          onChange={handleDetailChange}
+          required
+        />
+      )}
+
       {error && (
-        <p className="text-[12px] text-red-500 pl-1 font-medium">{error}</p>
+        <p className="text-[12px] text-red-500 pl-1 font-medium">
+          {needsSubcat || needsDetail
+            ? "Escolha uma subcategoria pra continuar"
+            : error}
+        </p>
       )}
     </div>
   )

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   Store, MessageCircle, ArchiveX, ShoppingBag, ChevronRight,
-  Megaphone, Tags, BarChart2, Settings, PackageOpen, HelpCircle, Info, Coins,
+  Megaphone, Tags, BarChart2, Settings, PackageOpen, HelpCircle, Info, Coins, Handshake,
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { CoverUploader } from '@/components/perfil/CoverUploader'
@@ -17,7 +17,7 @@ export default async function VendasPage() {
 
   const myId = session.user.id
 
-  const [userData, listings, completedTxs, pendingCount, activeOrdersCount, cashbackBalanceCents] = await Promise.all([
+  const [userData, listings, completedTxs, pendingCount, activeOrdersCount, cashbackBalanceCents, pendingOffersCount] = await Promise.all([
     db.user.findUnique({
       where: { id: myId },
       select: { name: true, image: true, avatarUrl: true, coverUrl: true },
@@ -37,6 +37,9 @@ export default async function VendasPage() {
       where: { buyerId: myId, status: { in: ['PENDING', 'PAID', 'SHIPPED', 'DELIVERED'] } },
     }),
     getCashbackBalance(myId),
+    db.offer.count({
+      where: { sellerId: myId, status: 'PENDING_SELLER', expiresAt: { gt: new Date() } },
+    }),
   ])
 
   const active = listings.filter((l) => l.status === 'ACTIVE').length
@@ -266,6 +269,36 @@ export default async function VendasPage() {
                   <p className="text-[14px] font-bold text-[var(--foreground)] tracking-tight mt-2">produtos vendidos</p>
                 </Link>
               </div>
+            </section>
+
+            {/* Ofertas pendentes */}
+            <section className="px-4 lg:px-0">
+              <Link
+                href="/vendas/ofertas"
+                className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex items-center justify-between shadow-sm"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center text-orange-600 dark:text-orange-400 flex-shrink-0">
+                    <Handshake size={20} />
+                  </div>
+                  <div>
+                    <p className="text-[14px] font-bold text-[var(--foreground)]">ofertas recebidas</p>
+                    <p className="text-[12px] text-gray-500 dark:text-sage mt-0.5">
+                      {pendingOffersCount > 0
+                        ? `${pendingOffersCount} ${pendingOffersCount === 1 ? 'oferta aguardando' : 'ofertas aguardando'} sua resposta`
+                        : 'nenhuma oferta pendente'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {pendingOffersCount > 0 && (
+                    <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-orange-500 text-white text-[11px] font-black flex items-center justify-center">
+                      {pendingOffersCount}
+                    </span>
+                  )}
+                  <ChevronRight size={18} className="text-gray-400" />
+                </div>
+              </Link>
             </section>
 
             {/* Minhas Compras */}
