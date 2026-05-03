@@ -24,6 +24,8 @@ export const createListingSchema = z.object({
     .array(z.object({ url: z.string().url(), publicId: z.string() }))
     .min(1, "Adicione pelo menos 1 foto")
     .max(6, "Máximo de 6 fotos"),
+  acceptsOffers: z.boolean(),
+  smartPriceEnabled: z.boolean(),
 })
 
 export type CreateListingInput = z.infer<typeof createListingSchema>

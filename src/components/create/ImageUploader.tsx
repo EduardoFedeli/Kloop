@@ -42,6 +42,7 @@ export interface UploadedImage {
 interface ImageUploaderProps {
   onChange: (images: UploadedImage[]) => void
   error?: string
+  initialImages?: UploadedImage[]
 }
 
 function makeSlot(): ImageSlot {
@@ -203,10 +204,19 @@ function SortableSlot({
   )
 }
 
-export function ImageUploader({ onChange, error }: ImageUploaderProps) {
-  const [slots, setSlots] = useState<ImageSlot[]>(() =>
-    Array.from({ length: 6 }, makeSlot),
-  )
+export function ImageUploader({ onChange, error, initialImages }: ImageUploaderProps) {
+  const [slots, setSlots] = useState<ImageSlot[]>(() => {
+    const pre = (initialImages ?? []).map((img) => ({
+      id: crypto.randomUUID(),
+      previewUrl: img.url,
+      cloudinaryUrl: img.url,
+      publicId: img.publicId,
+      progress: 100,
+      status: 'done' as SlotStatus,
+    }))
+    const empties = Array.from({ length: Math.max(0, 6 - pre.length) }, makeSlot)
+    return [...pre, ...empties]
+  })
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),

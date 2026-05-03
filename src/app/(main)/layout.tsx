@@ -27,7 +27,8 @@ export default async function MainLayout({ children }: { children: React.ReactNo
       <main className="flex-1 max-w-screen-xl mx-auto w-full px-4 py-6 pb-20 md:pb-6">
         {children}
       </main>
-      <BottomNav unreadCount={unreadCount} />
+      {/* Passando o isLoggedIn aqui! */}
+      <BottomNav unreadCount={unreadCount} isLoggedIn={!!session?.user} />
     </>
   )
 }

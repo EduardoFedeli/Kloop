@@ -1,21 +1,80 @@
-import Link from 'next/link'
+import { auth } from '@/lib/auth'
+import { db } from '@/lib/db'
+import { redirect } from 'next/navigation'
+import { MarcasClient } from '@/components/perfil/MarcasClient'
+import type { ListingWithDetails } from '@/types/listing'
 
-export default function MarcasPage() {
+export const dynamic = 'force-dynamic'
+
+const LISTING_SELECT = {
+  category: { select: { id: true, name: true, slug: true } },
+  images: {
+    orderBy: { displayOrder: 'asc' as const },
+    take: 1,
+    select: { url: true, altText: true },
+  },
+  seller: {
+    select: {
+      id: true,
+      name: true,
+      avatarUrl: true,
+      addresses: {
+        where: { isDefault: true },
+        select: { city: true, state: true },
+        take: 1,
+      },
+    },
+  },
+} as const
+
+export default async function MarcasPage() {
+  const session = await auth()
+  if (!session?.user?.id) redirect('/')
+
+  const userId = session.user.id
+
+  const [brandFollowRows, favoriteRows] = await Promise.all([
+    db.brandFollow.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'asc' },
+      select: { brand: true },
+    }),
+    db.favorite.findMany({
+      where: { userId },
+      select: { listingId: true },
+    }),
+  ])
+
+  const followedBrands = brandFollowRows.map((r) => r.brand)
+  const favoriteIds = favoriteRows.map((f) => f.listingId)
+
+  if (followedBrands.length === 0) {
+    return (
+      <MarcasClient followedBrands={[]} brandFeeds={[]} favoriteIds={favoriteIds} />
+    )
+  }
+
+  const listingsPerBrand = await Promise.all(
+    followedBrands.map((brand) =>
+      db.listing.findMany({
+        where: { brand, status: 'ACTIVE' },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        include: LISTING_SELECT,
+      })
+    )
+  )
+
+  const brandFeeds = followedBrands.map((brand, i) => ({
+    brand,
+    listings: listingsPerBrand[i] as unknown as ListingWithDetails[],
+  }))
+
   return (
-    <div className="flex flex-col items-center justify-center py-20 px-8 text-center gap-5">
-      <span className="text-7xl select-none">🏷️</span>
-      <div className="space-y-2">
-        <h3 className="text-[17px] font-black text-[var(--foreground)] tracking-tight">siga suas marcas do coração</h3>
-        <p className="text-[13px] text-gray-500 dark:text-sage leading-relaxed max-w-[280px]">
-          fique de olho nas novidades das suas marcas favoritas.
-        </p>
-      </div>
-      <Link
-        href="/search"
-        className="border-2 border-[var(--color-pine)] dark:border-[var(--color-teal)] text-[var(--color-pine)] dark:text-[var(--color-teal)] px-8 py-3 rounded-full font-bold text-[14px] hover:bg-[var(--color-pine)]/5 dark:hover:bg-[var(--color-teal)]/5 transition-colors"
-      >
-        explorar por aí
-      </Link>
-    </div>
+    <MarcasClient
+      followedBrands={followedBrands}
+      brandFeeds={brandFeeds}
+      favoriteIds={favoriteIds}
+    />
   )
 }

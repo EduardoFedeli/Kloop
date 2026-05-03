@@ -4,7 +4,7 @@ import { useState, useTransition } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { toast } from "sonner"
-import { Edit2, Pause, Play, Trash2 } from "lucide-react"
+import { Edit2, Pause, Play, Trash2, Eye } from "lucide-react"
 import { cn, formatPrice, formatDate } from "@/lib/utils"
 import { deleteListingAction, toggleListingStatusAction } from "@/lib/actions/listing"
 import { ConfirmModal } from "@/components/ui/ConfirmModal"
@@ -17,6 +17,7 @@ type ListingItem = {
   priceCents: number
   status: ListingStatus
   createdAt: Date
+  viewsCount: number
   category: { name: string }
   images: { url: string }[]
 }
@@ -114,6 +115,10 @@ export function MyListings({ listings }: Props) {
                     {label}
                   </span>
                   <span className="text-[10px] text-teal-muted">{formatDate(listing.createdAt)}</span>
+                  <span className="flex items-center gap-0.5 text-[10px] text-teal-muted">
+                    <Eye size={10} />
+                    {listing.viewsCount}
+                  </span>
                 </div>
               </div>
 

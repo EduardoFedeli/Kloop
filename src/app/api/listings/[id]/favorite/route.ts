@@ -18,6 +18,15 @@ export async function POST(_req: Request, { params }: RouteParams) {
 
   const { id: listingId } = await params
 
+  const listing = await db.listing.findUnique({
+    where: { id: listingId },
+    select: { sellerId: true },
+  })
+  if (!listing) return NextResponse.json({ error: "Não encontrado" }, { status: 404 })
+  if (listing.sellerId === session.user.id) {
+    return NextResponse.json({ error: "Não é possível curtir seu próprio anúncio" }, { status: 403 })
+  }
+
   await db.favorite.upsert({
     where: { userId_listingId: { userId: session.user.id, listingId } },
     create: { userId: session.user.id, listingId },

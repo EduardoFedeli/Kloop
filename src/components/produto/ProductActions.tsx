@@ -2,38 +2,69 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ShoppingBag, MessageCircle, Tag, Loader2 } from 'lucide-react'
+import { ShoppingBag, MessageCircle, Tag, Loader2, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { startConversation } from '@/app/actions/chat'
 import { MakeOfferModal } from '@/components/produto/MakeOfferModal'
+import { useCartStore } from '@/store/cart'
 import type { ListingStatus } from '@prisma/client'
 
 type Props = {
   listingId: string
   listingSlug: string
+  listingTitle: string
   listingPriceCents: number
+  listingImageUrl?: string | null
   listingStatus: ListingStatus
   currentUserId?: string
   sellerId?: string
+  sellerName?: string
   buyerHasAddress?: boolean
   chatOnly?: boolean
+  acceptsOffers?: boolean
 }
 
 export function ProductActions({
   listingId,
   listingSlug,
+  listingTitle,
   listingPriceCents,
+  listingImageUrl,
   listingStatus,
   currentUserId,
+  sellerId,
+  sellerName,
   buyerHasAddress,
   chatOnly = false,
+  acceptsOffers = true,
 }: Props) {
   const router = useRouter()
   const [isStartingChat, setIsStartingChat] = useState(false)
   const [isBuying, setIsBuying] = useState(false)
   const [offerModalOpen, setOfferModalOpen] = useState(false)
   const isAvailable = listingStatus === 'ACTIVE'
+  const { addItem, hasItem } = useCartStore()
+  const inCart = hasItem(listingId)
+
+  const handleAddToCart = () => {
+    if (!currentUserId) {
+      router.push(`/login?redirectTo=/listing/${listingSlug}`)
+      return
+    }
+    addItem({
+      listingId,
+      slug: listingSlug,
+      title: listingTitle,
+      priceCents: listingPriceCents,
+      imageUrl: listingImageUrl ?? null,
+      sellerId: sellerId ?? '',
+      sellerName: sellerName ?? '',
+    })
+    toast.success('Adicionado à sacola!', {
+      action: { label: 'ver sacola', onClick: () => router.push('/sacola') },
+    })
+  }
 
   const handleChat = async () => {
     if (!currentUserId) {
@@ -147,19 +178,26 @@ export function ProductActions({
         {isAvailable && (
           <div className="flex gap-2">
             <button
-              onClick={() => toast.info('Sacolinha em breve!')}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl border border-teal dark:border-celadon text-teal dark:text-celadon text-sm font-bold hover:bg-teal/5 transition-colors"
+              onClick={handleAddToCart}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl border text-sm font-bold transition-colors',
+                inCart
+                  ? 'border-teal bg-teal/10 text-teal dark:border-celadon dark:bg-celadon/10 dark:text-celadon'
+                  : 'border-teal dark:border-celadon text-teal dark:text-celadon hover:bg-teal/5'
+              )}
             >
-              <ShoppingBag size={15} />
-              sacolinha
+              {inCart ? <Check size={15} /> : <ShoppingBag size={15} />}
+              {inCart ? 'na sacola' : 'adicionar à sacola'}
             </button>
-            <button
-              onClick={handleOfferClick}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl border border-teal dark:border-celadon text-teal dark:text-celadon text-sm font-bold hover:bg-teal/5 transition-colors"
-            >
-              <Tag size={15} />
-              fazer oferta
-            </button>
+            {acceptsOffers && (
+              <button
+                onClick={handleOfferClick}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl border border-teal dark:border-celadon text-teal dark:text-celadon text-sm font-bold hover:bg-teal/5 transition-colors"
+              >
+                <Tag size={15} />
+                fazer oferta
+              </button>
+            )}
           </div>
         )}
       </div>

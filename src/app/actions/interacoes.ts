@@ -32,9 +32,22 @@ export async function toggleFollow(targetId: string, targetType: "USER" | "BRAND
     }
   }
 
-  // Para BRAND (marca), no MVP, podemos apenas simular o sucesso, 
-  // já que não temos tabela de marcas no Prisma.
-  return { following: true }
+  // BRAND: persiste o follow de marca no banco
+  const existing = await db.brandFollow.findUnique({
+    where: { userId_brand: { userId: session.user.id, brand: targetId } },
+  })
+
+  if (existing) {
+    await db.brandFollow.delete({ where: { id: existing.id } })
+    revalidatePath('/perfil/marcas')
+    return { following: false }
+  } else {
+    await db.brandFollow.create({
+      data: { userId: session.user.id, brand: targetId },
+    })
+    revalidatePath('/perfil/marcas')
+    return { following: true }
+  }
 }
 
 export async function reportItem(targetId: string, targetType: "LISTING" | "USER", reason: string) {

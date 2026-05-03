@@ -39,18 +39,20 @@ export function GlobalSearchBar({
   }
 
   return (
-    <div className="relative w-full">
-      <form onSubmit={handleSearch} className="flex items-center gap-3">
-        {showBackButton && (
-          <button 
-            type="button" 
-            onClick={() => router.back()}
-            className="text-[var(--foreground)] p-1 -ml-1"
-          >
-            <ArrowLeft size={24} />
-          </button>
-        )}
-        
+    <div className="relative w-full flex flex-col gap-3">
+      {/* ── Seta para voltar isolada no topo ── */}
+      {showBackButton && (
+        <button 
+          type="button" 
+          onClick={() => router.back()}
+          className="text-[var(--foreground)] p-1 -ml-1 self-start flex items-center hover:opacity-70 transition-opacity"
+        >
+          <ArrowLeft size={24} />
+        </button>
+      )}
+      
+      {/* ── Barra de busca ocupando largura total ── */}
+      <form onSubmit={handleSearch} className="flex w-full items-center">
         <div className={cn(
           "relative flex-1 flex items-center bg-white dark:bg-[var(--color-pine)] border rounded-2xl transition-all shadow-sm",
           isFocused ? "border-[var(--color-teal)] ring-1 ring-[var(--color-teal)]/20" : "border-gray-200 dark:border-white/10"

@@ -54,9 +54,17 @@ export function MakeOfferModal({ listingId, listingPriceCents, isOpen, onClose }
         const msgs: Record<string, string> = {
           cannot_offer_own_listing: 'você não pode ofertar no próprio anúncio.',
           listing_not_available: 'este anúncio não está mais disponível.',
+          offers_not_accepted: 'este anúncio não aceita ofertas.',
           price_above_listing: 'valor não pode ser maior que o preço do anúncio.',
+          buyer_address_required: 'adicione um endereço antes de ofertar.',
         }
         toast.error(msgs[result.error] ?? 'erro ao criar oferta, tente novamente.')
+        return
+      }
+      if (result.autoAccepted && result.transactionId) {
+        toast.success('oferta aceita automaticamente! finalize a compra.')
+        onClose()
+        router.push(`/checkout/${result.transactionId}`)
         return
       }
       toast.success('oferta enviada!')

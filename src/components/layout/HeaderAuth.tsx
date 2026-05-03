@@ -32,12 +32,13 @@ export function HeaderAuth({ user }: HeaderAuthProps) {
           >
             Entrar
           </button>
-          <Link
-            href="/create"
+          {/* Transformado em botão para abrir o modal de login */}
+          <button
+            onClick={() => setIsModalOpen(true)}
             className="rounded-full bg-teal px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-airforce"
           >
             Quero vender
-          </Link>
+          </button>
         </div>
         <AuthModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       </>
@@ -87,18 +88,18 @@ export function HeaderAuth({ user }: HeaderAuthProps) {
             </div>
 
             <Link
-              href="/dashboard"
+              href="/perfil/perfil"
               onClick={closeMenu}
               className="flex w-full items-center gap-2 px-4 py-2 text-sm text-airforce hover:bg-gray-50"
             >
               <User className="h-4 w-4" /> Meu perfil
             </Link>
             <Link
-              href="/dashboard"
+              href="/minha-loja"
               onClick={closeMenu}
               className="flex w-full items-center gap-2 px-4 py-2 text-sm text-airforce hover:bg-gray-50"
             >
-              <Package className="h-4 w-4" /> Meus anúncios
+              <Package className="h-4 w-4" /> Minha loja
             </Link>
             <Link
               href="/dashboard"

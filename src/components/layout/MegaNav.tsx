@@ -8,6 +8,7 @@ import { HeaderAuth } from "./HeaderAuth"
 import { ThemeToggle } from "./ThemeToggle"
 import { usePathname } from "next/navigation"
 import { GlobalSearchBar } from "../search/GlobalSearchBar"
+import { AuthModal } from "@/components/auth/AuthModal" // Import adicionado
 
 // ── Static nav structure ───────────────────────────────────────────────────
 
@@ -47,7 +48,7 @@ const MAIN: MainDept[] = [
 ]
 
 const OUTROS_COLS: OtherDept[] = [
-  { key: "casa-e-decor",     label: "casa & decor",     cats: ["móveis", "decoração e enfeites", "iluminação", "utensílios para cozinha", "organização", "cama, mesa e banho"] },
+  { key: "casa-e-decor",     label: "casa & decor",      cats: ["móveis", "decoração e enfeites", "iluminação", "utensílios para cozinha", "organização", "cama, mesa e banho"] },
   { key: "eletronicos",      label: "eletrônicos",       cats: ["informática", "smartphones e acessórios", "áudio e vídeo", "videogames", "fotografia", "aparelhos inteligentes"] },
   { key: "eletrodomesticos", label: "eletrodomésticos",  cats: ["cozinha", "limpeza e organização", "ar e ventilação"] },
   { key: "pets",             label: "pets",              cats: ["caminhas e casinhas", "brinquedos", "coleiras", "roupinhas e acessórios", "higiene e cuidados"] },
@@ -75,6 +76,7 @@ export function MegaNav({ brands, user, unreadCount }: MegaNavProps) {
   const isHome = pathname === '/' // <-- VERIFICA SE É A HOME
   
   const [activeKey, setActiveKey] = useState<string | null>(null)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false) // <-- Estado do modal adicionado
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function open(key: string) {
@@ -100,161 +102,173 @@ export function MegaNav({ brands, user, unreadCount }: MegaNavProps) {
   const iconCls = "p-2 rounded-full transition-colors text-gray-500 hover:text-[var(--color-teal)] hover:bg-gray-100 dark:text-sage dark:hover:text-[var(--color-celadon)] dark:hover:bg-[var(--color-emerald)]"
 
   return (
-    <header className={cn(
-      "sticky top-0 z-40 bg-white dark:bg-[var(--color-pine)] border-b border-gray-200 dark:border-forest transition-colors relative",
-      !isHome && "hidden md:block" // <-- A MÁGICA AQUI: esconde no celular se não for a Home!
-    )}>
-      {/* ── Main row ─────────────────────────────────────────────────────── */}
-      <div className="max-w-screen-xl mx-auto px-4 h-[60px] flex items-center gap-3">
+    <>
+      <header className={cn(
+        "sticky top-0 z-40 bg-white dark:bg-[var(--color-pine)] border-b border-gray-200 dark:border-forest transition-colors relative",
+        !isHome && "hidden md:block" // <-- A MÁGICA AQUI: esconde no celular se não for a Home!
+      )}>
+        {/* ── Main row ─────────────────────────────────────────────────────── */}
+        <div className="max-w-screen-xl mx-auto px-4 h-[60px] flex items-center gap-3">
 
-        {/* Logo */}
-        <Link href="/" className="shrink-0 flex items-center">
-          <span className="text-xl font-black text-[var(--color-teal)] dark:text-[var(--color-celadon)] tracking-tight">Kloop</span>
-        </Link>
+          {/* Logo */}
+          <Link href="/" className="shrink-0 flex items-center">
+            <span className="text-xl font-black text-[var(--color-teal)] dark:text-[var(--color-celadon)] tracking-tight">Kloop</span>
+          </Link>
 
-       {/* Search — desktop */}
-        <div className="hidden md:flex flex-1 max-w-md mx-2">
-          <GlobalSearchBar />
-        </div>
+         {/* Search — desktop */}
+          <div className="hidden md:flex flex-1 max-w-md mx-2">
+            <GlobalSearchBar />
+          </div>
 
-        {/* ── Desktop: nav + icons ─────────────────────────────────────── */}
-        <div className="hidden md:flex items-center gap-0 ml-auto">
-          {/* Nav tabs */}
-          <nav className="flex items-center">
-            {MAIN.map((dept) => (
+          {/* ── Desktop: nav + icons ─────────────────────────────────────── */}
+          <div className="hidden md:flex items-center gap-0 ml-auto">
+            {/* Nav tabs */}
+            <nav className="flex items-center">
+              {MAIN.map((dept) => (
+                <button
+                  key={dept.key}
+                  type="button"
+                  onMouseEnter={() => open(dept.key)}
+                  onMouseLeave={scheduleClose}
+                  className={cn(
+                    "relative px-3 py-4 text-sm font-medium transition-colors",
+                    activeKey === dept.key
+                      ? "text-[var(--color-teal)] dark:text-[var(--color-celadon)]"
+                      : "text-gray-600 dark:text-sage hover:text-[var(--color-teal)] dark:hover:text-[var(--color-celadon)]",
+                  )}
+                >
+                  {dept.label}
+                  {activeKey === dept.key && (
+                    <span className="absolute bottom-0 inset-x-0 h-0.5 bg-[var(--color-teal)] dark:bg-[var(--color-celadon)]" />
+                  )}
+                </button>
+              ))}
               <button
-                key={dept.key}
                 type="button"
-                onMouseEnter={() => open(dept.key)}
+                onMouseEnter={() => open("outros")}
                 onMouseLeave={scheduleClose}
                 className={cn(
                   "relative px-3 py-4 text-sm font-medium transition-colors",
-                  activeKey === dept.key
+                  activeKey === "outros"
                     ? "text-[var(--color-teal)] dark:text-[var(--color-celadon)]"
                     : "text-gray-600 dark:text-sage hover:text-[var(--color-teal)] dark:hover:text-[var(--color-celadon)]",
                 )}
               >
-                {dept.label}
-                {activeKey === dept.key && (
+                outros
+                {activeKey === "outros" && (
                   <span className="absolute bottom-0 inset-x-0 h-0.5 bg-[var(--color-teal)] dark:bg-[var(--color-celadon)]" />
                 )}
               </button>
-            ))}
-            <button
-              type="button"
-              onMouseEnter={() => open("outros")}
-              onMouseLeave={scheduleClose}
-              className={cn(
-                "relative px-3 py-4 text-sm font-medium transition-colors",
-                activeKey === "outros"
-                  ? "text-[var(--color-teal)] dark:text-[var(--color-celadon)]"
-                  : "text-gray-600 dark:text-sage hover:text-[var(--color-teal)] dark:hover:text-[var(--color-celadon)]",
-              )}
-            >
-              outros
-              {activeKey === "outros" && (
-                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-[var(--color-teal)] dark:bg-[var(--color-celadon)]" />
-              )}
-            </button>
-          </nav>
+            </nav>
 
-          {/* Divider */}
-          <div className="w-px h-5 bg-gray-200 dark:bg-[var(--color-emerald)] mx-2" />
+            {/* Divider */}
+            <div className="w-px h-5 bg-gray-200 dark:bg-[var(--color-emerald)] mx-2" />
 
-          {/* Icons */}
-          <div className="flex items-center">
-            <Link href="/ajuda" aria-label="Ajuda" className={iconCls}>
-              <HelpCircle size={20} />
-            </Link>
-            <button type="button" aria-label="Notificações" className={iconCls}>
-              <Bell size={20} />
-            </button>
-            <Link href="/favoritos" aria-label="Favoritos" className={iconCls}>
-              <Heart size={20} />
+            {/* Icons */}
+            <div className="flex items-center">
+              <Link href="/ajuda" aria-label="Ajuda" className={iconCls}>
+                <HelpCircle size={20} />
+              </Link>
+              <button type="button" aria-label="Notificações" className={iconCls}>
+                <Bell size={20} />
+              </button>
+              <Link href="/favoritos" aria-label="Favoritos" className={iconCls}>
+                <Heart size={20} />
+              </Link>
+              <Link href="/chat" aria-label="Mensagens" className={cn(iconCls, "relative")}>
+                <MessageCircle size={20} />
+                {unreadCount && unreadCount > 0 ? (
+                  <span className="absolute top-1 right-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                ) : null}
+              </Link>
+              <ThemeToggle />
+            </div>
+
+            {/* Divider */}
+            <div className="w-px h-5 bg-gray-200 dark:bg-[var(--color-emerald)] mx-2" />
+
+            {/* Auth */}
+            <HeaderAuth user={user} />
+          </div>
+
+          {/* ── Mobile: right side ───────────────────────────────────────── */}
+          <div className="md:hidden ml-auto flex items-center gap-1">
+            <Link href="/search" aria-label="Buscar" className={iconCls}>
+              <Search size={22} />
             </Link>
             <Link href="/chat" aria-label="Mensagens" className={cn(iconCls, "relative")}>
-              <MessageCircle size={20} />
+              <MessageCircle size={22} />
               {unreadCount && unreadCount > 0 ? (
-                <span className="absolute top-1 right-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold">
+                <span className="absolute top-0.5 right-0.5 inline-flex items-center justify-center w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               ) : null}
             </Link>
             <ThemeToggle />
+            <HeaderAuth user={user} />
           </div>
-
-          {/* Divider */}
-          <div className="w-px h-5 bg-gray-200 dark:bg-[var(--color-emerald)] mx-2" />
-
-          {/* Auth */}
-          <HeaderAuth user={user} />
         </div>
 
-        {/* ── Mobile: right side ───────────────────────────────────────── */}
-        <div className="md:hidden ml-auto flex items-center gap-1">
-          <Link href="/search" aria-label="Buscar" className={iconCls}>
-            <Search size={22} />
-          </Link>
-          <Link href="/chat" aria-label="Mensagens" className={cn(iconCls, "relative")}>
-            <MessageCircle size={22} />
-            {unreadCount && unreadCount > 0 ? (
-              <span className="absolute top-0.5 right-0.5 inline-flex items-center justify-center w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold">
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
-            ) : null}
-          </Link>
-          <ThemeToggle />
-          <HeaderAuth user={user} />
+        {/* ── Mobile: Scrollable Categories Row ──────────────────────────── */}
+        <div className="md:hidden overflow-x-auto border-t border-gray-100 dark:border-white/5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <ul className="flex items-center px-4 [&::-webkit-scrollbar]:hidden">
+            {[
+              { label: "pra você", href: "/", active: true },
+              { label: "kloop pro", href: "#", active: false, requiresAuth: true }, // Adicionada flag
+              { label: "moças", href: "/search?dept=mocas", active: false },
+              { label: "rapazes", href: "/search?dept=rapazes", active: false },
+              { label: "kids", href: "/search?dept=criancas", active: false },
+              { label: "casa", href: "/search?dept=casa-e-decor", active: false },
+            ].map((item) => (
+              <li key={item.label} className="flex-shrink-0">
+                <Link
+                  href={item.href}
+                  onClick={(e) => {
+                    // Impede o clique e abre o modal se precisar de auth e não tiver usuário
+                    if (item.requiresAuth && !user) {
+                      e.preventDefault()
+                      setIsAuthModalOpen(true)
+                    }
+                  }}
+                  className={cn(
+                    "block px-3 py-2.5 text-[14px] font-bold transition-colors border-b-2",
+                    item.active
+                      ? "text-[var(--color-pine)] dark:text-white border-[var(--color-pine)] dark:border-white"
+                      : "text-gray-500 dark:text-sage border-transparent hover:text-[var(--color-teal)]"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
-      </div>
 
-      {/* ── Mobile: Scrollable Categories Row ──────────────────────────── */}
-      <div className="md:hidden overflow-x-auto border-t border-gray-100 dark:border-white/5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        <ul className="flex items-center px-4 [&::-webkit-scrollbar]:hidden">
-          {[
-            { label: "pra você", href: "/", active: true },
-            { label: "kloop pro", href: "#", active: false },
-            { label: "moças", href: "/search?dept=mocas", active: false },
-            { label: "rapazes", href: "/search?dept=rapazes", active: false },
-            { label: "kids", href: "/search?dept=criancas", active: false },
-            { label: "casa", href: "/search?dept=casa-e-decor", active: false },
-          ].map((item) => (
-            <li key={item.label} className="flex-shrink-0">
-              <Link
-                href={item.href}
-                className={cn(
-                  "block px-3 py-2.5 text-[14px] font-bold transition-colors border-b-2",
-                  item.active
-                    ? "text-[var(--color-pine)] dark:text-white border-[var(--color-pine)] dark:border-white"
-                    : "text-gray-500 dark:text-sage border-transparent hover:text-[var(--color-teal)]"
-                )}
-              >
-                {item.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
+        {/* ── Mega dropdown ────────────────────────────────────────────────── */}
+        {activeKey && (
+          <div
+            className="absolute top-full left-0 right-0 z-50 bg-white dark:bg-[var(--color-pine)] border-t border-gray-100 dark:border-[var(--color-forest)] shadow-2xl"
+            onMouseEnter={cancelClose}
+            onMouseLeave={scheduleClose}
+          >
+            {activeKey === "outros" ? (
+              <OutrosDropdown brands={brands.outros} />
+            ) : (
+              (() => {
+                const dept = MAIN.find((d) => d.key === activeKey)
+                if (!dept) return null
+                return <MainDropdown dept={dept} brands={brandsMap[dept.key] ?? []} />
+              })()
+            )}
+          </div>
+        )}
+      </header>
 
-      {/* ── Mega dropdown ────────────────────────────────────────────────── */}
-      {activeKey && (
-        <div
-          className="absolute top-full left-0 right-0 z-50 bg-white dark:bg-[var(--color-pine)] border-t border-gray-100 dark:border-[var(--color-forest)] shadow-2xl"
-          onMouseEnter={cancelClose}
-          onMouseLeave={scheduleClose}
-        >
-          {activeKey === "outros" ? (
-            <OutrosDropdown brands={brands.outros} />
-          ) : (
-            (() => {
-              const dept = MAIN.find((d) => d.key === activeKey)
-              if (!dept) return null
-              return <MainDropdown dept={dept} brands={brandsMap[dept.key] ?? []} />
-            })()
-          )}
-        </div>
-      )}
-    </header>
+      {/* Renderização do AuthModal */}
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+    </>
   )
 }
 

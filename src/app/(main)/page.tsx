@@ -13,9 +13,15 @@ export type SellerPreview = {
 }
 
 export default async function FeedPage() {
+  const session = await auth()
+  const selfId = session?.user?.id
+
   const [rawListings, categories, rawSellers] = await Promise.all([
     db.listing.findMany({
-      where: { status: 'ACTIVE' },
+      where: {
+        status: 'ACTIVE',
+        ...(selfId && { NOT: { sellerId: selfId } }),
+      },
       include: {
         category: { select: { id: true, name: true, slug: true } },
         images: {
@@ -64,11 +70,10 @@ export default async function FeedPage() {
     listingCount: s._count.listings,
   }))
 
-  const session = await auth()
-  const favoriteIds = session?.user?.id
+  const favoriteIds = selfId
     ? await db.favorite
         .findMany({
-          where: { userId: session.user.id },
+          where: { userId: selfId },
           select: { listingId: true },
         })
         .then((favs) => favs.map((f) => f.listingId))

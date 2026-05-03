@@ -34,7 +34,7 @@ export async function createListingAction(formData: FormData): Promise<ListingAc
     include: { plan: { select: { maxActiveListings: true, name: true } } },
   })
 
-  const maxListings = subscription?.plan?.maxActiveListings ?? 5
+  const maxListings = subscription?.plan?.maxActiveListings ?? 15
   if (maxListings !== -1) {
     const activeCount = await db.listing.count({ where: { sellerId: userId, status: "ACTIVE" } })
     if (activeCount >= maxListings) {

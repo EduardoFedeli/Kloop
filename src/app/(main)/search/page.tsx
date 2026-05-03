@@ -11,6 +11,23 @@ interface PageProps {
   searchParams: Promise<Record<string, string | undefined>>
 }
 
+// ── NOVA FUNÇÃO RECURSIVA: Busca TODOS os níveis descendentes ──
+async function getAllDescendantIds(parentId: string): Promise<string[]> {
+  const children = await db.category.findMany({
+    where: { parentId },
+    select: { id: true },
+  })
+  
+  if (children.length === 0) return []
+  
+  const childIds = children.map(c => c.id)
+  // Chama a própria função para buscar os filhos dos filhos
+  const descendants = await Promise.all(childIds.map(id => getAllDescendantIds(id)))
+  
+  return [...childIds, ...descendants.flat()]
+}
+
+// ── FUNÇÃO ATUALIZADA: Resolve o nível atual e pega todos os descendentes ──
 async function resolveCategoryIds(dept?: string, cat?: string, sub?: string): Promise<string[]> {
   if (!dept) return []
 
@@ -20,31 +37,33 @@ async function resolveCategoryIds(dept?: string, cat?: string, sub?: string): Pr
   })
   if (!deptRecord) return []
 
-  if (!cat) {
-    const cats = await db.category.findMany({ where: { parentId: deptRecord.id }, select: { id: true } })
-    const catIds = cats.map((c) => c.id)
-    const subcats = catIds.length > 0
-      ? await db.category.findMany({ where: { parentId: { in: catIds } }, select: { id: true } })
-      : []
-    return [deptRecord.id, ...catIds, ...subcats.map((s) => s.id)]
+  let targetId = deptRecord.id
+
+  if (cat) {
+    const catRecord = await db.category.findFirst({
+      where: { name: { equals: cat, mode: 'insensitive' }, parentId: deptRecord.id },
+      select: { id: true },
+    })
+    
+    if (catRecord) {
+      targetId = catRecord.id
+      
+      if (sub) {
+        const subRecord = await db.category.findFirst({
+          where: { name: { equals: sub, mode: 'insensitive' }, parentId: catRecord.id },
+          select: { id: true },
+        })
+        if (subRecord) {
+          targetId = subRecord.id
+        }
+      }
+    }
   }
 
-  const catRecord = await db.category.findFirst({
-    where: { name: { equals: cat, mode: 'insensitive' }, parentId: deptRecord.id },
-    select: { id: true },
-  })
-  if (!catRecord) return [deptRecord.id]
-
-  if (!sub) {
-    const subcats = await db.category.findMany({ where: { parentId: catRecord.id }, select: { id: true } })
-    return [catRecord.id, ...subcats.map((s) => s.id)]
-  }
-
-  const subRecord = await db.category.findFirst({
-    where: { name: { equals: sub, mode: 'insensitive' }, parentId: catRecord.id },
-    select: { id: true },
-  })
-  return subRecord ? [subRecord.id] : [catRecord.id]
+  // Agora, a partir do nível que o usuário parou, puxamos todos os galhos abaixo dele!
+  const descendantIds = await getAllDescendantIds(targetId)
+  
+  return [targetId, ...descendantIds]
 }
 
 async function buildBreadcrumbs(dept?: string, cat?: string, sub?: string) {
@@ -115,10 +134,10 @@ export default async function SearchPage({ searchParams }: PageProps) {
   const newness = sp.newness ? parseInt(sp.newness) : undefined
   const sort = sp.sort ?? 'recent'
 
-  // ── Lógica de Decisão: Vitrine vs Resultados ──
-  // Se não houver nenhum query param (ex: acessou apenas /search), mostra a Vitrine.
-  const hasSearchParams = Object.keys(sp).length > 0
-  const isSearchEmpty = !hasSearchParams || (Object.keys(sp).length === 1 && q === '')
+  // ── Lógica de Decisão CORRIGIDA: Vitrine vs Resultados ──
+  // Só mostra a vitrine se não houver NENHUM parâmetro, ou se o único parâmetro for uma busca vazia (?q=)
+  const isEmptyQuery = Object.keys(sp).length === 1 && 'q' in sp && !sp.q
+  const isSearchEmpty = Object.keys(sp).length === 0 || isEmptyQuery
 
   if (isSearchEmpty) {
     return <SearchVitrine />
@@ -167,9 +186,21 @@ export default async function SearchPage({ searchParams }: PageProps) {
     sort === 'popular' ? { viewsCount: 'desc' as const } :
     { createdAt: 'desc' as const }
 
-  const [rawListings, brandGroups, conditionFacets, session] = await Promise.all([
+  const session = await auth()
+  const selfId = session?.user?.id
+
+  const whereBaseFiltered = {
+    ...whereBase,
+    ...(selfId && { NOT: { sellerId: selfId } }),
+  }
+  const whereFiltered = {
+    ...where,
+    ...(selfId && { NOT: { sellerId: selfId } }),
+  }
+
+  const [rawListings, brandGroups, conditionFacets] = await Promise.all([
     db.listing.findMany({
-      where,
+      where: whereFiltered,
       include: {
         category: { select: { id: true, name: true, slug: true } },
         images: {
@@ -193,26 +224,23 @@ export default async function SearchPage({ searchParams }: PageProps) {
       orderBy,
       take: 60,
     }),
-    // Marcas disponíveis no contexto atual (sem filtro de brand)
     db.listing.groupBy({
       by: ['brand'],
-      where: { ...whereBase, brand: { not: null } },
+      where: { ...whereBaseFiltered, brand: { not: null } },
       _count: { brand: true },
       orderBy: { _count: { brand: 'desc' } },
       take: 15,
     }),
-    // Condições com produtos — usadas para mostrar apenas filtros válidos
     db.listing.groupBy({
       by: ['condition'],
-      where: whereBase,
+      where: whereBaseFiltered,
       _count: { condition: true },
     }),
-    auth(),
   ])
 
-  const favoriteIds = session?.user?.id
+  const favoriteIds = selfId
     ? await db.favorite
-        .findMany({ where: { userId: session.user.id }, select: { listingId: true } })
+        .findMany({ where: { userId: selfId }, select: { listingId: true } })
         .then((favs) => favs.map((f) => f.listingId))
     : []
 

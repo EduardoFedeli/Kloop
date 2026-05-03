@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     where: { userId },
     include: { plan: { select: { maxActiveListings: true, name: true } } },
   })
-  const maxListings = subscription?.plan?.maxActiveListings ?? 5
+  const maxListings = subscription?.plan?.maxActiveListings ?? 15
   if (maxListings !== -1) {
     const activeCount = await db.listing.count({
       where: { sellerId: userId, status: "ACTIVE" },
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 422 })
   }
 
-  const { title, description, priceCents, categoryId, condition, brand, size, images } =
+  const { title, description, priceCents, categoryId, condition, brand, size, images, acceptsOffers, smartPriceEnabled } =
     parsed.data
 
   // Verify category is a leaf (no children)
@@ -81,6 +81,9 @@ export async function POST(req: NextRequest) {
 
   const slug = await generateUniqueSlug(title)
 
+  const idealPriceMinCents = smartPriceEnabled ? Math.round(priceCents * 0.70) : null
+  const idealPriceMaxCents = smartPriceEnabled ? priceCents : null
+
   const listing = await db.$transaction(async (tx) => {
     const created = await tx.listing.create({
       data: {
@@ -94,6 +97,10 @@ export async function POST(req: NextRequest) {
         brand: brand ?? null,
         size: size ?? null,
         status: "ACTIVE",
+        acceptsOffers,
+        smartPriceEnabled,
+        idealPriceMinCents,
+        idealPriceMaxCents,
       },
     })
 

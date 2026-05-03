@@ -13,7 +13,7 @@ const TABS: TabConfig[] = [
   { label: 'ofertas',   href: '/perfil/ofertas',   Icon: Handshake },
   { label: 'lojinhas', href: '/perfil/lojinhas',  Icon: Store },
   { label: 'marcas',   href: '/perfil/marcas',    Icon: Tag },
-  { label: 'perfil',   href: '/dashboard',        Icon: User },
+  { label: 'perfil',   href: '/perfil/perfil',    Icon: User },
 ]
 
 export function PerfilTabBar() {
@@ -22,7 +22,7 @@ export function PerfilTabBar() {
   return (
     <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden">
       {TABS.map(({ label, href, Icon }) => {
-        const isActive = href !== '/dashboard' && pathname.startsWith(href)
+        const isActive = pathname.startsWith(href)
         return (
           <Link
             key={href}

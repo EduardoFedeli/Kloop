@@ -19,7 +19,6 @@ export default async function DashboardPage() {
         id: true,
         name: true,
         email: true,
-        bio: true,
         phone: true,
         avatarUrl: true,
         createdAt: true,
@@ -32,7 +31,14 @@ export default async function DashboardPage() {
     }),
     db.listing.findMany({
       where: { sellerId: session.user.id },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        priceCents: true,
+        status: true,
+        createdAt: true,
+        viewsCount: true,
         images: { orderBy: { displayOrder: "asc" }, take: 1, select: { url: true } },
         category: { select: { name: true } },
       },
@@ -66,7 +72,6 @@ export default async function DashboardPage() {
         <ProfileForm
           profile={{
             name: user.name,
-            bio: user.bio,
             phone: user.phone,
             avatarUrl: user.avatarUrl,
           }}

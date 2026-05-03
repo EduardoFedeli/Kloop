@@ -116,7 +116,7 @@ export function AddressSection({ addresses }: Props) {
         </div>
       ))}
 
-      {!showForm && (
+      {!showForm && addresses.length === 0 && (
         <button
           onClick={() => setShowForm(true)}
           className="flex items-center gap-2 text-sm font-medium text-teal hover:text-airforce transition-colors"
@@ -126,7 +126,7 @@ export function AddressSection({ addresses }: Props) {
         </button>
       )}
 
-      {showForm && (
+      {showForm && addresses.length === 0 && (
         <form
           onSubmit={handleCreate}
           className="space-y-3 p-4 rounded-xl border border-teal-muted/30 bg-linen"

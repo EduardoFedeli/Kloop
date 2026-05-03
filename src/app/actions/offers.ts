@@ -16,9 +16,10 @@ import type { Prisma, OfferStatus } from '@prisma/client'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type CreateOfferResult =
-  | { offerId: string }
+  | { offerId: string; autoAccepted?: boolean; transactionId?: string }
   | { error: 'unauthenticated' }
   | { error: 'listing_not_available' }
+  | { error: 'offers_not_accepted' }
   | { error: 'cannot_offer_own_listing' }
   | { error: 'price_above_listing' }
   | { error: 'existing_active_offer'; existingOfferId: string }
@@ -75,10 +76,20 @@ export async function createOffer(input: {
 
   const listing = await db.listing.findUnique({
     where: { id: listingId },
-    select: { id: true, slug: true, sellerId: true, priceCents: true, status: true },
+    select: {
+      id: true,
+      slug: true,
+      sellerId: true,
+      priceCents: true,
+      status: true,
+      acceptsOffers: true,
+      smartPriceEnabled: true,
+      idealPriceMinCents: true,
+    },
   })
 
   if (!listing || listing.status !== 'ACTIVE') return { error: 'listing_not_available' }
+  if (!listing.acceptsOffers) return { error: 'offers_not_accepted' }
   if (listing.sellerId === buyerId) return { error: 'cannot_offer_own_listing' }
   if (priceCents > listing.priceCents) return { error: 'price_above_listing' }
 
@@ -96,6 +107,93 @@ export async function createOffer(input: {
   }
 
   const expiresAt = new Date(Date.now() + OFFER_TTL_MS)
+  const isInSmartRange =
+    listing.smartPriceEnabled &&
+    listing.idealPriceMinCents !== null &&
+    priceCents >= listing.idealPriceMinCents
+
+  if (isInSmartRange) {
+    // Auto-accept: build the full transaction immediately
+    let transactionId: string
+    try {
+      transactionId = await db.$transaction(async (tx) => {
+        const freshListing = await tx.listing.findUnique({
+          where: { id: listingId },
+          include: {
+            seller: {
+              include: {
+                subscription: { include: { plan: { select: { commissionRate: true } } } },
+                addresses: { where: { isDefault: true }, select: { zipCode: true }, take: 1 },
+              },
+            },
+          },
+        })
+        if (!freshListing || freshListing.status !== 'ACTIVE') throw new Error('LISTING_NOT_AVAILABLE')
+
+        const buyerAddress = await tx.address.findFirst({
+          where: { userId: buyerId, isDefault: true },
+          select: { id: true, zipCode: true },
+        })
+        if (!buyerAddress) throw new Error('BUYER_ADDRESS_REQUIRED')
+
+        const sellerZip = freshListing.seller.addresses[0]?.zipCode ?? ''
+        const shipping = calculateShipping(sellerZip, buyerAddress.zipCode)
+        const commissionRateNum = parseFloat(
+          (freshListing.seller.subscription?.plan?.commissionRate ?? '0.0800').toString(),
+        )
+        const commissionCents = Math.round(priceCents * commissionRateNum)
+        const amountCents = priceCents + shipping.priceCents
+
+        const createdTx = await tx.transaction.create({
+          data: {
+            listingId,
+            buyerId,
+            sellerId: listing.sellerId,
+            amountCents,
+            shippingCents: shipping.priceCents,
+            commissionCents,
+            commissionRate: commissionRateNum,
+            addressId: buyerAddress.id,
+            status: 'PENDING',
+          },
+          select: { id: true },
+        })
+
+        const createdOffer = await tx.offer.create({
+          data: {
+            listingId,
+            buyerId,
+            sellerId: listing.sellerId,
+            status: 'ACCEPTED',
+            currentTurnUserId: null,
+            expiresAt,
+            roundsCount: 1,
+            listingPriceCentsAtCreation: listing.priceCents,
+            currentPriceCents: priceCents,
+            transactionId: createdTx.id,
+          },
+          select: { id: true },
+        })
+
+        await tx.offerRound.create({
+          data: { offerId: createdOffer.id, roundNumber: 1, proposedBy: buyerId, priceCents },
+        })
+
+        return createdTx.id
+      })
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.message === 'LISTING_NOT_AVAILABLE') return { error: 'listing_not_available' }
+        if (err.message === 'BUYER_ADDRESS_REQUIRED') return { error: 'buyer_address_required' }
+      }
+      throw err
+    }
+
+    revalidatePath('/perfil/ofertas')
+    revalidatePath('/vendas/ofertas')
+    revalidatePath(`/listing/${listing.slug}`)
+    return { offerId: transactionId, autoAccepted: true, transactionId }
+  }
 
   const offer = await db.$transaction(async (tx) => {
     const created = await tx.offer.create({

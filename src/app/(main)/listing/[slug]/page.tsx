@@ -26,6 +26,26 @@ interface Props {
   params: Promise<{ slug: string }>
 }
 
+// ── NOVA FUNÇÃO RECURSIVA: Busca a árvore de baixo para cima ──
+async function getCategoryTree(categoryId: string): Promise<string[]> {
+  const category = await db.category.findUnique({
+    where: { id: categoryId },
+    select: { name: true, parentId: true }
+  });
+
+  if (!category) return [];
+
+  // Se tiver um parentId, chama a função de novo para pegar o pai dele
+  if (category.parentId) {
+    const parentNames = await getCategoryTree(category.parentId);
+    return [...parentNames, category.name];
+  }
+
+  // Se não tiver parentId, ele é o nível mais alto (Departamento)
+  return [category.name];
+}
+
+
 export default async function ProdutoPage({ params }: Props) {
   const { slug } = await params
   const session = await auth()
@@ -41,7 +61,7 @@ export default async function ProdutoPage({ params }: Props) {
           _count: { select: { listings: { where: { status: 'ACTIVE' } }, saleTransactions: { where: { status: 'COMPLETED' } } } },
         },
       },
-      category: { select: { name: true, slug: true, parent: { select: { name: true, slug: true } } } },
+      category: { select: { id: true, name: true, slug: true } },
       images: { orderBy: { displayOrder: 'asc' } },
       _count: { select: { favorites: true } },
     },
@@ -52,7 +72,7 @@ export default async function ProdutoPage({ params }: Props) {
   const isOwner = session?.user?.id === listing.sellerId
 
   // Otimização monstra: Resolvemos todas as queries dependentes do usuário de uma vez só
-  const [isFavoritedResult, buyerAddress, isFollowingResult, cashbackTxs] = await Promise.all([
+  const [isFavoritedResult, buyerAddress, isFollowingResult, cashbackTxs, isBrandFollowedResult] = await Promise.all([
     session?.user?.id
       ? db.favorite.findUnique({ where: { userId_listingId: { userId: session.user.id, listingId: listing.id } } })
       : Promise.resolve(null),
@@ -65,10 +85,14 @@ export default async function ProdutoPage({ params }: Props) {
     session?.user?.id
       ? db.cashbackTransaction.findMany({ where: { userId: session.user.id } })
       : Promise.resolve([]),
+    session?.user?.id && listing.brand
+      ? db.brandFollow.findUnique({ where: { userId_brand: { userId: session.user.id, brand: listing.brand } } })
+      : Promise.resolve(null),
   ])
 
   const isFavorited = isFavoritedResult !== null
   const isFollowing = isFollowingResult !== null
+  const isBrandFollowed = isBrandFollowedResult !== null
 
   // Cálculo REAL do Saldo de Bate e Volta (Cashback)
  // Cálculo REAL do Saldo de Bate e Volta (Cashback)
@@ -85,7 +109,9 @@ export default async function ProdutoPage({ params }: Props) {
 
   const installmentCents = Math.ceil(listing.priceCents / 12)
   const cashbackGanhoCents = Math.round(listing.priceCents * 0.05) // O que ele GANHA nessa compra
-  const breadcrumbs = [listing.category.parent?.name, listing.category.name].filter(Boolean).join(' / ').toLowerCase()
+  // Agora usamos a função recursiva para montar a árvore completinha!
+  const categoryTreeNames = await getCategoryTree(listing.category.id);
+  const breadcrumbs = categoryTreeNames.join(' / ').toLowerCase();
 
   const shipping = sellerAddress && buyerAddress
     ? calculateShipping(sellerAddress.zipCode, buyerAddress.zipCode)
@@ -184,7 +210,7 @@ export default async function ProdutoPage({ params }: Props) {
                 <p className="font-bold text-[14px] text-[var(--foreground)]">{listing.brand}</p>
               </div>
               {/* COMPONENTE INTERATIVO: Seguir Marca */}
-              <FollowButton targetId={listing.brand as string} targetType="BRAND" initialIsFollowing={false} />
+              <FollowButton targetId={listing.brand as string} targetType="BRAND" initialIsFollowing={isBrandFollowed} />
             </section>
           )}
 
@@ -238,7 +264,7 @@ export default async function ProdutoPage({ params }: Props) {
             <section>
               <h2 className="text-[15px] font-bold text-[var(--foreground)] mb-1">faça sua pergunta</h2>
               <p className="text-[13px] text-gray-500 dark:text-sage mb-4">tire suas dúvidas com a gente</p>
-              <ProductActions listingId={listing.id} listingSlug={listing.slug} listingPriceCents={listing.priceCents} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} buyerHasAddress={!!buyerAddress} chatOnly />
+              <ProductActions listingId={listing.id} listingSlug={listing.slug} listingTitle={listing.title} listingPriceCents={listing.priceCents} listingImageUrl={listing.images[0]?.url} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} sellerName={seller.name} buyerHasAddress={!!buyerAddress} acceptsOffers={listing.acceptsOffers} chatOnly />
             </section>
           )}
 
@@ -272,7 +298,7 @@ export default async function ProdutoPage({ params }: Props) {
           </section>
         </div>
       </div>
-      {!isOwner && <ProductActions listingId={listing.id} listingSlug={listing.slug} listingPriceCents={listing.priceCents} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} buyerHasAddress={!!buyerAddress} />}
+      {!isOwner && <ProductActions listingId={listing.id} listingSlug={listing.slug} listingTitle={listing.title} listingPriceCents={listing.priceCents} listingImageUrl={listing.images[0]?.url} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} sellerName={seller.name} buyerHasAddress={!!buyerAddress} acceptsOffers={listing.acceptsOffers} />}
     </div>
   )
 }

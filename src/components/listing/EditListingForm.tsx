@@ -1,0 +1,585 @@
+"use client"
+
+import { useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
+import { useForm, Controller } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { cn } from "@/lib/utils"
+import { createListingSchema, type CreateListingInput } from "@/lib/validators/listing"
+import { ImageUploader, type UploadedImage } from "@/components/create/ImageUploader"
+import { CategoryPicker } from "@/components/create/CategoryPicker"
+import { Check, Loader2, ArrowLeft } from "lucide-react"
+import type { ListingCondition } from "@prisma/client"
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Category {
+  id: string
+  name: string
+  parentId: string | null
+}
+
+export interface EditInitialData {
+  id: string
+  title: string
+  description: string
+  priceCents: number
+  categoryId: string
+  condition: ListingCondition
+  brand: string | null
+  size: string | null
+  acceptsOffers: boolean
+  smartPriceEnabled: boolean
+  images: UploadedImage[]
+}
+
+interface EditListingFormProps {
+  initialData: EditInitialData
+  categories: Category[]
+}
+
+// ─── Static data ──────────────────────────────────────────────────────────────
+
+const BRANDS = [
+  "Adidas", "Animale", "Arezzo", "Armani Exchange", "Balenciaga", "Balmain",
+  "Burberry", "Calvin Klein", "Cantão", "Chanel", "Colcci", "Diesel", "Dior",
+  "Dolce & Gabbana", "Dudalina", "Ellus", "Farm", "Fendi", "Forum",
+  "Givenchy", "Gucci", "Guess", "H&M", "Hering", "Hugo Boss",
+  "Isabela Capeto", "Iódice", "Jacquemus", "John John", "Lacoste",
+  "Le Lis Blanc", "Levi's", "Louis Vuitton", "Mango", "Marc Jacobs",
+  "Maria Filó", "Melissa", "Michael Kors", "Missoni", "Moschino",
+  "Nike", "Off-White", "Osklen", "Polo Ralph Lauren", "Prada", "Puma",
+  "Riachuelo", "Sacada", "Saint Laurent", "Schutz", "Shoulder",
+  "Tommy Hilfiger", "Track & Field", "Triton", "Valentino", "Versace",
+  "Vix", "Vivara", "Vizzano", "Zara", "Zoomp",
+].sort()
+
+const CONDITIONS = [
+  { value: "NEW" as const, label: "Novo", desc: "Com etiqueta, nunca usado" },
+  { value: "LIKE_NEW" as const, label: "Seminovo", desc: "Usado poucas vezes, sem defeitos" },
+  { value: "GOOD" as const, label: "Bom estado", desc: "Pequenos sinais de uso" },
+  { value: "FAIR" as const, label: "Usado", desc: "Sinais de uso visíveis" },
+]
+
+const ADULT_CLOTHING = ["PP", "P", "M", "G", "GG", "XG", "XGG", "Único"]
+const ADULT_SHOES = Array.from({ length: 14 }, (_, i) => String(33 + i))
+const KIDS_CLOTHING = [
+  "RN", "0–3m", "3–6m", "6–9m", "9–12m",
+  "1 ano", "2 anos", "4 anos", "6 anos", "8 anos", "10 anos", "12 anos", "14 anos",
+]
+const KIDS_SHOES = Array.from({ length: 22 }, (_, i) => String(14 + i))
+
+type SizeContext = { show: false } | { show: true; label: string; options: string[] }
+
+function getSizeContext(deptName: string, catName: string): SizeContext {
+  const dept = deptName.toLowerCase()
+  const cat = catName.toLowerCase()
+  if (dept === "moças" || dept === "rapazes") {
+    if (cat === "roupas") return { show: true, label: "Tamanho", options: ADULT_CLOTHING }
+    if (cat === "calçados") return { show: true, label: "Número", options: ADULT_SHOES }
+  }
+  if (dept === "crianças") {
+    if (cat === "meninas" || cat === "meninos") return { show: true, label: "Tamanho", options: KIDS_CLOTHING }
+    if (cat === "calçados") return { show: true, label: "Número", options: KIDS_SHOES }
+  }
+  return { show: false }
+}
+
+function getInitialSizeCtx(categoryId: string, categories: Category[]): SizeContext {
+  if (!categoryId) return { show: false }
+  const chain: string[] = []
+  let currentId: string | null = categoryId
+  while (currentId) {
+    const cat = categories.find((c) => c.id === currentId)
+    if (!cat) break
+    chain.unshift(cat.id)
+    currentId = cat.parentId
+  }
+  const deptName = categories.find((c) => c.id === chain[0])?.name ?? ""
+  const catName = categories.find((c) => c.id === chain[1])?.name ?? ""
+  return getSizeContext(deptName, catName)
+}
+
+function SelectField({ placeholder, value, options, onChange }: {
+  placeholder: string; value: string; options: string[]
+  onChange: (v: string) => void
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={cn(
+          "w-full bg-transparent border rounded-xl px-4 py-3.5 text-[14px] text-[var(--foreground)] outline-none focus:border-[var(--color-teal)] transition-colors appearance-none cursor-pointer",
+          !value ? "border-gray-200 dark:border-white/20 text-gray-400 dark:text-sage" : "border-gray-200 dark:border-white/20",
+        )}
+      >
+        <option value="" disabled className="bg-white dark:bg-[var(--color-pine)] text-gray-400">{placeholder}</option>
+        {options.map((opt) => (
+          <option key={opt} value={opt} className="bg-white dark:bg-[var(--color-pine)] text-[var(--foreground)]">{opt}</option>
+        ))}
+      </select>
+      <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400 dark:text-sage">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+    </div>
+  )
+}
+
+const COMMISSION_RATE = 0.18
+const FIXED_FEE = 7.5
+
+function fmtBRL(val: number): string {
+  return val.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+// ─── Atoms ────────────────────────────────────────────────────────────────────
+
+function SectionCard({ title, action, children }: {
+  title: string
+  action?: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <div className="bg-white dark:bg-[var(--color-pine)] rounded-2xl p-5 border border-gray-100 dark:border-white/5 shadow-sm space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-[15px] font-bold text-[var(--foreground)]">{title}</p>
+        {action}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function Toggle({ label, desc, checked, onChange }: {
+  label: string; desc?: string; checked: boolean; onChange: (v: boolean) => void
+}) {
+  return (
+    <div className="py-1">
+      <button type="button" onClick={() => onChange(!checked)} className="flex items-center justify-between w-full text-left">
+        <span className="text-[14px] font-bold text-[var(--foreground)]">{label}</span>
+        <div className={cn("relative w-12 h-7 rounded-full transition-colors flex-shrink-0", checked ? "bg-[var(--color-pine)] dark:bg-[var(--color-celadon)]" : "bg-gray-200 dark:bg-white/10")}>
+          <div className={cn("absolute top-1 w-5 h-5 bg-white dark:bg-[var(--color-forest)] rounded-full shadow transition-all", checked ? "left-6" : "left-1")} />
+        </div>
+      </button>
+      {desc && checked && <p className="text-[13px] text-gray-500 dark:text-sage mt-2 leading-relaxed pr-8">{desc}</p>}
+    </div>
+  )
+}
+
+function BrandInput({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled: boolean }) {
+  const [open, setOpen] = useState(false)
+  const filtered = value.length > 0 ? BRANDS.filter((b) => b.toLowerCase().includes(value.toLowerCase())).slice(0, 5) : []
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        disabled={disabled}
+        placeholder={disabled ? "Sem marca" : "Ex: Nike, Zara, Farm..."}
+        value={value}
+        onChange={(e) => { onChange(e.target.value); setOpen(true) }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        className={cn(
+          "w-full bg-transparent border rounded-xl px-4 py-3.5 text-[14px] outline-none transition-colors",
+          disabled ? "bg-gray-50 dark:bg-white/5 text-gray-400 cursor-not-allowed border-gray-200 dark:border-white/10" : "border-gray-200 dark:border-white/20 focus:border-[var(--color-teal)] text-[var(--foreground)]",
+        )}
+      />
+      {open && filtered.length > 0 && (
+        <ul className="absolute z-10 w-full bg-white dark:bg-[var(--color-pine)] border border-gray-100 dark:border-white/20 rounded-xl mt-2 shadow-xl max-h-48 overflow-y-auto overflow-hidden">
+          {filtered.map((brand) => (
+            <li key={brand} onMouseDown={() => { onChange(brand); setOpen(false) }} className="px-4 py-3 text-[14px] text-[var(--foreground)] hover:bg-gray-50 dark:hover:bg-white/10 cursor-pointer transition-colors border-b border-gray-50 dark:border-white/5 last:border-0">
+              {brand}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+function ConditionCards({ value, onChange, error }: { value: string; onChange: (v: string) => void; error?: string }) {
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        {CONDITIONS.map((c) => {
+          const isSelected = value === c.value
+          return (
+            <button
+              key={c.value}
+              type="button"
+              onClick={() => onChange(c.value)}
+              className={cn(
+                "text-left p-4 rounded-xl border-2 transition-all relative overflow-hidden",
+                isSelected ? "border-[var(--color-pine)] dark:border-[var(--color-celadon)] bg-[var(--color-teal)]/5 dark:bg-white/5" : "border-gray-100 dark:border-white/10 hover:border-gray-200 dark:hover:border-white/20",
+              )}
+            >
+              {isSelected && (
+                <div className="absolute top-3 right-3 text-[var(--color-pine)] dark:text-[var(--color-celadon)]">
+                  <Check size={16} strokeWidth={3} />
+                </div>
+              )}
+              <p className={cn("text-[14px] font-bold mb-1", isSelected ? "text-[var(--color-pine)] dark:text-[var(--color-celadon)]" : "text-[var(--foreground)]")}>{c.label}</p>
+              <p className="text-[12px] text-gray-500 dark:text-sage pr-4 leading-relaxed">{c.desc}</p>
+            </button>
+          )
+        })}
+      </div>
+      {error && <p className="text-[12px] text-red-500 pl-1 font-medium">{error}</p>}
+    </div>
+  )
+}
+
+function ValorAReceberModal({ priceCents, onClose }: { priceCents: number; onClose: () => void }) {
+  const priceNum = priceCents / 100
+  const commission = priceNum * COMMISSION_RATE
+  const received = Math.max(0, priceNum - commission - FIXED_FEE)
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-0" onClick={onClose}>
+      <div className="bg-white dark:bg-[var(--color-forest)] rounded-3xl w-full sm:max-w-sm p-6 space-y-6 shadow-2xl animate-in slide-in-from-bottom-4 sm:zoom-in-95" onClick={(e) => e.stopPropagation()}>
+        <div className="text-center">
+          <p className="font-black text-[var(--foreground)] text-[18px]">valor a receber</p>
+          <p className="text-[13px] text-gray-500 dark:text-sage mt-1">Transparência nas taxas do seu plano</p>
+        </div>
+        <div className="space-y-3 text-[14px]">
+          <div className="flex justify-between text-[var(--foreground)]"><span>valor do produto</span><span className="font-bold">R$ {fmtBRL(priceNum)}</span></div>
+          <div className="flex justify-between text-gray-500 dark:text-sage"><span>comissão ({Math.round(COMMISSION_RATE * 100)}%)</span><span className="text-red-500 font-medium">- R$ {fmtBRL(commission)}</span></div>
+          <div className="flex justify-between text-gray-500 dark:text-sage"><span>tarifa fixa</span><span className="text-red-500 font-medium">- R$ {fmtBRL(FIXED_FEE)}</span></div>
+          <hr className="border-gray-200 dark:border-white/10 my-4" />
+          <div className="flex justify-between font-black text-[var(--color-pine)] dark:text-[var(--color-celadon)] text-[16px]"><span>receba até</span><span>R$ {fmtBRL(received)}</span></div>
+        </div>
+        <button type="button" onClick={onClose} className="w-full border-2 border-[var(--color-pine)] dark:border-[var(--color-celadon)] text-[var(--color-pine)] dark:text-[var(--color-celadon)] font-bold py-3.5 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-[14px]">ok, entendi</button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Main export ──────────────────────────────────────────────────────────────
+
+export function EditListingForm({ initialData, categories }: EditListingFormProps) {
+  const router = useRouter()
+  const [serverError, setServerError] = useState("")
+  const [sizeCtx, setSizeCtx] = useState<SizeContext>(() => getInitialSizeCtx(initialData.categoryId, categories))
+  const [showValorModal, setShowValorModal] = useState(false)
+
+  const initialPriceDisplay = initialData.priceCents > 0
+    ? (initialData.priceCents / 100).toFixed(2).replace(".", ",")
+    : ""
+
+  const [priceDisplay, setPriceDisplay] = useState(initialPriceDisplay)
+  const [noBrand, setNoBrand] = useState(!initialData.brand)
+  const [acceptsOffers, setAcceptsOffers] = useState(initialData.acceptsOffers)
+  const [smartPrice, setSmartPrice] = useState(initialData.smartPriceEnabled)
+  const [size, setSize] = useState(initialData.size ?? "")
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateListingInput>({
+    resolver: zodResolver(createListingSchema),
+    defaultValues: {
+      title: initialData.title,
+      description: initialData.description,
+      priceCents: initialData.priceCents,
+      categoryId: initialData.categoryId,
+      brand: initialData.brand ?? "",
+      condition: initialData.condition,
+      size: initialData.size ?? "",
+      images: initialData.images,
+      acceptsOffers: initialData.acceptsOffers,
+      smartPriceEnabled: initialData.smartPriceEnabled,
+    },
+  })
+
+  const watchedTitle = watch("title")
+  const watchedDescription = watch("description")
+  const watchedCondition = watch("condition")
+  const watchedCategoryId = watch("categoryId")
+  const watchedPriceCents = watch("priceCents")
+
+  const handlePriceInput = (raw: string) => {
+    const digits = raw.replace(/\D/g, "")
+    if (!digits) {
+      setPriceDisplay("")
+      setValue("priceCents", 0, { shouldValidate: true })
+      return
+    }
+    const cents = parseInt(digits, 10)
+    const formatted = (cents / 100).toFixed(2).replace(".", ",")
+    setPriceDisplay(formatted)
+    setValue("priceCents", cents, { shouldValidate: true })
+  }
+
+  const handleCategoryChange = useCallback(
+    (categoryId: string, deptName: string, catName: string) => {
+      setValue("categoryId", categoryId, { shouldValidate: true })
+      setSizeCtx(getSizeContext(deptName, catName))
+      setSize("")
+      setValue("size", "")
+    },
+    [setValue],
+  )
+
+  const onSubmit = async (data: CreateListingInput) => {
+    setServerError("")
+    try {
+      const res = await fetch(`/api/listings/${initialData.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          size: size || undefined,
+          acceptsOffers,
+          smartPriceEnabled: smartPrice,
+        }),
+      })
+      const json = (await res.json()) as { slug?: string; error?: string }
+      if (!res.ok) {
+        setServerError(json.error ?? "Erro ao salvar anúncio")
+        return
+      }
+      if (json.slug) {
+        router.push(`/listing/${json.slug}`)
+      }
+    } catch {
+      setServerError("Erro de conexão. Tente novamente.")
+    }
+  }
+
+  return (
+    <div className="max-w-xl mx-auto space-y-5 pb-12">
+      <button
+        type="button"
+        onClick={() => router.back()}
+        className="flex items-center gap-2 text-[14px] font-bold text-gray-500 dark:text-sage hover:text-[var(--foreground)] transition-colors mb-2"
+      >
+        <ArrowLeft size={18} />
+        voltar
+      </button>
+
+      {showValorModal && (
+        <ValorAReceberModal priceCents={watchedPriceCents} onClose={() => setShowValorModal(false)} />
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+
+        {/* Photos */}
+        <SectionCard title="Fotos *">
+          <Controller
+            name="images"
+            control={control}
+            render={({ field, fieldState }) => (
+              <ImageUploader
+                onChange={field.onChange}
+                error={fieldState.error?.message}
+                initialImages={initialData.images}
+              />
+            )}
+          />
+        </SectionCard>
+
+        {/* Title */}
+        <SectionCard title="Título *">
+          <div className="relative">
+            <input
+              type="text"
+              maxLength={45}
+              placeholder="Ex: Jaqueta jeans vintage azul escuro..."
+              {...register("title")}
+              className={cn(
+                "w-full bg-transparent border rounded-xl px-4 py-3.5 text-[14px] text-[var(--foreground)] outline-none focus:border-[var(--color-teal)] pr-14 transition-colors",
+                errors.title ? "border-red-400" : "border-gray-200 dark:border-white/20",
+              )}
+            />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[12px] text-gray-400 dark:text-sage font-medium">
+              {watchedTitle.length}/45
+            </span>
+          </div>
+          {errors.title && (
+            <p className="text-[12px] text-red-500 pl-1 font-medium">{errors.title.message}</p>
+          )}
+        </SectionCard>
+
+        {/* Description */}
+        <SectionCard title="Descrição *">
+          <div className="relative">
+            <textarea
+              rows={5}
+              maxLength={600}
+              placeholder="Conte todos os detalhes da peça. Qual é o tecido? Tem alguma avaria? Como fica no corpo?"
+              {...register("description")}
+              className={cn(
+                "w-full bg-transparent border rounded-xl px-4 py-3.5 text-[14px] text-[var(--foreground)] outline-none focus:border-[var(--color-teal)] resize-none transition-colors",
+                errors.description ? "border-red-400" : "border-gray-200 dark:border-white/20",
+              )}
+            />
+            <span className="absolute right-4 bottom-4 text-[12px] text-gray-400 dark:text-sage font-medium bg-white dark:bg-[var(--color-pine)] px-1">
+              {watchedDescription.length}/600
+            </span>
+          </div>
+          {errors.description && (
+            <p className="text-[12px] text-red-500 pl-1 font-medium">{errors.description.message}</p>
+          )}
+        </SectionCard>
+
+        {/* Brand */}
+        <SectionCard title="Marca">
+          <BrandInput
+            value={watch("brand") ?? ""}
+            onChange={(v) => setValue("brand", v, { shouldValidate: true })}
+            disabled={noBrand}
+          />
+          <label className="flex items-center gap-3 mt-3 cursor-pointer p-1">
+            <div className={cn("w-5 h-5 rounded border flex items-center justify-center transition-colors", noBrand ? "bg-[var(--color-pine)] dark:bg-[var(--color-celadon)] border-transparent" : "border-gray-300 dark:border-white/30")}>
+              {noBrand && <Check size={14} className="text-white dark:text-[var(--color-pine)]" strokeWidth={3} />}
+            </div>
+            <input
+              type="checkbox"
+              className="hidden"
+              checked={noBrand}
+              onChange={(e) => {
+                setNoBrand(e.target.checked)
+                if (e.target.checked) setValue("brand", "")
+              }}
+            />
+            <span className="text-[14px] text-gray-600 dark:text-sage select-none">Esta peça não possui marca</span>
+          </label>
+        </SectionCard>
+
+        {/* Condition */}
+        <SectionCard title="Condição *">
+          <ConditionCards
+            value={watchedCondition ?? ""}
+            onChange={(v) => setValue("condition", v as CreateListingInput["condition"], { shouldValidate: true })}
+            error={errors.condition?.message}
+          />
+        </SectionCard>
+
+        {/* Category */}
+        <SectionCard title="Categoria *">
+          <CategoryPicker
+            categories={categories}
+            value={watchedCategoryId}
+            onChange={handleCategoryChange}
+            error={errors.categoryId?.message}
+          />
+        </SectionCard>
+
+        {/* Size — only shown for relevant categories */}
+        {sizeCtx.show && (
+          <SectionCard title={sizeCtx.label}>
+            <SelectField
+              placeholder={`Selecione o ${sizeCtx.label.toLowerCase()}`}
+              value={size}
+              options={sizeCtx.options}
+              onChange={(v) => { setSize(v); setValue("size", v) }}
+            />
+          </SectionCard>
+        )}
+
+        {/* Price */}
+        <SectionCard
+          title="Preço *"
+          action={
+            <button
+              type="button"
+              onClick={() => setShowValorModal(true)}
+              className="text-[12px] font-bold text-[var(--color-teal)] dark:text-[var(--color-celadon)] hover:underline underline-offset-2"
+            >
+              entenda suas taxas
+            </button>
+          }
+        >
+          <div className={cn(
+            "flex items-center border rounded-xl overflow-hidden focus-within:border-[var(--color-teal)] transition-colors",
+            errors.priceCents ? "border-red-400" : "border-gray-200 dark:border-white/20",
+          )}>
+            <span className="px-4 py-3.5 bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-sage font-bold text-[14px] border-r border-gray-200 dark:border-white/10 select-none">
+              R$
+            </span>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="0,00"
+              value={priceDisplay}
+              onChange={(e) => handlePriceInput(e.target.value)}
+              className="flex-1 px-4 py-3.5 text-[16px] outline-none font-black text-[var(--foreground)] bg-transparent"
+            />
+          </div>
+          {errors.priceCents && (
+            <p className="text-[12px] text-red-500 pl-1 font-medium">{errors.priceCents.message}</p>
+          )}
+          <hr className="border-gray-100 dark:border-white/5 my-2" />
+          <div className="space-y-4 pt-2">
+            <Toggle
+              label="Topa negociar?"
+              desc="Compradores poderão fazer ofertas pelo seu produto."
+              checked={acceptsOffers}
+              onChange={setAcceptsOffers}
+            />
+            <div className="py-1">
+              <button type="button" onClick={() => setSmartPrice(!smartPrice)} className="flex items-center justify-between w-full text-left">
+                <span className="text-[14px] font-bold text-[var(--foreground)]">Preço esperto ✨</span>
+                <div className={cn("relative w-12 h-7 rounded-full transition-colors flex-shrink-0", smartPrice ? "bg-[var(--color-pine)] dark:bg-[var(--color-celadon)]" : "bg-gray-200 dark:bg-white/10")}>
+                  <div className={cn("absolute top-1 w-5 h-5 bg-white dark:bg-[var(--color-forest)] rounded-full shadow transition-all", smartPrice ? "left-6" : "left-1")} />
+                </div>
+              </button>
+              {smartPrice && (
+                <div className="mt-3 space-y-2">
+                  {watchedPriceCents >= 500 ? (
+                    <div className="bg-[var(--color-teal)]/8 dark:bg-[var(--color-teal)]/10 border border-[var(--color-teal)]/20 rounded-xl p-3.5 space-y-2">
+                      <p className="text-[13px] font-bold text-[var(--color-pine)] dark:text-[var(--color-celadon)]">
+                        faixa de preço ideal
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[13px] text-gray-600 dark:text-sage">de</span>
+                        <span className="font-black text-[15px] text-[var(--color-pine)] dark:text-[var(--color-celadon)]">
+                          R$ {fmtBRL(watchedPriceCents * 0.70 / 100)}
+                        </span>
+                        <span className="text-[13px] text-gray-600 dark:text-sage">até</span>
+                        <span className="font-black text-[15px] text-[var(--color-pine)] dark:text-[var(--color-celadon)]">
+                          R$ {fmtBRL(watchedPriceCents / 100)}
+                        </span>
+                      </div>
+                      <p className="text-[12px] text-gray-500 dark:text-sage leading-relaxed">
+                        ofertas dentro dessa faixa serão aceitas automaticamente. seu produto nunca será vendido por menos que R$ {fmtBRL(watchedPriceCents * 0.70 / 100)}.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-[12px] text-gray-400 dark:text-sage">informe o preço para ver a faixa de preço ideal.</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* Server error */}
+        {serverError && (
+          <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-xl px-5 py-4 text-[14px] font-medium text-red-600 dark:text-red-400">
+            {serverError}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full bg-[var(--color-pine)] dark:bg-[var(--color-celadon)] text-white dark:text-[var(--color-pine)] font-black py-4 rounded-full hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed text-[16px] mt-4 shadow-lg shadow-[var(--color-pine)]/20 flex items-center justify-center gap-2"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 size={18} className="animate-spin" />
+              Salvando...
+            </>
+          ) : "Salvar alterações"}
+        </button>
+      </form>
+    </div>
+  )
+}

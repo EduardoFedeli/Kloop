@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ChevronLeft, Package } from 'lucide-react'
+import { ChevronLeft, Package, Star } from 'lucide-react'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { formatPrice, formatDate } from '@/lib/utils'
@@ -26,6 +26,7 @@ export default async function CompraDetailPage({ params }: Props) {
           seller: { select: { name: true, id: true } },
         },
       },
+      review: { select: { id: true } },
     },
   })
 
@@ -113,13 +114,19 @@ export default async function CompraDetailPage({ params }: Props) {
         {/* Action buttons */}
         <BuyerOrderActions transactionId={transaction.id} status={transaction.status} />
 
-        {transaction.status === 'COMPLETED' && (
+        {transaction.status === 'COMPLETED' && !transaction.review && (
           <Link
-            href={`/listing/${transaction.listing.slug}/review`}
+            href={`/listing/${transaction.listing.slug}/review?tx=${transaction.id}`}
             className="block w-full py-3.5 rounded-2xl border border-gray-200 dark:border-white/10 text-[var(--foreground)] text-[14px] font-bold text-center hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
           >
             deixar avaliação
           </Link>
+        )}
+        {transaction.status === 'COMPLETED' && transaction.review && (
+          <div className="flex items-center justify-center gap-2 py-3.5 rounded-2xl border border-gray-200 dark:border-white/10 text-gray-400 dark:text-sage text-[14px]">
+            <Star size={14} className="fill-yellow-400 text-yellow-400" />
+            avaliação enviada
+          </div>
         )}
       </div>
     </div>

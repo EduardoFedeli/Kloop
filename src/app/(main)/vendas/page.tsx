@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   Store, MessageCircle, ArchiveX, ShoppingBag, ChevronRight,
-  Megaphone, Tags, BarChart2, Settings, PackageOpen, HelpCircle, Info, Coins, Handshake,
+  PackageOpen, HelpCircle, Info, Coins, Handshake, Star,
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { CoverUploader } from '@/components/perfil/CoverUploader'
@@ -20,7 +20,7 @@ export default async function VendasPage() {
   const [userData, listings, completedTxs, pendingCount, activeOrdersCount, cashbackBalanceCents, pendingOffersCount] = await Promise.all([
     db.user.findUnique({
       where: { id: myId },
-      select: { name: true, image: true, avatarUrl: true, coverUrl: true },
+      select: { name: true, image: true, avatarUrl: true, coverUrl: true, reviewsReceived: { select: { rating: true } } },
     }),
     db.listing.findMany({
       where: { sellerId: myId },
@@ -46,6 +46,11 @@ export default async function VendasPage() {
   const sold = listings.filter((l) => l.status === 'SOLD').length
   const inactive = listings.filter((l) => ['DRAFT', 'PAUSED', 'EXPIRED'].includes(l.status)).length
   const revenue = completedTxs.reduce((sum, t) => sum + t.amountCents - t.commissionCents, 0)
+
+  const totalRatings = userData?.reviewsReceived.length ?? 0
+  const avgRating = totalRatings > 0
+    ? (userData!.reviewsReceived.reduce((s, r) => s + r.rating, 0) / totalRatings).toFixed(1)
+    : null
 
   const displayName = userData?.name ?? session.user.name ?? 'minha lojinha'
   const avatarSrc = userData?.avatarUrl ?? userData?.image ?? session.user.image ?? null
@@ -83,7 +88,26 @@ export default async function VendasPage() {
                 <h1 className="text-[20px] font-black text-[var(--foreground)] tracking-tight leading-none">
                   {displayName}
                 </h1>
-                <p className="text-[13px] text-gray-500 dark:text-sage mt-1">⭐⭐⭐⭐⭐ · sem avaliações</p>
+                <Link href="/vendas/avaliacoes" className="flex items-center gap-1.5 mt-1 hover:opacity-80 transition-opacity">
+                  <div className="flex">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        size={13}
+                        className={
+                          i < Math.round(Number(avgRating ?? 0))
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : 'fill-gray-300 text-gray-300 dark:fill-white/20 dark:text-white/20'
+                        }
+                      />
+                    ))}
+                  </div>
+                  <span className="text-[13px] text-gray-500 dark:text-sage">
+                    {avgRating !== null
+                      ? `${avgRating} · ${totalRatings} ${totalRatings === 1 ? 'avaliação' : 'avaliações'}`
+                      : 'sem avaliações'}
+                  </span>
+                </Link>
               </div>
             </div>
 
@@ -172,51 +196,6 @@ export default async function VendasPage() {
               </Link>
             </section>
 
-            {/* Para agitar sua loja */}
-            <section className="px-4 lg:px-0">
-              <h2 className="text-[17px] font-black text-[var(--foreground)] tracking-tight mb-4">para agitar sua loja</h2>
-              <div className="grid grid-cols-2 gap-3">
-                <Link href="/vendas/promocoes" className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col gap-2 shadow-sm">
-                  <div className="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-500/10 flex items-center justify-center text-pink-600 dark:text-pink-400">
-                    <Tags size={16} />
-                  </div>
-                  <div>
-                    <p className="text-[14px] font-bold text-[var(--foreground)]">promoções</p>
-                    <p className="text-[11px] text-gray-500 dark:text-sage mt-0.5 leading-tight">crie descontos para vender mais rápido</p>
-                  </div>
-                </Link>
-
-                <Link href="/vendas/megafone" className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col gap-2 shadow-sm">
-                  <div className="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-500/10 flex items-center justify-center text-yellow-600 dark:text-yellow-400">
-                    <Megaphone size={16} />
-                  </div>
-                  <div>
-                    <p className="text-[14px] font-bold text-[var(--foreground)]">megafone</p>
-                    <p className="text-[11px] text-gray-500 dark:text-sage mt-0.5 leading-tight">dê um up e coloque seus itens no topo</p>
-                  </div>
-                </Link>
-
-                <Link href="/vendas/metricas" className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col gap-2 shadow-sm">
-                  <div className="w-8 h-8 rounded-full bg-[var(--color-celadon)]/30 dark:bg-[var(--color-celadon)]/10 flex items-center justify-center text-[var(--color-pine)] dark:text-[var(--color-celadon)]">
-                    <BarChart2 size={16} />
-                  </div>
-                  <div>
-                    <p className="text-[14px] font-bold text-[var(--foreground)]">minhas métricas</p>
-                    <p className="text-[11px] text-gray-500 dark:text-sage mt-0.5 leading-tight">acompanhe as visitas e curtidas</p>
-                  </div>
-                </Link>
-
-                <Link href="/configuracoes" className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col gap-2 shadow-sm">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-600 dark:text-gray-300">
-                    <Settings size={16} />
-                  </div>
-                  <div>
-                    <p className="text-[14px] font-bold text-[var(--foreground)]">configurações</p>
-                    <p className="text-[11px] text-gray-500 dark:text-sage mt-0.5 leading-tight">edite seu perfil, endereço e conta</p>
-                  </div>
-                </Link>
-              </div>
-            </section>
 
           </div>
 

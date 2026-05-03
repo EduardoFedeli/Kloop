@@ -111,6 +111,15 @@ enum OfferStatus {
   CANCELLED      // Cancelada em cascata (outra venda do mesmo Listing concretizou)
 }
 
+enum BundleOfferStatus {
+  PENDING_SELLER
+  PENDING_BUYER
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CANCELLED
+}
+
 // ──────────────────────────────────────────
 // CORE: USERS & AUTH
 // ──────────────────────────────────────────
@@ -152,11 +161,17 @@ model User {
   following Follow[] @relation("UserFollows")
   followers Follow[] @relation("UserFollowers")
   reportsWritten Report[] @relation("UserReports")
+  brandFollows BrandFollow[]
 
   // Relações de Ofertas
   buyerOffers  Offer[]      @relation("BuyerOffers")
   sellerOffers Offer[]      @relation("SellerOffers")
   offerRounds  OfferRound[]
+
+  // Relações de Ofertas de Bundle (Sacola)
+  buyerBundleOffers  BundleOffer[] @relation("BuyerBundleOffers")
+  sellerBundleOffers BundleOffer[] @relation("SellerBundleOffers")
+  bundleOfferRounds  BundleOfferRound[]
 
   // Relações Futuras (Modelo 3 + 4)
   store                  Store?
@@ -262,6 +277,10 @@ model Listing {
   brand       String?
   size        String? // Tamanho livre (P, M, G, 42, etc.)
   viewsCount  Int              @default(0) @map("views_count")
+  acceptsOffers     Boolean  @default(true) @map("accepts_offers")
+  smartPriceEnabled Boolean  @default(false) @map("smart_price_enabled")
+  idealPriceMinCents Int?    @map("ideal_price_min_cents")
+  idealPriceMaxCents Int?    @map("ideal_price_max_cents")
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
 
@@ -274,8 +293,9 @@ model Listing {
   viewHistories ViewHistory[]
   favorites    Favorite[]
   conversations Conversation[]
-  boosts       StoreBoost[]
-  offers       Offer[]
+  boosts            StoreBoost[]
+  offers            Offer[]
+  bundleOfferItems  BundleOfferItem[]
 
   @@index([sellerId])
   @@index([categoryId])
@@ -371,6 +391,7 @@ model Review {
   reviewedId    String   @map("reviewed_id") // O outro lado da transação
   rating        Int // 1-5
   comment       String?
+  tags          String[] @default([])
   createdAt     DateTime @default(now()) @map("created_at")
 
   transaction Transaction @relation(fields: [transactionId], references: [id])
@@ -603,6 +624,23 @@ model OfferRound {
 }
 
 // ──────────────────────────────────────────
+// MVP: SEGUIR MARCAS
+// ──────────────────────────────────────────
+
+model BrandFollow {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  brand     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, brand])
+  @@index([userId])
+  @@map("brand_follows")
+}
+
+// ──────────────────────────────────────────
 // NEXTAUTH (AUTH.JS) MODELS
 // ──────────────────────────────────────────
 
@@ -712,4 +750,69 @@ model ViewHistory {
   // Index para a aba "Visualizados" carregar rápido
   @@index([userId, viewedAt(sort: Desc)])
   @@map("view_history")
+}
+
+// ──────────────────────────────────────────
+// MVP: OFERTAS DE BUNDLE (SACOLA)
+// ──────────────────────────────────────────
+
+model BundleOffer {
+  id                          String            @id @default(cuid())
+  buyerId                     String            @map("buyer_id")
+  sellerId                    String            @map("seller_id")
+  status                      BundleOfferStatus @default(PENDING_SELLER)
+
+  // Soma dos preços dos itens selecionados no momento da criação (teto da oferta)
+  listingTotalCentsAtCreation Int               @map("listing_total_cents_at_creation")
+
+  // Valor atual em negociação (último lance)
+  currentTotalCents           Int               @map("current_total_cents")
+
+  // Quem deve agir agora (null quando status é terminal)
+  currentTurnUserId           String?           @map("current_turn_user_id")
+
+  expiresAt                   DateTime          @map("expires_at")
+  roundsCount                 Int               @default(1) @map("rounds_count")
+
+  createdAt                   DateTime          @default(now()) @map("created_at")
+  updatedAt                   DateTime          @updatedAt @map("updated_at")
+
+  buyer  User @relation("BuyerBundleOffers", fields: [buyerId], references: [id])
+  seller User @relation("SellerBundleOffers", fields: [sellerId], references: [id])
+
+  items  BundleOfferItem[]
+  rounds BundleOfferRound[]
+
+  @@index([buyerId, status])
+  @@index([sellerId, status])
+  @@index([expiresAt, status])
+  @@map("bundle_offers")
+}
+
+model BundleOfferItem {
+  id                  String @id @default(cuid())
+  bundleOfferId       String @map("bundle_offer_id")
+  listingId           String @map("listing_id")
+  priceCentsAtCreation Int   @map("price_cents_at_creation")
+
+  bundleOffer BundleOffer @relation(fields: [bundleOfferId], references: [id], onDelete: Cascade)
+  listing     Listing     @relation(fields: [listingId], references: [id])
+
+  @@map("bundle_offer_items")
+}
+
+model BundleOfferRound {
+  id            String   @id @default(cuid())
+  bundleOfferId String   @map("bundle_offer_id")
+  roundNumber   Int      @map("round_number")
+  proposedBy    String   @map("proposed_by")
+  priceCents    Int      @map("price_cents")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  bundleOffer BundleOffer @relation(fields: [bundleOfferId], references: [id], onDelete: Cascade)
+  proposer    User        @relation(fields: [proposedBy], references: [id])
+
+  @@unique([bundleOfferId, roundNumber])
+  @@index([bundleOfferId, createdAt])
+  @@map("bundle_offer_rounds")
 }

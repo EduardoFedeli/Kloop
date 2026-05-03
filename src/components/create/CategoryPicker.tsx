@@ -67,12 +67,34 @@ function directChildren(parentId: string, all: Category[]): Category[] {
   return all.filter((c) => c.parentId === parentId)
 }
 
+function buildAncestorChain(categoryId: string, categories: Category[]): string[] {
+  if (!categoryId) return []
+  const chain: string[] = []
+  let currentId: string | null = categoryId
+  while (currentId) {
+    const cat = categories.find((c) => c.id === currentId)
+    if (!cat) break
+    chain.unshift(cat.id)
+    currentId = cat.parentId
+  }
+  return chain
+}
+
 export function CategoryPicker({ categories, value, onChange, error }: CategoryPickerProps) {
   const roots = useMemo(() => categories.filter((c) => c.parentId === null), [categories])
 
-  const [selectedDeptId, setSelectedDeptId] = useState("")
-  const [selectedCatId, setSelectedCatId] = useState("")
-  const [selectedSubId, setSelectedSubId] = useState("")
+  const [selectedDeptId, setSelectedDeptId] = useState(() => {
+    const chain = buildAncestorChain(value, categories)
+    return chain[0] ?? ""
+  })
+  const [selectedCatId, setSelectedCatId] = useState(() => {
+    const chain = buildAncestorChain(value, categories)
+    return chain[1] ?? ""
+  })
+  const [selectedSubId, setSelectedSubId] = useState(() => {
+    const chain = buildAncestorChain(value, categories)
+    return chain[2] ?? ""
+  })
 
   const catOptions = useMemo(
     () => directChildren(selectedDeptId, categories),

@@ -49,7 +49,7 @@ const CONDITIONS = [
 ]
 
 const WEIGHTS = [
-  "0,3 kg", "0,5 kg", "1,0 kg", "2,0 kg",
+  "0,5 kg", "1,0 kg", "2,0 kg",
   "3,0 kg", "4,0 kg", "5,0 kg", "6,0 kg", "Acima de 6 kg",
 ]
 
@@ -322,6 +322,8 @@ export function CreateListingForm({ activeCount, maxListings, planName, categori
       condition: undefined,
       size: "",
       images: [],
+      acceptsOffers: false,
+      smartPriceEnabled: false,
     },
   })
 
@@ -365,7 +367,12 @@ export function CreateListingForm({ activeCount, maxListings, planName, categori
       const res = await fetch("/api/listings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, size: sizeCtx.show ? size : undefined }),
+        body: JSON.stringify({
+          ...data,
+          size: sizeCtx.show ? size : undefined,
+          acceptsOffers,
+          smartPriceEnabled: smartPrice,
+        }),
       })
       const json = (await res.json()) as { slug?: string; error?: string }
       if (!res.ok) {
@@ -602,8 +609,46 @@ export function CreateListingForm({ activeCount, maxListings, planName, categori
           )}
           <hr className="border-gray-100 dark:border-white/5 my-2" />
           <div className="space-y-4 pt-2">
-            <Toggle label="Topa negociar?" desc="Compradores poderão fazer ofertas abaixo do valor estipulado." checked={acceptsOffers} onChange={setAcceptsOffers} />
-            <Toggle label="Preço esperto" desc="Ativamos descontos progressivos automáticos se a peça demorar a vender." checked={smartPrice} onChange={setSmartPrice} />
+            <Toggle
+              label="Topa negociar?"
+              desc="Compradores poderão fazer ofertas pelo seu produto."
+              checked={acceptsOffers}
+              onChange={setAcceptsOffers}
+            />
+            <div className="py-1">
+              <button type="button" onClick={() => setSmartPrice(!smartPrice)} className="flex items-center justify-between w-full text-left">
+                <span className="text-[14px] font-bold text-[var(--foreground)]">Preço esperto ✨</span>
+                <div className={cn("relative w-12 h-7 rounded-full transition-colors flex-shrink-0", smartPrice ? "bg-[var(--color-pine)] dark:bg-[var(--color-celadon)]" : "bg-gray-200 dark:bg-white/10")}>
+                  <div className={cn("absolute top-1 w-5 h-5 bg-white dark:bg-[var(--color-forest)] rounded-full shadow transition-all", smartPrice ? "left-6" : "left-1")} />
+                </div>
+              </button>
+              {smartPrice && (
+                <div className="mt-3 space-y-2">
+                  {watchedPriceCents >= 500 ? (
+                    <div className="bg-[var(--color-teal)]/8 dark:bg-[var(--color-teal)]/10 border border-[var(--color-teal)]/20 rounded-xl p-3.5 space-y-2">
+                      <p className="text-[13px] font-bold text-[var(--color-pine)] dark:text-[var(--color-celadon)]">
+                        faixa de preço ideal
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[13px] text-gray-600 dark:text-sage">de</span>
+                        <span className="font-black text-[15px] text-[var(--color-pine)] dark:text-[var(--color-celadon)]">
+                          R$ {fmtBRL(watchedPriceCents * 0.70 / 100)}
+                        </span>
+                        <span className="text-[13px] text-gray-600 dark:text-sage">até</span>
+                        <span className="font-black text-[15px] text-[var(--color-pine)] dark:text-[var(--color-celadon)]">
+                          R$ {fmtBRL(watchedPriceCents / 100)}
+                        </span>
+                      </div>
+                      <p className="text-[12px] text-gray-500 dark:text-sage leading-relaxed">
+                        ofertas dentro dessa faixa serão aceitas automaticamente. seu produto nunca será vendido por menos que R$ {fmtBRL(watchedPriceCents * 0.70 / 100)}.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-[12px] text-gray-400 dark:text-sage">informe o preço para ver a faixa de preço ideal.</p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </SectionCard>
 
