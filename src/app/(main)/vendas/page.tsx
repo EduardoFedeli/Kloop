@@ -7,6 +7,7 @@ import {
   Store, MessageCircle, ArchiveX, ShoppingBag, ChevronRight,
   PackageOpen, HelpCircle, Info, Coins, Handshake, Star,
 } from 'lucide-react'
+import { PlanBadge } from '@/components/ui/PlanBadge'
 import { formatPrice } from '@/lib/utils'
 import { CoverUploader } from '@/components/perfil/CoverUploader'
 import { getCashbackBalance } from '@/lib/cashback'
@@ -20,7 +21,22 @@ export default async function VendasPage() {
   const [userData, listings, completedTxs, pendingCount, activeOrdersCount, cashbackBalanceCents, pendingOffersCount] = await Promise.all([
     db.user.findUnique({
       where: { id: myId },
-      select: { name: true, image: true, avatarUrl: true, coverUrl: true, reviewsReceived: { select: { rating: true } } },
+      select: { 
+        name: true, 
+        image: true, 
+        avatarUrl: true, 
+        coverUrl: true, 
+        reviewsReceived: { select: { rating: true } },
+        subscription: {
+          select: {
+            plan: {
+              select: {
+                slug: true
+              }
+            }
+          }
+        }
+      },
     }),
     db.listing.findMany({
       where: { sellerId: myId },
@@ -56,6 +72,8 @@ export default async function VendasPage() {
   const avatarSrc = userData?.avatarUrl ?? userData?.image ?? session.user.image ?? null
   const coverUrl = userData?.coverUrl ?? null
   const userInitials = displayName.substring(0, 2).toUpperCase()
+  
+  const userPlanSlug = (userData?.subscription?.plan?.slug as "basic" | "pro" | "premium" | "enterprise") || 'basic'
 
   return (
     <div className="min-h-screen bg-[var(--background)] pb-32">
@@ -85,9 +103,12 @@ export default async function VendasPage() {
                 )}
               </div>
               <div className="mt-2">
-                <h1 className="text-[20px] font-black text-[var(--foreground)] tracking-tight leading-none">
-                  {displayName}
-                </h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-[20px] font-black text-[var(--foreground)] tracking-tight leading-none">
+                    {displayName}
+                  </h1>
+                  <PlanBadge plan={userPlanSlug} />
+                </div>
                 <Link href="/vendas/avaliacoes" className="flex items-center gap-1.5 mt-1 hover:opacity-80 transition-opacity">
                   <div className="flex">
                     {Array.from({ length: 5 }).map((_, i) => (
@@ -186,7 +207,7 @@ export default async function VendasPage() {
               </Link>
             </section>
 
-            {/* Botão criar — visível só em tablet (md mas não lg), pois no lg fica no header */}
+            {/* Botão criar — visível só em tablet */}
             <section className="px-4 md:px-0 lg:hidden">
               <Link
                 href="/create"
@@ -195,7 +216,6 @@ export default async function VendasPage() {
                 criar novo anúncio
               </Link>
             </section>
-
 
           </div>
 
@@ -306,16 +326,16 @@ export default async function VendasPage() {
               </Link>
             </section>
 
-            {/* Kloop Pro */}
+            {/* Kloop Pro -> Redirecionamento Dinâmico */}
             <section className="px-4 lg:px-0">
-              <Link href="/pro" className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex items-center justify-between shadow-sm">
+              <Link href="/pro/dashboard" className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 flex-shrink-0">
                     <PackageOpen size={24} />
                   </div>
                   <div>
-                    <p className="text-[15px] font-black text-[var(--foreground)]">kloop pro</p>
-                    <p className="text-[12px] text-gray-500 dark:text-sage mt-0.5">mande uma sacola, a gente vende tudo.</p>
+                    <p className="text-[15px] font-black text-[var(--foreground)]">painel kloop pro</p>
+                    <p className="text-[12px] text-gray-500 dark:text-sage mt-0.5">acompanhe seus lotes e vendas pro</p>
                   </div>
                 </div>
                 <ChevronRight size={20} className="text-gray-400" />

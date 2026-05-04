@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { AuthModal } from "@/components/auth/AuthModal"
 import { signOut } from "next-auth/react"
-import { User, LogOut, Settings, Package, ChevronDown } from "lucide-react"
+import { User, LogOut, Settings, Package, ChevronDown, Crown } from "lucide-react"
 
 interface HeaderAuthProps {
   user?: {
@@ -100,6 +100,13 @@ export function HeaderAuth({ user }: HeaderAuthProps) {
               className="flex w-full items-center gap-2 px-4 py-2 text-sm text-airforce hover:bg-gray-50"
             >
               <Package className="h-4 w-4" /> Minha loja
+            </Link>
+            <Link
+              href="/assinatura"
+              onClick={closeMenu}
+              className="flex w-full items-center gap-2 px-4 py-2 text-sm text-airforce hover:bg-gray-50"
+            >
+              <Crown className="h-4 w-4" /> Minha assinatura
             </Link>
             <Link
               href="/dashboard"

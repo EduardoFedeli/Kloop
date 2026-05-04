@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import { createListingSchema, type CreateListingInput } from "@/lib/validators/listing"
 import { ImageUploader } from "@/components/create/ImageUploader"
 import { CategoryPicker } from "@/components/create/CategoryPicker"
+import Link from "next/link"
 import { Check, Camera, Package } from "lucide-react"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -419,24 +420,23 @@ export function CreateListingForm({ activeCount, maxListings, planName, categori
           </div>
         </button>
 
-        <button
-          type="button"
-          onClick={() => showToast("Em breve! Fique de olho nas novidades 👀")}
-          className="w-full bg-white dark:bg-[var(--color-pine)] border-2 border-transparent rounded-3xl p-6 text-left shadow-sm opacity-60 cursor-not-allowed"
+        <Link
+          href="/pro"
+          className="w-full bg-white dark:bg-[var(--color-pine)] border-2 border-transparent hover:border-[var(--color-teal)] dark:hover:border-[var(--color-celadon)] rounded-3xl p-6 text-left transition-all shadow-sm group block"
         >
           <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
-              <Package className="w-7 h-7 text-gray-400 dark:text-sage" strokeWidth={2} />
+            <div className="w-16 h-16 rounded-2xl bg-[var(--color-teal)]/10 dark:bg-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--color-teal)]/20 transition-colors">
+              <Package className="w-7 h-7 text-[var(--color-teal)] dark:text-[var(--color-celadon)]" strokeWidth={2} />
             </div>
             <div>
               <div className="flex items-center gap-3">
                 <p className="font-black text-[var(--foreground)] text-[18px]">kloop pro</p>
-                <span className="text-[10px] bg-[var(--color-teal)] text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Breve</span>
+                <span className="px-2 py-0.5 rounded-full bg-[var(--color-teal)] text-white text-[11px] font-black tracking-wide">PRO</span>
               </div>
               <p className="text-[14px] text-gray-500 dark:text-sage mt-1">Envie uma sacola e a gente vende por você</p>
             </div>
           </div>
-        </button>
+        </Link>
       </div>
     )
   }

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react"
 import Image from "next/image"
-import { Camera, X, Upload, AlertCircle } from "lucide-react"
+import { Camera, X, Upload, AlertCircle, Sparkles } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
@@ -11,6 +11,12 @@ interface Props {
 }
 
 type UploadState = "idle" | "uploading" | "error"
+
+const PREMADE_COVERS = [
+  "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=1000", // Natureza
+  "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000", // Abstrato Verde
+  "https://images.unsplash.com/photo-1604076913837-52ab5629fba9?q=80&w=1000", // Textura Minimalista
+]
 
 export function CoverUploader({ currentCoverUrl }: Props) {
   const [isOpen, setIsOpen] = useState(false)
@@ -35,8 +41,17 @@ export function CoverUploader({ currentCoverUrl }: Props) {
   }
 
   function closeDrawer() {
-    if (preview) URL.revokeObjectURL(preview)
+    // Só revoga objeto URL se for um arquivo local (blob)
+    if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview)
     setIsOpen(false)
+  }
+
+  function handlePremadeSelect(url: string) {
+    setError(null)
+    setPreview(url)
+    setUploadedUrl(url)
+    setUploadedPublicId("premade_cover") // ID fake genérico pra passar na validação de save
+    setUploadState("idle")
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -208,6 +223,29 @@ export function CoverUploader({ currentCoverUrl }: Props) {
               )}
             </div>
 
+            {/* Capas Pré-Prontas */}
+            <div className="px-6 mt-5">
+              <div className="flex items-center gap-1.5 mb-3">
+                <Sparkles size={14} className="text-[var(--color-teal)] dark:text-[var(--color-celadon)]" />
+                <h3 className="text-[13px] font-bold text-[var(--foreground)]">ou escolha uma capa pronta</h3>
+              </div>
+              <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden">
+                {PREMADE_COVERS.map((url, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => handlePremadeSelect(url)}
+                    className={cn(
+                      "relative w-[120px] h-[40px] rounded-lg overflow-hidden shrink-0 snap-start border-2",
+                      uploadedUrl === url ? "border-[var(--color-teal)]" : "border-transparent hover:border-gray-300 dark:hover:border-white/20"
+                    )}
+                  >
+                    <Image src={url} alt={`Capa pronta ${i + 1}`} fill sizes="120px" className="object-cover" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Actions */}
             <div className="px-6 py-6 space-y-3">
               <button
@@ -216,7 +254,7 @@ export function CoverUploader({ currentCoverUrl }: Props) {
                 disabled={uploadState === "uploading"}
                 className="w-full py-3.5 rounded-2xl border-2 border-dashed border-gray-300 dark:border-white/20 text-[14px] font-bold text-[var(--foreground)] hover:border-[var(--color-teal)] transition-colors disabled:opacity-50"
               >
-                {preview ? "trocar imagem" : "selecionar imagem"}
+                {preview ? "subir do meu celular" : "subir do meu celular"}
               </button>
 
               <button

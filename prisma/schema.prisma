@@ -93,6 +93,19 @@ enum CommunityMemberStatus {
   REMOVED
 }
 
+enum ProLotStatus {
+  PENDING
+  RECEIVED
+  ANALYZING
+  ACTIVE
+  DONE
+}
+
+enum ProShippingMethod {
+  CORREIOS
+  COLETA
+}
+
 enum CashbackTransactionType {
   CREDIT_SELLER       // Vendedor ganhou 5% por venda concluída
   CREDIT_BUYER        // Comprador ganhou 2% por compra concluída
@@ -172,6 +185,9 @@ model User {
   buyerBundleOffers  BundleOffer[] @relation("BuyerBundleOffers")
   sellerBundleOffers BundleOffer[] @relation("SellerBundleOffers")
   bundleOfferRounds  BundleOfferRound[]
+
+  // Kloop Pro
+  proLots                ProLot[]
 
   // Relações Futuras (Modelo 3 + 4)
   store                  Store?
@@ -638,6 +654,26 @@ model BrandFollow {
   @@unique([userId, brand])
   @@index([userId])
   @@map("brand_follows")
+}
+
+// ──────────────────────────────────────────
+// KLOOP PRO: LOTES
+// ──────────────────────────────────────────
+
+model ProLot {
+  id             String            @id @default(cuid())
+  userId         String            @map("user_id")
+  code           String            @unique
+  status         ProLotStatus      @default(PENDING)
+  shippingMethod ProShippingMethod @map("shipping_method")
+  withBag        Boolean           @default(false) @map("with_bag")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("pro_lots")
 }
 
 // ──────────────────────────────────────────
