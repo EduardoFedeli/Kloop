@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import Link from 'next/link'
-import { PlusCircle, ArrowLeft, Star } from 'lucide-react'
+import { PlusCircle, ArrowLeft, Star, Megaphone } from 'lucide-react'
 import { MyListings } from '@/components/listing/MyListings'
 
 export const dynamic = 'force-dynamic'
@@ -18,7 +18,9 @@ export default async function MinhaLojaPage() {
       where: { id: userId },
       select: {
         subscription: {
-          include: { plan: { select: { name: true, maxActiveListings: true } } },
+          include: {
+            plan: { select: { name: true, maxActiveListings: true, megaphonesPerWeek: true } },
+          },
         },
         _count: { select: { listings: { where: { status: 'ACTIVE' } } } },
         reviewsReceived: { select: { rating: true } },
@@ -46,6 +48,15 @@ export default async function MinhaLojaPage() {
   const maxListings = user.subscription?.plan?.maxActiveListings ?? 15
   const activeCount = user._count.listings
   const totalRatings = user.reviewsReceived.length
+
+  const sub = user.subscription
+  const now = new Date()
+  const megaphonesPerWeek = sub?.plan?.megaphonesPerWeek ?? 5
+  const needsReset = !sub?.megaphonesWeekResetAt || sub.megaphonesWeekResetAt <= now
+  const usedThisWeek = needsReset ? 0 : (sub?.megaphonesUsedThisWeek ?? 0)
+  const planAvailable = Math.max(0, megaphonesPerWeek - usedThisWeek)
+  const extraBalance = sub?.extraMegaphonesBalance ?? 0
+  const totalMegaphones = planAvailable + extraBalance
   const avgRating = totalRatings > 0
     ? (user.reviewsReceived.reduce((s, r) => s + r.rating, 0) / totalRatings).toFixed(1)
     : null
@@ -94,6 +105,29 @@ export default async function MinhaLojaPage() {
           novo anúncio
         </Link>
       </div>
+
+      {/* Megaphone quota */}
+      {sub && (
+        <Link
+          href="/vendas/megafone"
+          className="flex items-center justify-between p-3.5 rounded-2xl border border-yellow-200 dark:border-yellow-500/20 bg-yellow-50 dark:bg-yellow-500/5 hover:bg-yellow-100 dark:hover:bg-yellow-500/10 transition-colors"
+        >
+          <div className="flex items-center gap-2.5">
+            <Megaphone size={16} className="text-yellow-500" />
+            <div>
+              <p className="text-[13px] font-black text-yellow-700 dark:text-yellow-400 leading-none">
+                megafone
+              </p>
+              <p className="text-[11px] text-gray-500 dark:text-sage mt-0.5">
+                {totalMegaphones} disponíve{totalMegaphones !== 1 ? 'is' : 'l'} esta semana
+              </p>
+            </div>
+          </div>
+          <span className="text-[22px] font-black text-yellow-600 dark:text-yellow-400">
+            {totalMegaphones}
+          </span>
+        </Link>
+      )}
 
       <MyListings listings={listings} />
     </div>

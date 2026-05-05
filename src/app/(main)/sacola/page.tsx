@@ -6,7 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ShoppingBag, Trash2, Tag, X, ChevronLeft, Check } from 'lucide-react'
 import { toast } from 'sonner'
-import { useCartStore } from '@/store/cart'
+import { useCartStore, calcTurbinadoDiscount } from '@/store/cart'
 import { formatPrice, cn } from '@/lib/utils'
 import type { CartItem } from '@/store/cart'
 
@@ -189,10 +189,22 @@ export default function SacolaPage() {
     setSelectedItems(new Set())
   }
 
-  // Soma o total de centavos baseados apenas nos selecionados
-  const selectedTotalCents = items
-    .filter((item) => selectedItems.has(item.listingId))
-    .reduce((sum, item) => sum + item.priceCents, 0)
+  // Total selecionado com descontos Turbinar aplicados por vendedor
+  const selectedTotalCents = (() => {
+    const selectedList = items.filter((i) => selectedItems.has(i.listingId))
+    // agrupa selecionados por vendedor para calcular desconto por grupo
+    const bySellerMap = selectedList.reduce<Record<string, CartItem[]>>((acc, item) => {
+      if (!acc[item.sellerId]) acc[item.sellerId] = []
+      acc[item.sellerId].push(item)
+      return acc
+    }, {})
+
+    return Object.values(bySellerMap).reduce((total, groupItems) => {
+      const subtotal = groupItems.reduce((s, i) => s + i.priceCents, 0)
+      const discount = calcTurbinadoDiscount(groupItems)
+      return total + subtotal - (discount?.savingsCents ?? 0)
+    }, 0)
+  })()
 
   if (items.length === 0) {
     return (
@@ -247,6 +259,9 @@ export default function SacolaPage() {
         <div className="max-w-lg mx-auto px-4 pt-5 space-y-6">
           {groups.map((group) => {
             const groupTotal = group.items.reduce((s, i) => s + i.priceCents, 0)
+            const turbinadoDiscount = calcTurbinadoDiscount(group.items)
+            const finalGroupTotal = groupTotal - (turbinadoDiscount?.savingsCents ?? 0)
+
             return (
               <div
                 key={group.sellerId}
@@ -300,14 +315,20 @@ export default function SacolaPage() {
                             {item.title.toLowerCase()}
                           </p>
                         </Link>
-                        <p className="text-[13px] text-[var(--color-teal)] dark:text-[var(--color-celadon)] font-bold mt-0.5">
-                          {formatPrice(item.priceCents)}
-                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-[13px] text-[var(--color-teal)] dark:text-[var(--color-celadon)] font-bold">
+                            {formatPrice(item.priceCents)}
+                          </p>
+                          {item.isTurbinado && (
+                            <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-[var(--color-teal)]/10 text-[var(--color-teal)] dark:bg-[var(--color-celadon)]/10 dark:text-[var(--color-celadon)]">
+                              ⚡ turbinado
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <button
                         onClick={() => {
                           removeItem(item.listingId)
-                          // Se apagar o item da sacola, removemos da seleção também
                           if (selectedItems.has(item.listingId)) {
                             const newSet = new Set(selectedItems)
                             newSet.delete(item.listingId)
@@ -324,9 +345,28 @@ export default function SacolaPage() {
 
                 {/* Group footer */}
                 <div className="px-4 py-3 border-t border-gray-100 dark:border-white/5 space-y-3">
+                  {turbinadoDiscount && (
+                    <div className="rounded-xl bg-[var(--color-teal)]/8 dark:bg-[var(--color-teal)]/10 px-3 py-2.5 space-y-1">
+                      <div className="flex items-center justify-between text-[13px]">
+                        <span className="text-[var(--color-teal)] dark:text-[var(--color-celadon)] font-bold">
+                          ⚡ sacolinha turbinada ({turbinadoDiscount.count} peças — {Math.round(turbinadoDiscount.rate * 100)}% off)
+                        </span>
+                        <span className="text-[var(--color-teal)] dark:text-[var(--color-celadon)] font-black">
+                          -{formatPrice(turbinadoDiscount.savingsCents)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between text-[14px]">
                     <span className="text-gray-500 dark:text-sage font-medium">total do lote</span>
-                    <span className="font-black text-[var(--foreground)]">{formatPrice(groupTotal)}</span>
+                    <div className="flex items-center gap-2">
+                      {turbinadoDiscount && (
+                        <span className="text-[12px] text-gray-400 dark:text-sage line-through">
+                          {formatPrice(groupTotal)}
+                        </span>
+                      )}
+                      <span className="font-black text-[var(--foreground)]">{formatPrice(finalGroupTotal)}</span>
+                    </div>
                   </div>
                   <button
                     onClick={() => setOfferGroup(group)}
@@ -352,6 +392,21 @@ export default function SacolaPage() {
               <span className="text-[18px] font-black text-[var(--foreground)] leading-none">
                 {formatPrice(selectedTotalCents)}
               </span>
+              {(() => {
+                const selectedList = items.filter((i) => selectedItems.has(i.listingId))
+                const totalSavings = Object.values(
+                  selectedList.reduce<Record<string, CartItem[]>>((acc, item) => {
+                    if (!acc[item.sellerId]) acc[item.sellerId] = []
+                    acc[item.sellerId].push(item)
+                    return acc
+                  }, {})
+                ).reduce((s, g) => s + (calcTurbinadoDiscount(g)?.savingsCents ?? 0), 0)
+                return totalSavings > 0 ? (
+                  <span className="text-[11px] text-[var(--color-teal)] dark:text-[var(--color-celadon)] font-bold mt-0.5">
+                    ⚡ economizando {formatPrice(totalSavings)}
+                  </span>
+                ) : null
+              })()}
             </div>
             <button
               onClick={handleCheckoutMock}

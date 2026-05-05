@@ -264,7 +264,7 @@ export default async function ProdutoPage({ params }: Props) {
             <section>
               <h2 className="text-[15px] font-bold text-[var(--foreground)] mb-1">faça sua pergunta</h2>
               <p className="text-[13px] text-gray-500 dark:text-sage mb-4">tire suas dúvidas com a gente</p>
-              <ProductActions listingId={listing.id} listingSlug={listing.slug} listingTitle={listing.title} listingPriceCents={listing.priceCents} listingImageUrl={listing.images[0]?.url} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} sellerName={seller.name} buyerHasAddress={!!buyerAddress} acceptsOffers={listing.acceptsOffers} chatOnly />
+              <ProductActions listingId={listing.id} listingSlug={listing.slug} listingTitle={listing.title} listingPriceCents={listing.priceCents} listingImageUrl={listing.images[0]?.url} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} sellerName={seller.name} buyerHasAddress={!!buyerAddress} acceptsOffers={listing.acceptsOffers} isTurbinado={listing.isTurbinado} chatOnly />
             </section>
           )}
 
@@ -298,7 +298,7 @@ export default async function ProdutoPage({ params }: Props) {
           </section>
         </div>
       </div>
-      {!isOwner && <ProductActions listingId={listing.id} listingSlug={listing.slug} listingTitle={listing.title} listingPriceCents={listing.priceCents} listingImageUrl={listing.images[0]?.url} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} sellerName={seller.name} buyerHasAddress={!!buyerAddress} acceptsOffers={listing.acceptsOffers} />}
+      {!isOwner && <ProductActions listingId={listing.id} listingSlug={listing.slug} listingTitle={listing.title} listingPriceCents={listing.priceCents} listingImageUrl={listing.images[0]?.url} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} sellerName={seller.name} buyerHasAddress={!!buyerAddress} acceptsOffers={listing.acceptsOffers} isTurbinado={listing.isTurbinado} />}
     </div>
   )
 }

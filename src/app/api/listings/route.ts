@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 422 })
   }
 
-  const { title, description, priceCents, categoryId, condition, brand, size, images, acceptsOffers, smartPriceEnabled } =
+  const { title, description, priceCents, categoryId, condition, brand, size, images, acceptsOffers, smartPriceEnabled, isTurbinado } =
     parsed.data
 
   // Verify category is a leaf (no children)
@@ -101,6 +101,7 @@ export async function POST(req: NextRequest) {
         smartPriceEnabled,
         idealPriceMinCents,
         idealPriceMaxCents,
+        isTurbinado,
       },
     })
 

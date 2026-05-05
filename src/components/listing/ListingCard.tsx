@@ -15,10 +15,17 @@ type Props = {
   listing: ListingWithDetails
   isFavorited: boolean
   minimal?: boolean
-  showSeller?: boolean // Nova prop que permite mostrar quem está vendendo
+  variant?: 'default' | 'search' // Nova prop para trocar o estilo do card
+  showSeller?: boolean
 }
 
-export function ListingCard({ listing, isFavorited, minimal = false, showSeller = false }: Props) {
+export function ListingCard({ 
+  listing, 
+  isFavorited, 
+  minimal = false, 
+  variant = 'default',
+  showSeller = false 
+}: Props) {
   const image = listing.images[0]
   const location = listing.seller.addresses[0]
   
@@ -26,7 +33,71 @@ export function ListingCard({ listing, isFavorited, minimal = false, showSeller 
   const firstName = listing.seller.name?.split(' ')[0].toLowerCase() || 'vendedor'
   const initials = listing.seller.name?.substring(0, 2).toUpperCase() || 'KL'
 
-  // ── Versão Minimalista (Estilo Enjoei Mobile para a Home e Lojinhas) ──
+// Simulação de preço antigo para exibir desconto na vitrine
+  // (Mudei para true para você ver a tag verde na foto)
+  const hasDiscount = true; 
+  const discountPercent = 15; // Simulação de 15% de desconto
+  const originalPriceCents = listing.priceCents * 1.15; 
+
+  // ── 1. VERSÃO BUSCA (Foco em conversão rápida, estilo Enjoei) ──
+  if (variant === 'search') {
+    return (
+      <article className="group flex flex-col">
+        <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-100 dark:bg-[var(--color-forest)] mb-2">
+          <Link href={`/listing/${listing.slug}`} className="block w-full h-full">
+            {image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={image.url}
+                alt={image.altText ?? listing.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-4xl text-gray-300">📦</div>
+            )}
+          </Link>
+
+          {/* Tag de Desconto - Canto Inferior Esquerdo da Imagem */}
+          {hasDiscount && (
+            <div className="absolute bottom-1.5 left-1.5 bg-[var(--color-celadon)] text-[var(--color-pine)] text-[11px] font-black px-1.5 py-0.5 rounded-md shadow-sm">
+              {discountPercent}%
+            </div>
+          )}
+
+          {/* Botão de favoritar - Canto Superior Direito colado */}
+          <div className="absolute top-1.5 right-1.5 bg-white/80 backdrop-blur-md rounded-full shadow-sm">
+             <FavoriteButton listingId={listing.id} initialFavorited={isFavorited} />
+          </div>
+        </div>
+
+        <Link href={`/listing/${listing.slug}`} className="block px-1 flex-1 flex flex-col">
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="font-extrabold text-[15px] text-[var(--foreground)]">
+              {formatPrice(listing.priceCents)}
+            </span>
+            {hasDiscount && (
+              <span className="text-[11px] font-medium text-gray-400 line-through">
+                {formatPrice(originalPriceCents)}
+              </span>
+            )}
+          </div>
+          
+          <p className="text-[13px] font-medium text-gray-600 dark:text-sage/80 line-clamp-1 leading-snug">
+            {listing.title.toLowerCase()}
+          </p>
+          
+          {listing.brand && (
+             <p className="text-[12px] font-bold text-[var(--color-teal)] dark:text-[var(--color-celadon)] mt-0.5">
+               {listing.brand.toLowerCase()}
+             </p>
+          )}
+        </Link>
+      </article>
+    )
+  }
+
+  // ── 2. VERSÃO MINIMALISTA (Para a Home e Lojinhas) ──
   if (minimal) {
     return (
       <article className="group flex flex-col gap-2">
@@ -41,16 +112,12 @@ export function ListingCard({ listing, isFavorited, minimal = false, showSeller 
                 loading="lazy"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-4xl text-gray-300">
-                📦
-              </div>
+              <div className="w-full h-full flex items-center justify-center text-4xl text-gray-300">📦</div>
             )}
           </Link>
 
-          {/* Botão de favoritar — top right */}
           <FavoriteButton listingId={listing.id} initialFavorited={isFavorited} />
 
-          {/* Tag flutuante de preço — bottom left */}
           <Link href={`/listing/${listing.slug}`} className="absolute bottom-2 left-2 z-10 block">
             <span className="font-bold text-[13px] px-2 py-1 rounded bg-white/95 dark:bg-[var(--color-pine)]/95 backdrop-blur-sm text-[var(--foreground)] shadow-sm">
               {formatPrice(listing.priceCents)}
@@ -58,7 +125,6 @@ export function ListingCard({ listing, isFavorited, minimal = false, showSeller 
           </Link>
         </div>
 
-        {/* Rodapé com foto e nome da lojinha (Ativado na aba Lojinhas) */}
         {showSeller && listing.seller && (
           <Link href={`/profile/${listing.seller.id}`} className="flex items-center gap-2 px-1 hover:opacity-80 transition-opacity">
             {listing.seller.avatarUrl ? (
@@ -78,7 +144,7 @@ export function ListingCard({ listing, isFavorited, minimal = false, showSeller 
     )
   }
 
-  // ── Versão Padrão (Feed Completo e Buscas) ──
+  // ── 3. VERSÃO PADRÃO (Feed Completo detalhado) ──
   return (
     <article className="group">
       <Link href={`/listing/${listing.slug}`} className="block relative aspect-square rounded-xl overflow-hidden bg-gray-100">
@@ -91,9 +157,7 @@ export function ListingCard({ listing, isFavorited, minimal = false, showSeller 
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-4xl text-gray-300">
-            📦
-          </div>
+          <div className="w-full h-full flex items-center justify-center text-4xl text-gray-300">📦</div>
         )}
 
         <FavoriteButton listingId={listing.id} initialFavorited={isFavorited} />
@@ -123,7 +187,6 @@ export function ListingCard({ listing, isFavorited, minimal = false, showSeller 
           )}
         </Link>
 
-        {/* Rodapé do Vendedor na Versão Padrão (Opcional) */}
         {showSeller && listing.seller && (
           <div className="pt-2 mt-1 border-t border-gray-100 dark:border-white/5">
             <Link href={`/profile/${listing.seller.id}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">

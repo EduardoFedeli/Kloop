@@ -54,8 +54,6 @@ const WEIGHTS = [
   "3,0 kg", "4,0 kg", "5,0 kg", "6,0 kg", "Acima de 6 kg",
 ]
 
-const DELIVERY_TYPES = ["Transportadora", "Entrega em mãos"]
-
 // ─── Size helpers ─────────────────────────────────────────────────────────────
 
 const ADULT_CLOTHING = ["PP", "P", "M", "G", "GG", "XG", "XGG", "Único"]
@@ -219,7 +217,7 @@ function ConditionCards({ value, onChange, error }: { value: string; onChange: (
 function ModeCards({ value, onChange }: { value: string; onChange: (v: "classico" | "turbinado") => void }) {
   const modes = [
     { key: "classico" as const, label: "Clássico", desc: "Anúncio padrão gratuito", icon: "☁️" },
-    { key: "turbinado" as const, label: "Turbinado", desc: "Mais destaque e visibilidade", icon: "⚡", badge: "Em breve" },
+    { key: "turbinado" as const, label: "Turbinado", desc: "Desconto automático para quem leva mais de uma peça sua", icon: "⚡" },
   ]
   return (
     <div className="grid grid-cols-2 gap-3">
@@ -229,19 +227,24 @@ function ModeCards({ value, onChange }: { value: string; onChange: (v: "classico
           <button
             key={m.key}
             type="button"
-            disabled={m.key === "turbinado"}
-            onClick={() => m.key === "classico" && onChange(m.key)}
+            onClick={() => onChange(m.key)}
             className={cn(
               "relative text-left p-4 rounded-xl border-2 transition-all",
-              isSelected ? "border-[var(--color-pine)] dark:border-[var(--color-celadon)] bg-[var(--color-teal)]/5 dark:bg-white/5" : "border-gray-100 dark:border-white/10",
-              m.key === "turbinado" && "opacity-60 cursor-not-allowed",
+              isSelected
+                ? "border-[var(--color-pine)] dark:border-[var(--color-celadon)] bg-[var(--color-teal)]/5 dark:bg-white/5"
+                : "border-gray-100 dark:border-white/10 hover:border-gray-200 dark:hover:border-white/20",
             )}
           >
-            {isSelected && <div className="absolute top-3 right-3 text-[var(--color-pine)] dark:text-[var(--color-celadon)]"><Check size={16} strokeWidth={3} /></div>}
+            {isSelected && (
+              <div className="absolute top-3 right-3 text-[var(--color-pine)] dark:text-[var(--color-celadon)]">
+                <Check size={16} strokeWidth={3} />
+              </div>
+            )}
             <span className="text-2xl mb-2 block">{m.icon}</span>
-            <p className={cn("text-[14px] font-bold mb-1", isSelected ? "text-[var(--color-pine)] dark:text-[var(--color-celadon)]" : "text-[var(--foreground)]")}>{m.label}</p>
-            <p className="text-[12px] text-gray-500 dark:text-sage leading-tight">{m.desc}</p>
-            {m.badge && <span className="absolute top-3 right-3 text-[10px] bg-[var(--color-teal)] text-white font-bold px-2 py-0.5 rounded-full">{m.badge}</span>}
+            <p className={cn("text-[14px] font-bold mb-1", isSelected ? "text-[var(--color-pine)] dark:text-[var(--color-celadon)]" : "text-[var(--foreground)]")}>
+              {m.label}
+            </p>
+            <p className="text-[12px] text-gray-500 dark:text-sage leading-tight pr-6">{m.desc}</p>
           </button>
         )
       })}
@@ -299,7 +302,6 @@ export function CreateListingForm({ activeCount, maxListings, planName, categori
   const [smartPrice, setSmartPrice] = useState(false)
   const [mode, setMode] = useState<"classico" | "turbinado">("classico")
   const [weight, setWeight] = useState("")
-  const [delivery, setDelivery] = useState("")
   const [size, setSize] = useState("")
   const [sizeCtx, setSizeCtx] = useState<SizeContext>({ show: false })
 
@@ -373,6 +375,7 @@ export function CreateListingForm({ activeCount, maxListings, planName, categori
           size: sizeCtx.show ? size : undefined,
           acceptsOffers,
           smartPriceEnabled: smartPrice,
+          isTurbinado: mode === "turbinado",
         }),
       })
       const json = (await res.json()) as { slug?: string; error?: string }
@@ -659,15 +662,14 @@ export function CreateListingForm({ activeCount, maxListings, planName, categori
 
         {/* Delivery */}
         <SectionCard title="Envio">
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="space-y-3">
             <div>
               <p className="text-[13px] text-gray-500 dark:text-sage mb-2 font-medium">Peso estimado</p>
               <SelectField placeholder="Selecione o peso" value={weight} options={WEIGHTS} onChange={setWeight} />
             </div>
-            <div>
-              <p className="text-[13px] text-gray-500 dark:text-sage mb-2 font-medium">Método principal</p>
-              <SelectField placeholder="Como vai entregar?" value={delivery} options={DELIVERY_TYPES} onChange={setDelivery} />
-            </div>
+            <p className="text-[12px] text-gray-400 dark:text-sage/70 leading-relaxed">
+              📦 No Kloop, todas as vendas são enviadas por transportadoras parceiras. Entregas em mãos não são permitidas.
+            </p>
           </div>
         </SectionCard>
 

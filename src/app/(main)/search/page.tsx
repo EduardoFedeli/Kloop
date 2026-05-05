@@ -134,15 +134,40 @@ export default async function SearchPage({ searchParams }: PageProps) {
   const newness = sp.newness ? parseInt(sp.newness) : undefined
   const sort = sp.sort ?? 'recent'
 
-  // ── Lógica de Decisão CORRIGIDA: Vitrine vs Resultados ──
-  // Só mostra a vitrine se não houver NENHUM parâmetro, ou se o único parâmetro for uma busca vazia (?q=)
   const isEmptyQuery = Object.keys(sp).length === 1 && 'q' in sp && !sp.q
   const isSearchEmpty = Object.keys(sp).length === 0 || isEmptyQuery
 
-  if (isSearchEmpty) {
-    return <SearchVitrine />
+  const session = await auth()
+  const selfId = session?.user?.id
+
+  const whereBase = {
+    status: ListingStatus.ACTIVE,
+  }
+  
+  const whereBaseFiltered = {
+    ...whereBase,
+    ...(selfId && { NOT: { sellerId: selfId } }),
   }
 
+  // Busca SEMPRE as top marcas (independente se é vitrine ou resultados)
+  const brandGroups = await db.listing.groupBy({
+    by: ['brand'],
+    where: { ...whereBaseFiltered, brand: { not: null } },
+    _count: { brand: true },
+    orderBy: { _count: { brand: 'desc' } },
+    take: 15,
+  })
+
+  const topBrands = brandGroups
+    .map((g) => g.brand)
+    .filter((b): b is string => typeof b === 'string' && b.trim() !== '')
+
+  // Se a busca estiver vazia, retorna a vitrine com as topBrands
+  if (isSearchEmpty) {
+    return <SearchVitrine topBrands={topBrands} />
+  }
+
+  // Se não estiver vazia, continua o processamento para a página de resultados
   const [categoryIds, breadcrumbs, pills] = await Promise.all([
     resolveCategoryIds(dept, cat, sub),
     buildBreadcrumbs(dept, cat, sub),
@@ -154,7 +179,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
     : undefined
 
   // Base where — sem filtro de condição (para facets corretos)
-  const whereBase = {
+  const whereBaseForResults = {
     status: ListingStatus.ACTIVE,
     ...(categoryIds.length > 0 && { categoryId: { in: categoryIds } }),
     ...(brand && { brand: { equals: brand, mode: 'insensitive' as const } }),
@@ -170,7 +195,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
   // Where completo — com condição e faixa de preço
   const where = {
-    ...whereBase,
+    ...whereBaseForResults,
     ...(condition && { condition }),
     ...((minPriceCents !== undefined || maxPriceCents !== undefined) && {
       priceCents: {
@@ -186,11 +211,8 @@ export default async function SearchPage({ searchParams }: PageProps) {
     sort === 'popular' ? { viewsCount: 'desc' as const } :
     { createdAt: 'desc' as const }
 
-  const session = await auth()
-  const selfId = session?.user?.id
-
-  const whereBaseFiltered = {
-    ...whereBase,
+  const whereBaseFilteredForResults = {
+    ...whereBaseForResults,
     ...(selfId && { NOT: { sellerId: selfId } }),
   }
   const whereFiltered = {
@@ -198,7 +220,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
     ...(selfId && { NOT: { sellerId: selfId } }),
   }
 
-  const [rawListings, brandGroups, conditionFacets] = await Promise.all([
+  const [rawListings, conditionFacets] = await Promise.all([
     db.listing.findMany({
       where: whereFiltered,
       include: {
@@ -225,15 +247,8 @@ export default async function SearchPage({ searchParams }: PageProps) {
       take: 60,
     }),
     db.listing.groupBy({
-      by: ['brand'],
-      where: { ...whereBaseFiltered, brand: { not: null } },
-      _count: { brand: true },
-      orderBy: { _count: { brand: 'desc' } },
-      take: 15,
-    }),
-    db.listing.groupBy({
       by: ['condition'],
-      where: whereBaseFiltered,
+      where: whereBaseFilteredForResults,
       _count: { condition: true },
     }),
   ])
@@ -245,19 +260,16 @@ export default async function SearchPage({ searchParams }: PageProps) {
     : []
 
   const listings: ListingWithDetails[] = rawListings
-  const brands = brandGroups
-    .map((g) => g.brand)
-    .filter((b): b is string => typeof b === 'string' && b.trim() !== '')
   const availableConditions = conditionFacets.map((f) => f.condition)
 
   return (
-    <div className="max-w-screen-xl mx-auto px-4 py-6">
+    <div className="max-w-screen-xl mx-auto px-0 py-0">
       <SearchPageClient
         listings={listings}
         favoriteIds={favoriteIds}
         breadcrumbs={breadcrumbs}
         pills={pills}
-        brands={brands}
+        brands={topBrands}
         availableConditions={availableConditions}
         totalCount={rawListings.length}
         currentParams={sp}

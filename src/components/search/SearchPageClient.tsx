@@ -27,6 +27,7 @@ export function SearchPageClient({
   breadcrumbs,
   pills, 
   brands, 
+  availableConditions,
   totalCount, 
   currentParams 
 }: Props) {
@@ -38,23 +39,38 @@ export function SearchPageClient({
   const [localBrand, setLocalBrand] = useState(currentParams.brand || "")
   const [localMinPrice, setLocalMinPrice] = useState(currentParams.minPrice || "")
   const [localMaxPrice, setLocalMaxPrice] = useState(currentParams.maxPrice || "")
+  const [localCondition, setLocalCondition] = useState(currentParams.condition || "")
+  const [localNewness, setLocalNewness] = useState(currentParams.newness || "")
 
   useEffect(() => {
     setLocalBrand(currentParams.brand || "")
     setLocalMinPrice(currentParams.minPrice || "")
     setLocalMaxPrice(currentParams.maxPrice || "")
+    setLocalCondition(currentParams.condition || "")
+    setLocalNewness(currentParams.newness || "")
   }, [currentParams])
 
   const toggleBrand = (b: string) => setLocalBrand(prev => prev === b ? "" : b)
+  const toggleCondition = (c: string) => setLocalCondition(prev => prev === c ? "" : c)
+  const toggleNewness = (n: string) => setLocalNewness(prev => prev === n ? "" : n)
 
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams.toString())
+    
     if (localBrand) params.set('brand', localBrand)
     else params.delete('brand')
+    
     if (localMinPrice) params.set('minPrice', localMinPrice)
     else params.delete('minPrice')
+    
     if (localMaxPrice) params.set('maxPrice', localMaxPrice)
     else params.delete('maxPrice')
+
+    if (localCondition) params.set('condition', localCondition)
+    else params.delete('condition')
+
+    if (localNewness) params.set('newness', localNewness)
+    else params.delete('newness')
 
     setIsFilterOpen(false)
     router.push(`/search?${params.toString()}`)
@@ -65,12 +81,34 @@ export function SearchPageClient({
     params.delete('brand')
     params.delete('minPrice')
     params.delete('maxPrice')
+    params.delete('condition')
+    params.delete('newness')
     
     setLocalBrand("")
     setLocalMinPrice("")
     setLocalMaxPrice("")
+    setLocalCondition("")
+    setLocalNewness("")
+    
     setIsFilterOpen(false)
     router.push(`/search?${params.toString()}`)
+  }
+
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newSort = e.target.value;
+    const params = new URLSearchParams(searchParams.toString());
+    
+    if (newSort) {
+      params.set('sort', newSort);
+    } else {
+      params.delete('sort');
+    }
+    
+    router.push(`/search?${params.toString()}`);
+  }
+
+  const conditionLabelMap: Record<string, string> = {
+    NEW: 'novo', LIKE_NEW: 'seminovo', GOOD: 'bom estado', FAIR: 'usado'
   }
 
   const activeFilterTags = []
@@ -86,13 +124,22 @@ export function SearchPageClient({
     const p = new URLSearchParams(searchParams.toString()); p.delete('maxPrice')
     activeFilterTags.push({ label: `Até R$ ${currentParams.maxPrice}`, removeUrl: `/search?${p.toString()}` })
   }
+  if (currentParams.condition) {
+    const p = new URLSearchParams(searchParams.toString()); p.delete('condition')
+    activeFilterTags.push({ label: conditionLabelMap[currentParams.condition] || 'condição', removeUrl: `/search?${p.toString()}` })
+  }
+  if (currentParams.newness) {
+    const p = new URLSearchParams(searchParams.toString()); p.delete('newness')
+    const labels: Record<string, string> = { '1': '24h', '7': '7 dias', '14': '14 dias', '30': '30 dias' }
+    activeFilterTags.push({ label: `Últimos ${labels[currentParams.newness]}`, removeUrl: `/search?${p.toString()}` })
+  }
 
   const activeFiltersCount = activeFilterTags.length
 
   return (
     <div className="min-h-screen bg-[var(--background)] pb-24">
       {/* ── Topo Fixo ── */}
-      <div className="sticky top-0 z-20 bg-[var(--background)]/95 backdrop-blur-md px-4 pt-4 pb-2 space-y-4">
+      <div className="sticky top-0 z-20 bg-[var(--background)]/95 backdrop-blur-md px-4 pt-2 pb-2 space-y-4">
         
         {/* Barra Global atualizada */}
         <GlobalSearchBar showBackButton={true} initialQuery={q} />
@@ -100,7 +147,7 @@ export function SearchPageClient({
         {/* ── Árvore de Categorias (Breadcrumbs + Cards de Drill-down) ── */}
         {(breadcrumbs.length > 0 || pills.length > 0) && (
           <div className="space-y-3">
-            {/* Breadcrumbs: início > moças > acessórios */}
+            {/* Breadcrumbs */}
             {breadcrumbs.length > 0 && (
               <div className="flex items-center gap-1.5 text-[13px] font-medium text-gray-500 overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden pb-1">
                 <Link href="/search" className="hover:text-[var(--color-teal)] transition-colors">início</Link>
@@ -121,7 +168,7 @@ export function SearchPageClient({
               </div>
             )}
             
-            {/* Caixinhas de Subcategorias (pills) parecidas com as do Enjoei */}
+            {/* Caixinhas de Subcategorias (pills) */}
             {pills.length > 0 && (
               <div className="flex gap-4 overflow-x-auto -mx-4 px-4 pb-2 pt-1 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
                 {pills.map((p) => (
@@ -164,14 +211,37 @@ export function SearchPageClient({
           <p className="text-[13px] font-bold text-gray-500 dark:text-sage">
             {totalCount} {totalCount === 1 ? 'resultado' : 'resultados'}
           </p>
-          <div className="flex items-center gap-1 text-[13px] font-black text-[var(--color-teal)] dark:text-[var(--color-celadon)] cursor-pointer">
-            ordenar por: mais relevantes <ChevronDown size={14} />
+          
+          <div className="relative flex items-center gap-1">
+            <span className="text-[13px] font-bold text-gray-500 dark:text-sage">ordenar por:</span>
+            <div className="relative flex items-center">
+              <select
+                value={currentParams.sort || 'popular'}
+                onChange={handleSortChange}
+                className="appearance-none bg-transparent text-[13px] font-black text-[var(--color-teal)] dark:text-[var(--color-celadon)] pr-5 cursor-pointer outline-none"
+              >
+                <option value="popular">mais relevantes</option>
+                <option value="recent">mais recentes</option>
+                <option value="price_asc">menor preço</option>
+                <option value="price_desc">maior preço</option>
+              </select>
+              <ChevronDown size={14} className="absolute right-0 text-[var(--color-teal)] dark:text-[var(--color-celadon)] pointer-events-none" />
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="px-4 mt-4">
-        <ListingGrid listings={listings} favoriteIds={favoriteIds} minimal={true} />
+      {/* Container de Resultados ou Estado Vazio */}
+      <div className="px-4 mt-4 min-h-[50vh] flex flex-col">
+        {totalCount === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center pt-24 pb-12">
+            <p className="text-[16px] font-medium text-[var(--color-teal)] dark:text-[var(--color-celadon)]">
+              Nenhum anúncio encontrado.
+            </p>
+          </div>
+        ) : (
+          <ListingGrid listings={listings} favoriteIds={favoriteIds} variant="search" />
+        )}
       </div>
 
       <button 
@@ -196,26 +266,82 @@ export function SearchPageClient({
               <h2 className="text-[18px] font-black text-[var(--foreground)]">filtros</h2>
               <button onClick={clearAllFilters} className="text-[13px] font-bold text-red-500">limpar</button>
             </div>
+            
             <div className="flex-1 overflow-y-auto p-6 space-y-8">
+              
+              {/* Seção Condição */}
+              {availableConditions.length > 0 && (
+                <section>
+                  <p className="text-[14px] font-black uppercase tracking-widest text-gray-400 mb-4">condição</p>
+                  <div className="flex flex-wrap gap-2">
+                    {availableConditions.map(cond => (
+                      <button 
+                        key={cond}
+                        onClick={() => toggleCondition(cond)}
+                        className={cn(
+                          "px-4 py-2.5 rounded-xl text-[13px] font-bold border transition-all",
+                          localCondition === cond 
+                            ? "bg-[var(--color-teal)] border-[var(--color-teal)] text-white" 
+                            : "bg-gray-50 dark:bg-white/5 border-transparent text-[var(--foreground)]"
+                        )}
+                      >
+                        {conditionLabelMap[cond] || cond}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Seção Marcas */}
+              {brands.length > 0 && (
+                <section>
+                  <p className="text-[14px] font-black uppercase tracking-widest text-gray-400 mb-4">marcas</p>
+                  <div className="flex flex-wrap gap-2">
+                    {brands.map(brand => (
+                      <button 
+                        key={brand}
+                        onClick={() => toggleBrand(brand)}
+                        className={cn(
+                          "px-4 py-2.5 rounded-xl text-[13px] font-bold border transition-all",
+                          localBrand === brand 
+                            ? "bg-[var(--color-teal)] border-[var(--color-teal)] text-white" 
+                            : "bg-gray-50 dark:bg-white/5 border-transparent text-[var(--foreground)]"
+                        )}
+                      >
+                        {brand}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Seção Novidades */}
               <section>
-                <p className="text-[14px] font-black uppercase tracking-widest text-gray-400 mb-4">marcas</p>
+                <p className="text-[14px] font-black uppercase tracking-widest text-gray-400 mb-4">novidade</p>
                 <div className="flex flex-wrap gap-2">
-                  {brands.map(brand => (
+                  {[
+                    { val: '1', label: 'últimas 24h' },
+                    { val: '7', label: 'últimos 7 dias' },
+                    { val: '14', label: 'últimos 14 dias' },
+                    { val: '30', label: 'últimos 30 dias' }
+                  ].map(opt => (
                     <button 
-                      key={brand}
-                      onClick={() => toggleBrand(brand)}
+                      key={opt.val}
+                      onClick={() => toggleNewness(opt.val)}
                       className={cn(
                         "px-4 py-2.5 rounded-xl text-[13px] font-bold border transition-all",
-                        localBrand === brand 
+                        localNewness === opt.val 
                           ? "bg-[var(--color-teal)] border-[var(--color-teal)] text-white" 
                           : "bg-gray-50 dark:bg-white/5 border-transparent text-[var(--foreground)]"
                       )}
                     >
-                      {brand}
+                      {opt.label}
                     </button>
                   ))}
                 </div>
               </section>
+
+              {/* Seção Faixa de Preço */}
               <section>
                 <p className="text-[14px] font-black uppercase tracking-widest text-gray-400 mb-4">faixa de preço</p>
                 <div className="grid grid-cols-2 gap-4">
@@ -230,6 +356,7 @@ export function SearchPageClient({
                 </div>
               </section>
             </div>
+
             <div className="p-6 border-t border-gray-100 dark:border-white/5">
               <button onClick={applyFilters} className="w-full bg-[var(--color-pine)] dark:bg-[var(--color-celadon)] text-white dark:text-[var(--color-pine)] py-4 rounded-full font-black text-[16px] shadow-lg hover:opacity-90 transition-opacity">
                 ver resultados

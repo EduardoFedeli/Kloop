@@ -78,6 +78,7 @@ enum BoostType {
   FEED_HIGHLIGHT
   CATEGORY_TOP
   SEARCH_PRIORITY
+  MEGAPHONE
 }
 
 enum CommunityMemberRole {
@@ -188,6 +189,7 @@ model User {
 
   // Kloop Pro
   proLots                ProLot[]
+  storeBoosts            StoreBoost[]
 
   // Relações Futuras (Modelo 3 + 4)
   store                  Store?
@@ -223,13 +225,14 @@ model Address {
 
 model SubscriptionPlan {
   id                String               @id @default(cuid())
-  name              String // "Free", "Plus", "Pro"
+  name              String // "Basic", "Pro", "Premium"
   slug              String               @unique
   description       String?
-  priceCents        Int                  @map("price_cents") // 0 para Free
+  priceCents        Int                  @map("price_cents") // 0 = Basic, 1500 = Pro, 4000 = Premium
   interval          SubscriptionInterval @default(MONTHLY)
   maxActiveListings Int                  @map("max_active_listings") // -1 = ilimitado
   commissionRate    Decimal              @map("commission_rate") @db.Decimal(5, 4) // 0.0800 = 8%
+  megaphonesPerWeek Int                  @default(5) @map("megaphones_per_week") // Basic=5, Pro=10, Premium=25
   features          Json                 @default("{}") // { "boosts": false, "analytics": false, ... }
   isActive          Boolean              @default(true) @map("is_active")
   createdAt         DateTime             @default(now()) @map("created_at")
@@ -247,8 +250,12 @@ model UserSubscription {
   status                SubscriptionStatus @default(ACTIVE)
   currentPeriodStart    DateTime           @map("current_period_start")
   currentPeriodEnd      DateTime           @map("current_period_end")
-  gatewaySubscriptionId String?            @map("gateway_subscription_id") // ID no gateway de pagamento
+  gatewaySubscriptionId String?            @map("gateway_subscription_id")
   cancelledAt           DateTime?          @map("cancelled_at")
+  // Controle de cota semanal de megafones
+  megaphonesUsedThisWeek Int               @default(0) @map("megaphones_used_this_week")
+  extraMegaphonesBalance Int               @default(0) @map("extra_megaphones_balance")
+  megaphonesWeekResetAt  DateTime?         @map("megaphones_week_reset_at") // data do próximo reset
   createdAt             DateTime           @default(now()) @map("created_at")
   updatedAt             DateTime           @updatedAt @map("updated_at")
 
@@ -293,10 +300,14 @@ model Listing {
   brand       String?
   size        String? // Tamanho livre (P, M, G, 42, etc.)
   viewsCount  Int              @default(0) @map("views_count")
-  acceptsOffers     Boolean  @default(true) @map("accepts_offers")
-  smartPriceEnabled Boolean  @default(false) @map("smart_price_enabled")
-  idealPriceMinCents Int?    @map("ideal_price_min_cents")
-  idealPriceMaxCents Int?    @map("ideal_price_max_cents")
+  acceptsOffers     Boolean   @default(true) @map("accepts_offers")
+  smartPriceEnabled Boolean   @default(false) @map("smart_price_enabled")
+  idealPriceMinCents Int?     @map("ideal_price_min_cents")
+  idealPriceMaxCents Int?     @map("ideal_price_max_cents")
+  // Funcionalidades de engajamento
+  isTurbinado       Boolean   @default(false) @map("is_turbinado")
+  isMegafonado      Boolean   @default(false) @map("is_megafonado")
+  megafonadoUntil   DateTime? @map("megafonado_until") // nulo ou passado = boost inativo
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
 
@@ -505,7 +516,8 @@ model Store {
 
 model StoreBoost {
   id           String    @id @default(cuid())
-  storeId      String    @map("store_id")
+  storeId      String?   @map("store_id")   // null quando o boost é de usuário individual (megafone)
+  userId       String?   @map("user_id")    // quem aplicou o megafone (null para boosts de loja futura)
   listingId    String?   @map("listing_id") // null = boost na loja inteira
   boostType    BoostType @map("boost_type")
   startDate    DateTime  @map("start_date")
@@ -514,10 +526,12 @@ model StoreBoost {
   isActive     Boolean   @default(true) @map("is_active")
   createdAt    DateTime  @default(now()) @map("created_at")
 
-  store   Store    @relation(fields: [storeId], references: [id])
+  store   Store?   @relation(fields: [storeId], references: [id])
+  user    User?    @relation(fields: [userId], references: [id])
   listing Listing? @relation(fields: [listingId], references: [id])
 
   @@index([storeId])
+  @@index([userId])
   @@index([isActive, endDate])
   @@map("store_boosts")
 }

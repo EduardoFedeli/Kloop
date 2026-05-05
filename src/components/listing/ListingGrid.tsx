@@ -7,9 +7,12 @@ type Props = {
   favoriteIds?: string[]
   compact?: boolean
   minimal?: boolean
+  variant?: 'default' | 'search' // Repassa a prop do Card
 }
 
-export function ListingGrid({ listings, favoriteIds, compact, minimal = false }: Props) {
+export function ListingGrid({ listings, favoriteIds, compact, minimal = false, variant = 'default' }: Props) {
+  // Nota: A mensagem de "Nenhum anúncio encontrado" foi movida para a tela de busca,
+  // mas mantemos aqui como fallback de segurança.
   if (listings.length === 0) {
     return (
       <div className="text-center py-16 text-gray-500 dark:text-sage">
@@ -33,6 +36,7 @@ export function ListingGrid({ listings, favoriteIds, compact, minimal = false }:
           listing={listing}
           isFavorited={(favoriteIds ?? []).includes(listing.id)}
           minimal={minimal}
+          variant={variant}
         />
       ))}
     </div>

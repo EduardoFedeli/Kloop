@@ -44,7 +44,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: message }, { status: 422 })
   }
 
-  const { title, description, priceCents, categoryId, condition, brand, size, images, acceptsOffers, smartPriceEnabled } =
+  const { title, description, priceCents, categoryId, condition, brand, size, images, acceptsOffers, smartPriceEnabled, isTurbinado } =
     parsed.data
 
   const category = await db.category.findUnique({
@@ -78,6 +78,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         smartPriceEnabled,
         idealPriceMinCents,
         idealPriceMaxCents,
+        isTurbinado,
       },
     })
     await tx.listingImage.createMany({

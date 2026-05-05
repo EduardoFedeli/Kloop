@@ -1,40 +1,84 @@
+import { auth } from '@/lib/auth'
+import { db } from '@/lib/db'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Megaphone, ArrowLeft } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
+import { MegafoneClient } from '@/components/megafone/MegafoneClient'
 
-export default function MegafonePage() {
+export const dynamic = 'force-dynamic'
+
+export const metadata = {
+  title: 'Megafone | Kloop',
+}
+
+export default async function MegafonePage() {
+  const session = await auth()
+  if (!session?.user?.id) redirect('/login')
+
+  const userId = session.user.id
+
+  const [sub, listings] = await Promise.all([
+    db.userSubscription.findUnique({
+      where: { userId },
+      include: { plan: { select: { megaphonesPerWeek: true, name: true } } },
+    }),
+    db.listing.findMany({
+      where: { sellerId: userId, status: 'ACTIVE' },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        priceCents: true,
+        createdAt: true,
+        isMegafonado: true,
+        megafonadoUntil: true,
+        images: { orderBy: { displayOrder: 'asc' }, take: 1, select: { url: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+  ])
+
+  if (!sub) redirect('/pro')
+
+  const now = new Date()
+  const megaphonesPerWeek = sub.plan?.megaphonesPerWeek ?? 5
+  const needsReset = !sub.megaphonesWeekResetAt || sub.megaphonesWeekResetAt <= now
+  const usedThisWeek = needsReset ? 0 : sub.megaphonesUsedThisWeek
+  const planAvailable = Math.max(0, megaphonesPerWeek - usedThisWeek)
+  const extraBalance = sub.extraMegaphonesBalance
+  const totalAvailable = planAvailable + extraBalance
+
+  const quota = {
+    planAvailable,
+    extraBalance,
+    totalAvailable,
+    resetAt: sub.megaphonesWeekResetAt,
+    megaphonesPerWeek,
+    usedThisWeek,
+  }
+
   return (
-    <div className="min-h-screen bg-[var(--background)] flex flex-col">
-      <div className="max-w-2xl mx-auto w-full px-6 py-16 flex flex-col items-center text-center flex-1 justify-center">
-        <div className="w-24 h-24 rounded-3xl bg-yellow-100 dark:bg-yellow-500/10 flex items-center justify-center mb-8">
-          <Megaphone size={48} className="text-yellow-500 dark:text-yellow-400" strokeWidth={1.5} />
-        </div>
+    <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
+      <Link
+        href="/vendas"
+        className="inline-flex items-center gap-2 text-[14px] font-bold text-gray-500 dark:text-sage hover:text-[var(--foreground)] transition-colors"
+      >
+        <ArrowLeft size={18} />
+        voltar
+      </Link>
 
-        <p className="text-[12px] font-black uppercase tracking-widest text-yellow-500 dark:text-yellow-400 mb-3">em breve</p>
-        <h1 className="text-[28px] font-black text-[var(--foreground)] leading-tight tracking-tight mb-4">
-          megafone
-        </h1>
-        <p className="text-[15px] text-gray-500 dark:text-sage leading-relaxed max-w-sm">
-          impulsione seus anúncios e apareça pra mais gente na busca do kloop. com o megafone, seus produtos ficam no topo por mais tempo.
+      <div>
+        <h1 className="text-[20px] font-black text-[var(--foreground)]">megafone</h1>
+        <p className="text-[13px] text-gray-500 dark:text-sage mt-0.5">
+          impulsione seus anúncios e apareça pra mais gente
         </p>
-
-        <div className="mt-10 w-full max-w-xs">
-          <div className="bg-yellow-50 dark:bg-yellow-500/10 rounded-2xl p-4 text-left">
-            <p className="text-[13px] font-black text-yellow-700 dark:text-yellow-300 mb-1">o que vai ter</p>
-            <ul className="text-[13px] text-gray-600 dark:text-sage space-y-1">
-              <li>· destaque no feed e na busca</li>
-              <li>· métricas de visualizações</li>
-              <li>· planos por tempo ou por clique</li>
-            </ul>
-          </div>
-        </div>
-
-        <Link
-          href="/vendas"
-          className="mt-10 inline-flex items-center gap-2 text-[14px] font-bold text-[var(--color-teal)] dark:text-[var(--color-celadon)] hover:underline"
-        >
-          <ArrowLeft size={16} /> voltar pras vendas
-        </Link>
       </div>
+
+      <MegafoneClient
+        listings={listings}
+        quota={quota}
+        planName={sub.plan?.name ?? 'Basic'}
+      />
     </div>
   )
 }

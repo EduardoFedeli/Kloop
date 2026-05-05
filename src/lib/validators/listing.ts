@@ -26,6 +26,7 @@ export const createListingSchema = z.object({
     .max(6, "Máximo de 6 fotos"),
   acceptsOffers: z.boolean(),
   smartPriceEnabled: z.boolean(),
+  isTurbinado: z.boolean().default(false),
 })
 
 export type CreateListingInput = z.infer<typeof createListingSchema>

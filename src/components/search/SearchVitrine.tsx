@@ -4,7 +4,9 @@ import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { GlobalSearchBar } from './GlobalSearchBar'
 
-// Mapeamento completo baseado no seu categorias.csv
+// Fallback caso o banco não tenha marcas cadastradas ainda
+const FALLBACK_BRANDS = ['ZARA', 'FARM', 'AREZZO', 'SCHUTZ', 'NIKE']
+
 const DEPARTAMENTOS = [
   { name: 'moças', icon: '👗', slug: 'mocas' },
   { name: 'rapazes', icon: '👕', slug: 'rapazes' },
@@ -18,27 +20,31 @@ const DEPARTAMENTOS = [
   { name: 'etc & tal', icon: '✨', slug: 'etc-e-tal' },
 ]
 
-const MARCAS_QUERIDINHAS = [
-  { name: 'zara', logo: 'ZARA' },
-  { name: 'farm', logo: 'FARM' },
-  { name: 'arezzo', logo: 'AREZZO' },
-  { name: 'schutz', logo: 'SCHUTZ' },
-  { name: 'nike', logo: 'NIKE' },
-]
-
 const DESTAQUES_PILLS = [
-  { label: 'venda no kloop', href: '/create' },
-  { label: 'perfumes até 60%', href: '/search?cat=perfumes&discount=60' },
-  { label: 'vestidos até R$ 99', href: '/search?cat=vestidos&maxPrice=9900' },
-  { label: 'apple até 40% off', href: '/search?brand=Apple&discount=40' },
-  { label: 'cupons do dia', href: '/search?sort=discount' },
-  { label: 'novidades do dia', href: '/search?sort=recent' },
+  // Usa o departamento "mocas", a categoria "vestidos" (ou busca q=vestidos) e limite de 200 reais
+  { label: 'vestidos até R$ 200', href: '/search?dept=mocas&cat=vestidos&maxPrice=200' },
+  
+  // Combina filtro de marca (Apple) com range de preço (1000 a 5000)
+  { label: 'apple entre R$ 1k e 5k', href: '/search?brand=Apple&minPrice=1000&maxPrice=5000' },
+  
+  // Vai direto pro departamento de moças
+  { label: 'moda feminina', href: '/search?dept=mocas' },
+  
+  // Vai direto pro departamento de rapazes
+  { label: 'moda masculina', href: '/search?dept=rapazes' },
 ]
 
-export function SearchVitrine() {
+interface Props {
+  topBrands?: string[]
+}
+
+export function SearchVitrine({ topBrands = [] }: Props) {
+  // Pega as top 8 marcas do banco, ou o fallback se o banco estiver vazio
+  const displayBrands = topBrands.length > 0 ? topBrands.slice(0, 8) : FALLBACK_BRANDS
+
   return (
     <div className="min-h-screen bg-[var(--background)] pb-24">
-      {/* Barra de Busca Exclusiva da Página (Usa o GlobalSearchBar) */}
+      {/* Barra de Busca Exclusiva da Página */}
       <div className="sticky top-0 z-20 bg-[var(--background)] pt-4 pb-3 px-4">
         <GlobalSearchBar 
           autoFocus={true} 
@@ -49,7 +55,7 @@ export function SearchVitrine() {
 
       <div className="px-4 mt-6 space-y-12">
         
-        {/* Seção Categorias (Scroll Horizontal Infinito) */}
+        {/* Seção Categorias */}
         <section>
           <h2 className="text-[17px] font-black text-[var(--foreground)] mb-5 tracking-tight">categorias</h2>
           <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
@@ -66,7 +72,7 @@ export function SearchVitrine() {
           </div>
         </section>
 
-        {/* Marcas Queridinhas (Scroll Horizontal Infinito) */}
+        {/* Marcas Queridinhas Dinâmicas */}
         <section>
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-[17px] font-black text-[var(--foreground)] tracking-tight">marcas queridinhas</h2>
@@ -75,12 +81,20 @@ export function SearchVitrine() {
             </Link>
           </div>
           <div className="flex gap-5 overflow-x-auto pb-4 -mx-4 px-4 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
-            {MARCAS_QUERIDINHAS.map((marca) => (
-              <Link key={marca.name} href={`/search?brand=${marca.name}`} className="flex flex-col items-center gap-2 flex-shrink-0 group">
-                <div className="w-20 h-20 bg-white dark:bg-[var(--color-pine)] rounded-full shadow-sm border border-gray-100 dark:border-white/5 flex items-center justify-center group-hover:border-[var(--color-teal)] transition-colors overflow-hidden">
-                   <span className="text-[12px] font-black tracking-tighter text-[var(--foreground)] uppercase">{marca.logo}</span>
+            {displayBrands.map((brandName) => (
+              <Link 
+                key={brandName} 
+                href={`/search?brand=${encodeURIComponent(brandName)}`} 
+                className="flex flex-col items-center gap-2 flex-shrink-0 group"
+              >
+                <div className="w-20 h-20 bg-[var(--color-pine)] rounded-full shadow-sm flex items-center justify-center hover:opacity-90 transition-opacity overflow-hidden">
+                   <span className="text-[12px] font-black tracking-tighter text-white uppercase px-2 text-center break-words w-full line-clamp-2">
+                     {brandName}
+                   </span>
                 </div>
-                <span className="text-[12px] font-bold text-[var(--foreground)]">{marca.name}</span>
+                <span className="text-[12px] font-bold text-[var(--foreground)] w-20 text-center truncate">
+                  {brandName.toLowerCase()}
+                </span>
               </Link>
             ))}
           </div>

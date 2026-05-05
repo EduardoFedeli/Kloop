@@ -30,6 +30,7 @@ export interface EditInitialData {
   size: string | null
   acceptsOffers: boolean
   smartPriceEnabled: boolean
+  isTurbinado: boolean
   images: UploadedImage[]
 }
 
@@ -272,6 +273,7 @@ export function EditListingForm({ initialData, categories }: EditListingFormProp
   const [noBrand, setNoBrand] = useState(!initialData.brand)
   const [acceptsOffers, setAcceptsOffers] = useState(initialData.acceptsOffers)
   const [smartPrice, setSmartPrice] = useState(initialData.smartPriceEnabled)
+  const [isTurbinado, setIsTurbinado] = useState(initialData.isTurbinado)
   const [size, setSize] = useState(initialData.size ?? "")
 
   const {
@@ -337,6 +339,7 @@ export function EditListingForm({ initialData, categories }: EditListingFormProp
           size: size || undefined,
           acceptsOffers,
           smartPriceEnabled: smartPrice,
+          isTurbinado,
         }),
       })
       const json = (await res.json()) as { slug?: string; error?: string }
@@ -368,6 +371,42 @@ export function EditListingForm({ initialData, categories }: EditListingFormProp
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+
+        {/* Mode — Clássico vs Turbinado */}
+        <SectionCard title="Modo de venda">
+          <div className="grid grid-cols-2 gap-3">
+            {([
+              { key: 'classico', label: 'Clássico', emoji: '🛍️', desc: 'Venda simples, sem desconto automático' },
+              { key: 'turbinado', label: 'Turbinado', emoji: '⚡', desc: 'Desconto automático para quem leva mais de uma peça sua' },
+            ] as const).map((m) => {
+              const active = isTurbinado ? m.key === 'turbinado' : m.key === 'classico'
+              return (
+                <button
+                  key={m.key}
+                  type="button"
+                  onClick={() => setIsTurbinado(m.key === 'turbinado')}
+                  className={cn(
+                    'relative text-left p-4 rounded-xl border-2 transition-all',
+                    active
+                      ? 'border-[var(--color-pine)] dark:border-[var(--color-celadon)] bg-[var(--color-teal)]/5 dark:bg-white/5'
+                      : 'border-gray-100 dark:border-white/10 hover:border-gray-200 dark:hover:border-white/20',
+                  )}
+                >
+                  {active && (
+                    <div className="absolute top-3 right-3 text-[var(--color-pine)] dark:text-[var(--color-celadon)]">
+                      <Check size={16} strokeWidth={3} />
+                    </div>
+                  )}
+                  <p className="text-xl mb-1">{m.emoji}</p>
+                  <p className={cn('text-[14px] font-bold mb-1', active ? 'text-[var(--color-pine)] dark:text-[var(--color-celadon)]' : 'text-[var(--foreground)]')}>
+                    {m.label}
+                  </p>
+                  <p className="text-[12px] text-gray-500 dark:text-sage pr-4 leading-relaxed">{m.desc}</p>
+                </button>
+              )
+            })}
+          </div>
+        </SectionCard>
 
         {/* Photos */}
         <SectionCard title="Fotos *">

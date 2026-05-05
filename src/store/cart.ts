@@ -9,6 +9,40 @@ export type CartItem = {
   imageUrl: string | null
   sellerId: string
   sellerName: string
+  isTurbinado: boolean
+}
+
+// Tiers de desconto da Sacolinha Turbinada — aplicados apenas aos itens turbinados
+const TURBINADO_TIERS: { min: number; rate: number }[] = [
+  { min: 5, rate: 0.30 },
+  { min: 4, rate: 0.25 },
+  { min: 3, rate: 0.20 },
+  { min: 2, rate: 0.15 },
+]
+
+export type TurbinadoDiscount = {
+  count: number        // nº de itens turbinados do vendedor na sacola
+  rate: number         // taxa aplicada (ex: 0.15)
+  savingsCents: number // economia em centavos
+}
+
+/**
+ * Calcula o desconto Turbinar para um grupo de itens de um mesmo vendedor.
+ * Retorna null se não houver itens turbinados suficientes (mínimo 2).
+ */
+export function calcTurbinadoDiscount(items: CartItem[]): TurbinadoDiscount | null {
+  const turbinados = items.filter((i) => i.isTurbinado)
+  if (turbinados.length < 2) return null
+
+  const tier = TURBINADO_TIERS.find((t) => turbinados.length >= t.min)
+  if (!tier) return null
+
+  const subtotal = turbinados.reduce((s, i) => s + i.priceCents, 0)
+  return {
+    count: turbinados.length,
+    rate: tier.rate,
+    savingsCents: Math.round(subtotal * tier.rate),
+  }
 }
 
 type CartStore = {

@@ -23,6 +23,7 @@ type Props = {
   buyerHasAddress?: boolean
   chatOnly?: boolean
   acceptsOffers?: boolean
+  isTurbinado?: boolean
 }
 
 export function ProductActions({
@@ -38,6 +39,7 @@ export function ProductActions({
   buyerHasAddress,
   chatOnly = false,
   acceptsOffers = true,
+  isTurbinado = false,
 }: Props) {
   const router = useRouter()
   const [isStartingChat, setIsStartingChat] = useState(false)
@@ -60,6 +62,7 @@ export function ProductActions({
       imageUrl: listingImageUrl ?? null,
       sellerId: sellerId ?? '',
       sellerName: sellerName ?? '',
+      isTurbinado,
     })
     toast.success('Adicionado à sacola!', {
       action: { label: 'ver sacola', onClick: () => router.push('/sacola') },

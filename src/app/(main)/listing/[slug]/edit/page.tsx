@@ -29,6 +29,7 @@ export default async function EditListingPage({ params }: Props) {
         size: true,
         acceptsOffers: true,
         smartPriceEnabled: true,
+        isTurbinado: true,
         images: {
           orderBy: { displayOrder: "asc" },
           select: { url: true, publicId: true },
@@ -56,6 +57,7 @@ export default async function EditListingPage({ params }: Props) {
     size: listing.size,
     acceptsOffers: listing.acceptsOffers,
     smartPriceEnabled: listing.smartPriceEnabled,
+    isTurbinado: listing.isTurbinado,
     images: listing.images.filter((img) => img.publicId).map((img) => ({ url: img.url, publicId: img.publicId! })),
   }
 

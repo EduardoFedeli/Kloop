@@ -8,8 +8,21 @@ import { createProLot } from "@/lib/actions/proLot"
 
 type ShippingMethod = "correios" | "coleta"
 
+interface AddressData {
+  id: string
+  label: string
+  street: string
+  number: string
+  complement?: string | null
+  neighborhood: string
+  city: string
+  state: string
+  zipCode: string
+}
+
 interface Props {
   withBag?: boolean
+  address?: AddressData
 }
 
 const OPTIONS = [
@@ -30,7 +43,7 @@ const OPTIONS = [
     description: "Nosso parceiro coleta na sua casa em até 2 dias úteis. O valor é descontado do seu saldo KloopBank na primeira venda.",
     badge: "MAIS PRÁTICO",
     subtitleColor: "bg-orange-100 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400",
-  },
+  }
 ]
 
 export function ProOnboardingClient({ withBag }: Props) {
@@ -39,12 +52,12 @@ export function ProOnboardingClient({ withBag }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  function handleContinue() {
+  function submitLot() {
     if (!selected) return
     setError(null)
     startTransition(async () => {
-      const method = selected === "correios" ? "CORREIOS" : "COLETA"
-      const result = await createProLot(method, withBag ?? false)
+      const prismaMethod = selected === "correios" ? "CORREIOS" : "COLETA"
+      const result = await createProLot(prismaMethod, withBag ?? false)
       if ("error" in result) {
         setError(result.error)
         return
@@ -164,7 +177,7 @@ export function ProOnboardingClient({ withBag }: Props) {
       {/* CTA fixo */}
       <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 z-30 w-full px-4 max-w-sm">
         <button
-          onClick={handleContinue}
+          onClick={submitLot}
           disabled={!selected || isPending}
           className={cn(
             "w-full px-6 py-4 rounded-full flex items-center justify-center font-black text-[15px] transition-all",
@@ -176,6 +189,7 @@ export function ProOnboardingClient({ withBag }: Props) {
           {isPending ? "Confirmando..." : <>Continuar <ChevronRight size={18} className="ml-1" /></>}
         </button>
       </div>
+
     </div>
   )
 }

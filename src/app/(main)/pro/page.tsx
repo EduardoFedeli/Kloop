@@ -11,12 +11,30 @@ export default async function ProPage() {
 
   let planSlug = "basic"
   let hasActiveLot = false
+  let userAddress = null
 
   if (session?.user?.id) {
-    const [subscription, activeLot] = await Promise.all([
-      db.userSubscription.findUnique({
-        where: { userId: session.user.id },
-        select: { plan: { select: { slug: true } } },
+    const [user, activeLot] = await Promise.all([
+      db.user.findUnique({
+        where: { id: session.user.id },
+        select: { 
+          subscription: { select: { plan: { select: { slug: true } } } },
+          // Pega apenas os campos necessários do primeiro endereço
+          addresses: {
+            orderBy: { createdAt: 'asc' },
+            take: 1,
+            select: {
+              label: true,
+              street: true,
+              number: true,
+              complement: true,
+              neighborhood: true,
+              city: true,
+              state: true,
+              zipCode: true
+            }
+          }
+        },
       }),
       db.proLot.findFirst({
         where: {
@@ -27,9 +45,10 @@ export default async function ProPage() {
       }),
     ])
 
-    if (subscription?.plan?.slug) planSlug = subscription.plan.slug
+    if (user?.subscription?.plan?.slug) planSlug = user.subscription.plan.slug
+    if (user?.addresses && user.addresses.length > 0) userAddress = user.addresses[0]
     hasActiveLot = activeLot !== null
   }
 
-  return <ProLandingClient planSlug={planSlug} hasActiveLot={hasActiveLot} />
+  return <ProLandingClient planSlug={planSlug} hasActiveLot={hasActiveLot} address={userAddress} />
 }

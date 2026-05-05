@@ -57,15 +57,17 @@ export async function Header({ unreadCount }: Props) {
   ])
 
   return (
-    <MegaNav
-      brands={{
-        mocas: mocasBrands,
-        rapazes: rapazesBrands,
-        criancas: criancasBrands,
-        outros: outrosBrands,
-      }}
-      user={session?.user ?? undefined}
-      unreadCount={unreadCount}
-    />
+    <header className="sticky top-0 z-50 bg-[var(--background)] border-b border-gray-100 dark:border-white/5">
+      <MegaNav
+        brands={{
+          mocas: mocasBrands,
+          rapazes: rapazesBrands,
+          criancas: criancasBrands,
+          outros: outrosBrands,
+        }}
+        user={session?.user ?? undefined}
+        unreadCount={unreadCount}
+      />
+    </header>
   )
 }
