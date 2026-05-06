@@ -7,12 +7,18 @@ type Props = {
   favoriteIds?: string[]
   compact?: boolean
   minimal?: boolean
-  variant?: 'default' | 'search' // Repassa a prop do Card
+  variant?: 'default' | 'search'
+  hideFavorite?: boolean // 1. Aqui na tipagem
 }
 
-export function ListingGrid({ listings, favoriteIds, compact, minimal = false, variant = 'default' }: Props) {
-  // Nota: A mensagem de "Nenhum anúncio encontrado" foi movida para a tela de busca,
-  // mas mantemos aqui como fallback de segurança.
+export function ListingGrid({ 
+  listings, 
+  favoriteIds, 
+  compact, 
+  minimal = false, 
+  variant = 'default',
+  hideFavorite = false // 2. AQUI ESTAVA O ERRO! Faltou receber ele na função
+}: Props) {
   if (listings.length === 0) {
     return (
       <div className="text-center py-16 text-gray-500 dark:text-sage">
@@ -37,6 +43,7 @@ export function ListingGrid({ listings, favoriteIds, compact, minimal = false, v
           isFavorited={(favoriteIds ?? []).includes(listing.id)}
           minimal={minimal}
           variant={variant}
+          hideFavorite={hideFavorite} // 3. Agora sim ele é repassado sem dar undefined
         />
       ))}
     </div>

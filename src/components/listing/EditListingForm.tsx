@@ -296,6 +296,7 @@ export function EditListingForm({ initialData, categories }: EditListingFormProp
       images: initialData.images,
       acceptsOffers: initialData.acceptsOffers,
       smartPriceEnabled: initialData.smartPriceEnabled,
+      isTurbinado: initialData.isTurbinado,
     },
   })
 

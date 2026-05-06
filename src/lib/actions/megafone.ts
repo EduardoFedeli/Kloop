@@ -147,7 +147,7 @@ export async function applyMegafoneAction(
   })
 
   revalidatePath(`/listing/${listing.slug}`)
-  revalidatePath("/minha-loja")
+  revalidatePath('/profile', 'layout')
   revalidatePath("/vendas/megafone")
   return { success: true }
 }

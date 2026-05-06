@@ -93,7 +93,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   })
 
   revalidatePath(`/listing/${slug}`)
-  revalidatePath('/minha-loja')
+  revalidatePath('/profile', 'layout')
   revalidatePath('/')
 
   return NextResponse.json({ slug })

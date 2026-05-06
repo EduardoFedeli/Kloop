@@ -242,6 +242,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
             },
           },
         },
+        _count: { select: { favorites: true } },
       },
       orderBy,
       take: 60,

@@ -116,6 +116,22 @@ export async function deleteAddressAction(addressId: string): Promise<ProfileAct
   return { success: true }
 }
 
+export async function updateAvatarAction(url: string): Promise<ProfileActionResult> {
+  const session = await auth()
+  if (!session?.user?.id) return { success: false, error: "Não autenticado" }
+  await db.user.update({ where: { id: session.user.id }, data: { avatarUrl: url } })
+  revalidatePath(`/profile/${session.user.id}`)
+  return { success: true }
+}
+
+export async function updateCoverAction(url: string): Promise<ProfileActionResult> {
+  const session = await auth()
+  if (!session?.user?.id) return { success: false, error: "Não autenticado" }
+  await db.user.update({ where: { id: session.user.id }, data: { coverUrl: url } })
+  revalidatePath(`/profile/${session.user.id}`)
+  return { success: true }
+}
+
 export async function setDefaultAddressAction(addressId: string): Promise<ProfileActionResult> {
   const session = await auth()
   if (!session?.user?.id) return { success: false, error: "Não autenticado" }

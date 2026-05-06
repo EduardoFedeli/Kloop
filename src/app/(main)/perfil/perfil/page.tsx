@@ -83,7 +83,7 @@ export default async function PerfilPerfilPage() {
       {/* Minha loja */}
       <section>
         <Link
-          href="/minha-loja"
+          href={`/profile/${user.id}`}
           className="flex items-center justify-between bg-white dark:bg-[var(--color-pine)] rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-white/5 hover:border-[var(--color-teal)] dark:hover:border-[var(--color-celadon)] transition-colors group"
         >
           <div className="flex items-center gap-4">

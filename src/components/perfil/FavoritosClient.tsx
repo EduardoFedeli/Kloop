@@ -71,7 +71,7 @@ export function FavoritosClient({ favorites, favoriteIds }: Props) {
       ) : (
         <div className="grid grid-cols-2 gap-2.5">
           {displayed.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} isFavorited={favoriteSet.has(listing.id)} minimal />
+            <ListingCard key={listing.id} listing={listing} isFavorited={favoriteSet.has(listing.id)} variant="search" />
           ))}
         </div>
       )}

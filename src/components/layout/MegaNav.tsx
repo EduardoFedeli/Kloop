@@ -2,13 +2,13 @@
 
 import { useState, useRef } from "react"
 import Link from "next/link"
-import { Search, Bell, HelpCircle, Heart, MessageCircle } from "lucide-react"
+import { Search, Bell, HelpCircle, Heart, MessageCircle, ShoppingBag } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { HeaderAuth } from "./HeaderAuth"
 import { ThemeToggle } from "./ThemeToggle"
 import { usePathname } from "next/navigation"
 import { GlobalSearchBar } from "../search/GlobalSearchBar"
-import { AuthModal } from "@/components/auth/AuthModal" // Import adicionado
+import { AuthModal } from "@/components/auth/AuthModal"
 
 // ── Static nav structure ───────────────────────────────────────────────────
 
@@ -72,11 +72,11 @@ interface MegaNavProps {
 // ── MegaNav ────────────────────────────────────────────────────────────────
 
 export function MegaNav({ brands, user, unreadCount }: MegaNavProps) {
-  const pathname = usePathname() // <-- PEGA A ROTA ATUAL
-  const isHome = pathname === '/' // <-- VERIFICA SE É A HOME
+  const pathname = usePathname()
+  const isHome = pathname === '/'
   
   const [activeKey, setActiveKey] = useState<string | null>(null)
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false) // <-- Estado do modal adicionado
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function open(key: string) {
@@ -105,7 +105,7 @@ export function MegaNav({ brands, user, unreadCount }: MegaNavProps) {
     <>
       <header className={cn(
         "sticky top-0 z-40 bg-white dark:bg-[var(--color-pine)] border-b border-gray-200 dark:border-forest transition-colors relative",
-        !isHome && "hidden md:block" // <-- A MÁGICA AQUI: esconde no celular se não for a Home!
+        !isHome && "hidden md:block" 
       )}>
         {/* ── Main row ─────────────────────────────────────────────────────── */}
         <div className="max-w-screen-xl mx-auto px-4 h-[60px] flex items-center gap-3">
@@ -183,6 +183,9 @@ export function MegaNav({ brands, user, unreadCount }: MegaNavProps) {
                   </span>
                 ) : null}
               </Link>
+              <Link href="/sacola" aria-label="Sacola" className={iconCls}>
+                <ShoppingBag size={20} />
+              </Link>
               <ThemeToggle />
             </div>
 
@@ -197,6 +200,9 @@ export function MegaNav({ brands, user, unreadCount }: MegaNavProps) {
           <div className="md:hidden ml-auto flex items-center gap-1">
             <Link href="/search" aria-label="Buscar" className={iconCls}>
               <Search size={22} />
+            </Link>
+            <Link href="/sacola" aria-label="Sacola" className={iconCls}>
+              <ShoppingBag size={22} />
             </Link>
             <Link href="/chat" aria-label="Mensagens" className={cn(iconCls, "relative")}>
               <MessageCircle size={22} />
@@ -216,7 +222,7 @@ export function MegaNav({ brands, user, unreadCount }: MegaNavProps) {
           <ul className="flex items-center px-4 [&::-webkit-scrollbar]:hidden">
             {[
               { label: "pra você", href: "/", active: true },
-              { label: "kloop pro", href: "#", active: false, requiresAuth: true }, // Adicionada flag
+              { label: "kloop pro", href: "#", active: false, requiresAuth: true }, 
               { label: "moças", href: "/search?dept=mocas", active: false },
               { label: "rapazes", href: "/search?dept=rapazes", active: false },
               { label: "kids", href: "/search?dept=criancas", active: false },
@@ -226,7 +232,6 @@ export function MegaNav({ brands, user, unreadCount }: MegaNavProps) {
                 <Link
                   href={item.href}
                   onClick={(e) => {
-                    // Impede o clique e abre o modal se precisar de auth e não tiver usuário
                     if (item.requiresAuth && !user) {
                       e.preventDefault()
                       setIsAuthModalOpen(true)

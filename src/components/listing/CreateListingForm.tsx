@@ -327,6 +327,7 @@ export function CreateListingForm({ activeCount, maxListings, planName, categori
       images: [],
       acceptsOffers: false,
       smartPriceEnabled: false,
+      isTurbinado: false,
     },
   })
 

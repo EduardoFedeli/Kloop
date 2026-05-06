@@ -31,7 +31,7 @@ export default async function CashbackPage() {
 
   const userId = session.user.id
 
-  const [balanceCents, expiringSoonCents, history] = await Promise.all([
+  const [balanceCents, expiringSoonCents, history, subscription] = await Promise.all([
     getCashbackBalance(userId),
     getExpiringCashback(userId, EXPIRY_WARNING_DAYS),
     db.cashbackTransaction.findMany({
@@ -47,7 +47,15 @@ export default async function CashbackPage() {
         expiresAt: true,
       },
     }),
+    db.userSubscription.findUnique({
+      where: { userId },
+      select: { plan: { select: { slug: true } } },
+    }),
   ])
+
+  const isPaidPlan = subscription?.plan?.slug === 'pro' || subscription?.plan?.slug === 'premium'
+  const sellerRate = isPaidPlan ? 8 : 5
+  const buyerRate = isPaidPlan ? 4 : 2
 
   const hasBalance = balanceCents > 0
 
@@ -96,8 +104,8 @@ export default async function CashbackPage() {
           <p className="text-[15px] font-black text-[var(--foreground)] mb-3">como funciona</p>
           <div className="space-y-3">
             {[
-              { emoji: '🛒', text: 'Compradores ganham 2% de cashback em cada compra concluída.' },
-              { emoji: '🏷️', text: 'Vendedores ganham 5% de cashback em cada venda concluída.' },
+              { emoji: '🛒', text: `Compradores ganham ${buyerRate}% de cashback em cada compra concluída.` },
+              { emoji: '🏷️', text: `Vendedores ganham ${sellerRate}% de cashback em cada venda concluída.` },
               { emoji: '💸', text: 'Use até 30% do valor de uma compra com seu saldo.' },
               { emoji: '⏳', text: 'O cashback expira em 120 dias após ser creditado.' },
             ].map(({ emoji, text }) => (

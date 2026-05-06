@@ -8,6 +8,10 @@ export type ListingWithDetails = {
   condition: ListingCondition
   status: ListingStatus
   brand: string | null
+  size?: string | null
+  isTurbinado?: boolean
+  viewsCount?: number
+  _count?: { favorites: number }
   category: {
     id: string
     name: string

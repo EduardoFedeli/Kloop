@@ -8,6 +8,7 @@ import { User, LogOut, Settings, Package, ChevronDown, Crown } from "lucide-reac
 
 interface HeaderAuthProps {
   user?: {
+    id?: string | null
     name?: string | null
     email?: string | null
     image?: string | null
@@ -95,7 +96,7 @@ export function HeaderAuth({ user }: HeaderAuthProps) {
               <User className="h-4 w-4" /> Meu perfil
             </Link>
             <Link
-              href="/minha-loja"
+              href={`/profile/${user?.id}`}
               onClick={closeMenu}
               className="flex w-full items-center gap-2 px-4 py-2 text-sm text-airforce hover:bg-gray-50"
             >

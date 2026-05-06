@@ -43,7 +43,7 @@ export default async function EditListingPage({ params }: Props) {
   ])
 
   if (!listing) notFound()
-  if (listing.sellerId !== session.user.id) redirect("/minha-loja")
+  if (listing.sellerId !== session.user.id) redirect(`/profile/${session.user.id}`)
   if (listing.status === "SOLD") redirect(`/listing/${slug}`)
 
   const initialData = {

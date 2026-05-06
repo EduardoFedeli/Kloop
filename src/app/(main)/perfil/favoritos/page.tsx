@@ -25,6 +25,7 @@ const LISTING_SELECT = {
       },
     },
   },
+  _count: { select: { favorites: true } },
 } as const
 
 export default async function FavoritosPage() {
