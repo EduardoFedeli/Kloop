@@ -149,18 +149,31 @@ export default async function SearchPage({ searchParams }: PageProps) {
     ...(selfId && { NOT: { sellerId: selfId } }),
   }
 
-  // Busca SEMPRE as top marcas (independente se é vitrine ou resultados)
+  // ── ATUALIZAÇÃO: Busca SEMPRE as top marcas agrupando por brandId ──
   const brandGroups = await db.listing.groupBy({
-    by: ['brand'],
-    where: { ...whereBaseFiltered, brand: { not: null } },
-    _count: { brand: true },
-    orderBy: { _count: { brand: 'desc' } },
+    by: ['brandId'],
+    where: { ...whereBaseFiltered, brandId: { not: null } },
+    _count: { brandId: true },
+    orderBy: { _count: { brandId: 'desc' } },
     take: 15,
   })
 
+  // Extrai os IDs e busca os nomes na tabela Brand
+  const validBrandIds = brandGroups.map(g => g.brandId).filter((id): id is string => id !== null)
+  
+  const brandsData = await db.brand.findMany({
+    where: { id: { in: validBrandIds } },
+    select: { id: true, name: true }
+  })
+
+  // Retorna um array de strings (apenas nomes) para não quebrar a UI
   const topBrands = brandGroups
-    .map((g) => g.brand)
-    .filter((b): b is string => typeof b === 'string' && b.trim() !== '')
+    .map(g => {
+      const match = brandsData.find(b => b.id === g.brandId)
+      return match ? match.name : null
+    })
+    .filter((name): name is string => name !== null)
+
 
   // Se a busca estiver vazia, retorna a vitrine com as topBrands
   if (isSearchEmpty) {
@@ -178,17 +191,19 @@ export default async function SearchPage({ searchParams }: PageProps) {
     ? new Date(Date.now() - newness * 24 * 60 * 60 * 1000)
     : undefined
 
-  // Base where — sem filtro de condição (para facets corretos)
+  // ── ATUALIZAÇÃO: Ajuste na query textual e de marca ──
   const whereBaseForResults = {
     status: ListingStatus.ACTIVE,
     ...(categoryIds.length > 0 && { categoryId: { in: categoryIds } }),
-    ...(brand && { brand: { equals: brand, mode: 'insensitive' as const } }),
+    // Filtro exato por nome de marca (usando a relação)
+    ...(brand && { brand: { is: { name: { equals: brand, mode: 'insensitive' as const } } } }),
     ...(newerThan && { createdAt: { gte: newerThan } }),
     ...(q && {
       OR: [
         { title: { contains: q, mode: 'insensitive' as const } },
         { description: { contains: q, mode: 'insensitive' as const } },
-        { brand: { contains: q, mode: 'insensitive' as const } },
+        // Pesquisa de texto genérica olhando para o nome da marca
+        { brand: { is: { name: { contains: q, mode: 'insensitive' as const } } } },
       ],
     }),
   }
@@ -225,6 +240,8 @@ export default async function SearchPage({ searchParams }: PageProps) {
       where: whereFiltered,
       include: {
         category: { select: { id: true, name: true, slug: true } },
+        // Incluir o relacionamento brand para o frontend
+        brand: true, 
         images: {
           orderBy: { displayOrder: 'asc' },
           take: 1,
@@ -260,7 +277,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
         .then((favs) => favs.map((f) => f.listingId))
     : []
 
-  const listings: ListingWithDetails[] = rawListings
+  const listings: ListingWithDetails[] = rawListings as ListingWithDetails[]
   const availableConditions = conditionFacets.map((f) => f.condition)
 
   return (

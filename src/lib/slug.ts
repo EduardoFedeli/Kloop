@@ -1,13 +1,19 @@
-import slugify from "slugify"
+import slugifyPkg from "slugify"
 import { db } from "@/lib/db"
 
-export async function generateUniqueSlug(title: string, excludeId?: string): Promise<string> {
-  const base = slugify(title, { lower: true, strict: true, locale: "pt" })
+// Função genérica síncrona para gerar slugs (usada nas Marcas, Categorias, etc)
+export function slugify(text: string): string {
+  return slugifyPkg(text, { lower: true, strict: true, locale: "pt" })
+}
 
-  const isAvailable = async (slug: string): Promise<boolean> => {
+// Função assíncrona específica para Anúncios (checa duplicidade na tabela Listing)
+export async function generateUniqueSlug(title: string, excludeId?: string): Promise<string> {
+  const base = slugify(title)
+
+  const isAvailable = async (slugToCheck: string): Promise<boolean> => {
     const count = await db.listing.count({
       where: {
-        slug,
+        slug: slugToCheck,
         ...(excludeId ? { id: { not: excludeId } } : {}),
       },
     })

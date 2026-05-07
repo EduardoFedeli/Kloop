@@ -32,13 +32,28 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
 
   // ── Busca das Facetas (Marcas, Condições, Tamanhos e Categorias) ──
   const [brandGroups, conditionFacets, sizeGroups, categoryGroups] = await Promise.all([
-    db.listing.groupBy({ by: ['brand'], where: { sellerId: id, status: ListingStatus.ACTIVE, brand: { not: null } }, _count: { brand: true } }),
+    // ATUALIZADO: Agrupa por brandId
+    db.listing.groupBy({ by: ['brandId'], where: { sellerId: id, status: ListingStatus.ACTIVE, brandId: { not: null } }, _count: { brandId: true } }),
     db.listing.groupBy({ by: ['condition'], where: { sellerId: id, status: ListingStatus.ACTIVE }, _count: { condition: true } }),
     db.listing.groupBy({ by: ['size'], where: { sellerId: id, status: ListingStatus.ACTIVE, size: { not: null } }, _count: { size: true } }),
     db.listing.findMany({ where: { sellerId: id, status: ListingStatus.ACTIVE }, select: { category: { select: { name: true } } }, distinct: ['categoryId'] })
   ])
   
-  const storeBrands = brandGroups.map(g => g.brand).filter((b): b is string => !!b)
+  // ATUALIZADO: Busca os nomes das marcas
+  const validBrandIds = brandGroups.map(g => g.brandId).filter((id): id is string => id !== null)
+  const brandsData = await db.brand.findMany({
+    where: { id: { in: validBrandIds } },
+    select: { id: true, name: true }
+  })
+  
+  // ATUALIZADO: Mapeia de volta para string[]
+  const storeBrands = brandGroups
+    .map(g => {
+      const match = brandsData.find(b => b.id === g.brandId)
+      return match ? match.name : null
+    })
+    .filter((name): name is string => name !== null)
+
   const storeConditions = conditionFacets.map(f => f.condition)
   const storeSizes = sizeGroups.map(g => g.size).filter((s): s is string => !!s)
   const storeCategories = categoryGroups.map(c => c.category?.name).filter((c): c is string => !!c)
@@ -78,7 +93,8 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
         where: { 
           status: ListingStatus.ACTIVE,
           ...(condition && { condition }),
-          ...(brand && { brand: { equals: brand, mode: 'insensitive' as const } }),
+          // ATUALIZADO: Filtro por nome de marca via relacionamento
+          ...(brand && { brand: { is: { name: { equals: brand, mode: 'insensitive' as const } } } }),
           ...(size && { size: { equals: size, mode: 'insensitive' as const } }),
           ...(categoryName && { category: { name: { equals: categoryName, mode: 'insensitive' as const } } }),
           ...((minPriceCents !== undefined || maxPriceCents !== undefined) && {
@@ -90,6 +106,8 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
         },
         include: {
           category: { select: { id: true, name: true, slug: true } },
+          // ATUALIZADO: Incluir brand para o UI ter a informacao correta
+          brand: true,
           images: { orderBy: { displayOrder: "asc" }, take: 1, select: { url: true, altText: true } },
           seller: { select: { id: true, name: true, avatarUrl: true, addresses: { where: { isDefault: true }, select: { city: true, state: true }, take: 1 } } },
           _count: { select: { favorites: true } },
@@ -128,7 +146,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
     <ProfileStoreClient
        user={{ id: user.id, name: user.name, bio: user.bio, avatarUrl: user.avatarUrl, coverUrl: user.coverUrl, createdAt: user.createdAt }}
        isOwn={isOwn}
-       listings={user.listings}
+       listings={user.listings as any} // Cast necessário temporariamente, pois atualizamos o tipo do db
        reviews={user.reviewsReceived}
        avgRating={avgRating}
        totalRatings={totalRatings}

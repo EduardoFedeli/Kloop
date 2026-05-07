@@ -297,7 +297,8 @@ model Listing {
   priceCents  Int              @map("price_cents")
   condition   ListingCondition
   status      ListingStatus    @default(DRAFT)
-  brand       String?
+  brandId   String?  @map("brand_id")
+  brand     Brand?   @relation(fields: [brandId], references: [id])
   size        String? // Tamanho livre (P, M, G, 42, etc.)
   viewsCount  Int              @default(0) @map("views_count")
   acceptsOffers     Boolean   @default(true) @map("accepts_offers")
@@ -660,12 +661,13 @@ model OfferRound {
 model BrandFollow {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
-  brand     String
+  brandId   String   @map("brand_id")
+  brand     Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, brand])
+  @@unique([userId, brandId])
   @@index([userId])
   @@map("brand_follows")
 }
@@ -865,4 +867,19 @@ model BundleOfferRound {
   @@unique([bundleOfferId, roundNumber])
   @@index([bundleOfferId, createdAt])
   @@map("bundle_offer_rounds")
+}
+
+model Brand {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  logoUrl   String?  @map("logo_url")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  listings  Listing[]
+  followers BrandFollow[]
+
+  @@map("brands")
 }
