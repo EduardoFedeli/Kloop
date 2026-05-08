@@ -13,7 +13,8 @@ export default async function EditListingPage({ params }: Props) {
   const session = await auth()
   if (!session?.user?.id) redirect("/")
 
-  const [listing, categories] = await Promise.all([
+  // ATUALIZADO: Adicionamos a busca das brands
+  const [listing, categories, brands] = await Promise.all([
     db.listing.findUnique({
       where: { slug },
       select: {
@@ -25,7 +26,8 @@ export default async function EditListingPage({ params }: Props) {
         priceCents: true,
         categoryId: true,
         condition: true,
-        brand: true,
+        // ATUALIZADO: Traz o brandId em vez de brand
+        brandId: true,
         size: true,
         acceptsOffers: true,
         smartPriceEnabled: true,
@@ -40,6 +42,11 @@ export default async function EditListingPage({ params }: Props) {
       orderBy: { name: "asc" },
       select: { id: true, name: true, parentId: true },
     }),
+    db.brand.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
   ])
 
   if (!listing) notFound()
@@ -53,12 +60,14 @@ export default async function EditListingPage({ params }: Props) {
     priceCents: listing.priceCents,
     categoryId: listing.categoryId,
     condition: listing.condition,
-    brand: listing.brand,
+    // ATUALIZADO: Repassando o brandId
+    brandId: listing.brandId,
     size: listing.size,
     acceptsOffers: listing.acceptsOffers,
     smartPriceEnabled: listing.smartPriceEnabled,
     isTurbinado: listing.isTurbinado,
-    images: listing.images.filter((img) => img.publicId).map((img) => ({ url: img.url, publicId: img.publicId! })),
+    // Agora aceitamos as imagens mesmo se o publicId for nulo, usando a própria URL como ID temporário
+    images: listing.images.map((img) => ({ url: img.url, publicId: img.publicId || img.url })),
   }
 
   return (
@@ -67,7 +76,8 @@ export default async function EditListingPage({ params }: Props) {
       <p className="text-[13px] text-gray-500 dark:text-sage mb-6">
         Atualize as informações do seu anúncio abaixo.
       </p>
-      <EditListingForm initialData={initialData} categories={categories} />
+      {/* ATUALIZADO: Passando a prop brands */}
+      <EditListingForm initialData={initialData} categories={categories} brands={brands} />
     </div>
   )
 }

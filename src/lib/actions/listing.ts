@@ -79,7 +79,7 @@ export async function createListingAction(formData: FormData): Promise<ListingAc
     priceCents,
     categoryId: resolvedCategory.id,
     condition: formData.get("condition"),
-    brand: formData.get("brand") || undefined,
+    brandId: formData.get("brandId") || undefined, // <--- AQUI
     size: formData.get("weight") || undefined,
     imageUrls: extractImageUrls(formData),
   })
@@ -88,7 +88,7 @@ export async function createListingAction(formData: FormData): Promise<ListingAc
     return { success: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos" }
   }
 
-  const { title, description, priceCents: price, categoryId, condition, brand, size, imageUrls } =
+  const { title, description, priceCents: price, categoryId, condition, brandId, size, imageUrls } =
     parsed.data
 
   const slug = await generateUniqueSlug(title)
@@ -102,7 +102,7 @@ export async function createListingAction(formData: FormData): Promise<ListingAc
       description,
       priceCents: price,
       condition: condition as ListingCondition,
-      brand: brand || null,
+      brandId: brandId || null, // <--- AQUI
       size: size || null,
       status: "ACTIVE",
       images: {
@@ -172,7 +172,7 @@ export async function updateListingAction(
         description,
         priceCents: price,
         condition: condition as ListingCondition,
-        brand: brand || null,
+        brandId: brand || null,
         size: size || null,
       },
     })

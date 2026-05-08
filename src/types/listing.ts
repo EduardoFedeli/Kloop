@@ -7,7 +7,12 @@ export type ListingWithDetails = {
   priceCents: number
   condition: ListingCondition
   status: ListingStatus
-  brand: string | null
+  // 👇 AQUI ESTÁ A MUDANÇA: O brand agora é um objeto
+  brand: {
+    id: string
+    name: string
+    slug: string
+  } | null
   size?: string | null
   isTurbinado?: boolean
   viewsCount?: number

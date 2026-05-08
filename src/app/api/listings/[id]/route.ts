@@ -44,7 +44,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: message }, { status: 422 })
   }
 
-  const { title, description, priceCents, categoryId, condition, brand, size, images, acceptsOffers, smartPriceEnabled, isTurbinado } =
+  // ATUALIZADO: Extraindo brandId em vez de brand
+  const { title, description, priceCents, categoryId, condition, brandId, size, images, acceptsOffers, smartPriceEnabled, isTurbinado } =
     parsed.data
 
   const category = await db.category.findUnique({
@@ -72,7 +73,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         description,
         priceCents,
         condition: condition as ListingCondition,
-        brand: brand ?? null,
+        // ATUALIZADO: Salvando o brandId
+        brandId: brandId ?? null,
         size: size ?? null,
         acceptsOffers,
         smartPriceEnabled,

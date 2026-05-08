@@ -12,7 +12,8 @@ export default async function CreateListingPage() {
 
   const userId = session.user.id
 
-  const [subscription, activeCount, categories] = await Promise.all([
+  // Adicionamos as 'brands' no array de retorno do Promise.all
+  const [subscription, activeCount, categories, brands] = await Promise.all([
     db.userSubscription.findUnique({
       where: { userId },
       include: { plan: { select: { name: true, maxActiveListings: true } } },
@@ -21,6 +22,12 @@ export default async function CreateListingPage() {
     db.category.findMany({
       select: { id: true, name: true, parentId: true },
       orderBy: [{ parentId: "asc" }, { sortOrder: "asc" }],
+    }),
+    // ADICIONADO: Busca das marcas ativas no banco de dados ordenadas de A a Z
+    db.brand.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
     }),
   ])
 
@@ -40,6 +47,7 @@ export default async function CreateListingPage() {
         maxListings={maxListings}
         planName={planName}
         categories={categories}
+        brands={brands} // ADICIONADO: Passando a lista real de marcas
       />
     </div>
   )

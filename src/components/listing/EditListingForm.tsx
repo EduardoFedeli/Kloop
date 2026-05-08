@@ -19,6 +19,11 @@ interface Category {
   parentId: string | null
 }
 
+interface Brand {
+  id: string
+  name: string
+}
+
 export interface EditInitialData {
   id: string
   title: string
@@ -26,7 +31,8 @@ export interface EditInitialData {
   priceCents: number
   categoryId: string
   condition: ListingCondition
-  brand: string | null
+  // Garanta que aqui esteja brandId e não brand
+  brandId: string | null
   size: string | null
   acceptsOffers: boolean
   smartPriceEnabled: boolean
@@ -37,23 +43,10 @@ export interface EditInitialData {
 interface EditListingFormProps {
   initialData: EditInitialData
   categories: Category[]
+  brands: Brand[]
 }
 
 // ─── Static data ──────────────────────────────────────────────────────────────
-
-const BRANDS = [
-  "Adidas", "Animale", "Arezzo", "Armani Exchange", "Balenciaga", "Balmain",
-  "Burberry", "Calvin Klein", "Cantão", "Chanel", "Colcci", "Diesel", "Dior",
-  "Dolce & Gabbana", "Dudalina", "Ellus", "Farm", "Fendi", "Forum",
-  "Givenchy", "Gucci", "Guess", "H&M", "Hering", "Hugo Boss",
-  "Isabela Capeto", "Iódice", "Jacquemus", "John John", "Lacoste",
-  "Le Lis Blanc", "Levi's", "Louis Vuitton", "Mango", "Marc Jacobs",
-  "Maria Filó", "Melissa", "Michael Kors", "Missoni", "Moschino",
-  "Nike", "Off-White", "Osklen", "Polo Ralph Lauren", "Prada", "Puma",
-  "Riachuelo", "Sacada", "Saint Laurent", "Schutz", "Shoulder",
-  "Tommy Hilfiger", "Track & Field", "Triton", "Valentino", "Versace",
-  "Vix", "Vivara", "Vizzano", "Zara", "Zoomp",
-].sort()
 
 const CONDITIONS = [
   { value: "NEW" as const, label: "Novo", desc: "Com etiqueta, nunca usado" },
@@ -170,17 +163,30 @@ function Toggle({ label, desc, checked, onChange }: {
   )
 }
 
-function BrandInput({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled: boolean }) {
+// ATUALIZADO: Novo BrandInput dinâmico
+function BrandInput({ value, onChange, disabled, availableBrands }: { value: string; onChange: (v: string) => void; disabled: boolean, availableBrands: Brand[] }) {
   const [open, setOpen] = useState(false)
-  const filtered = value.length > 0 ? BRANDS.filter((b) => b.toLowerCase().includes(value.toLowerCase())).slice(0, 5) : []
+  const [searchTerm, setSearchTerm] = useState(() => {
+    const b = availableBrands.find(b => b.id === value)
+    return b ? b.name : ""
+  })
+
+  const filtered = searchTerm.length > 0 
+    ? availableBrands.filter((b) => b.name.toLowerCase().includes(searchTerm.toLowerCase())).slice(0, 5) 
+    : []
+
   return (
     <div className="relative">
       <input
         type="text"
         disabled={disabled}
         placeholder={disabled ? "Sem marca" : "Ex: Nike, Zara, Farm..."}
-        value={value}
-        onChange={(e) => { onChange(e.target.value); setOpen(true) }}
+        value={disabled ? "" : searchTerm}
+        onChange={(e) => {
+          setSearchTerm(e.target.value)
+          onChange("")
+          setOpen(true)
+        }}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         className={cn(
@@ -191,8 +197,16 @@ function BrandInput({ value, onChange, disabled }: { value: string; onChange: (v
       {open && filtered.length > 0 && (
         <ul className="absolute z-10 w-full bg-white dark:bg-[var(--color-pine)] border border-gray-100 dark:border-white/20 rounded-xl mt-2 shadow-xl max-h-48 overflow-y-auto overflow-hidden">
           {filtered.map((brand) => (
-            <li key={brand} onMouseDown={() => { onChange(brand); setOpen(false) }} className="px-4 py-3 text-[14px] text-[var(--foreground)] hover:bg-gray-50 dark:hover:bg-white/10 cursor-pointer transition-colors border-b border-gray-50 dark:border-white/5 last:border-0">
-              {brand}
+            <li 
+              key={brand.id} 
+              onMouseDown={() => { 
+                onChange(brand.id)
+                setSearchTerm(brand.name)
+                setOpen(false) 
+              }} 
+              className="px-4 py-3 text-[14px] text-[var(--foreground)] hover:bg-gray-50 dark:hover:bg-white/10 cursor-pointer transition-colors border-b border-gray-50 dark:border-white/5 last:border-0"
+            >
+              {brand.name}
             </li>
           ))}
         </ul>
@@ -259,7 +273,7 @@ function ValorAReceberModal({ priceCents, onClose }: { priceCents: number; onClo
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export function EditListingForm({ initialData, categories }: EditListingFormProps) {
+export function EditListingForm({ initialData, categories, brands }: EditListingFormProps) {
   const router = useRouter()
   const [serverError, setServerError] = useState("")
   const [sizeCtx, setSizeCtx] = useState<SizeContext>(() => getInitialSizeCtx(initialData.categoryId, categories))
@@ -270,7 +284,7 @@ export function EditListingForm({ initialData, categories }: EditListingFormProp
     : ""
 
   const [priceDisplay, setPriceDisplay] = useState(initialPriceDisplay)
-  const [noBrand, setNoBrand] = useState(!initialData.brand)
+  const [noBrand, setNoBrand] = useState(!initialData.brandId)
   const [acceptsOffers, setAcceptsOffers] = useState(initialData.acceptsOffers)
   const [smartPrice, setSmartPrice] = useState(initialData.smartPriceEnabled)
   const [isTurbinado, setIsTurbinado] = useState(initialData.isTurbinado)
@@ -290,7 +304,7 @@ export function EditListingForm({ initialData, categories }: EditListingFormProp
       description: initialData.description,
       priceCents: initialData.priceCents,
       categoryId: initialData.categoryId,
-      brand: initialData.brand ?? "",
+      brandId: initialData.brandId ?? "", // ATUALIZADO: usando brandId
       condition: initialData.condition,
       size: initialData.size ?? "",
       images: initialData.images,
@@ -329,7 +343,7 @@ export function EditListingForm({ initialData, categories }: EditListingFormProp
     [setValue],
   )
 
-  const onSubmit = async (data: CreateListingInput) => {
+const onSubmit = async (data: CreateListingInput) => {
     setServerError("")
     try {
       const res = await fetch(`/api/listings/${initialData.id}`, {
@@ -337,6 +351,8 @@ export function EditListingForm({ initialData, categories }: EditListingFormProp
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
+          // Garante que se desmarcar a marca, mandamos undefined pro Zod não chiar
+          brandId: data.brandId === "" ? undefined : data.brandId,
           size: size || undefined,
           acceptsOffers,
           smartPriceEnabled: smartPrice,
@@ -471,8 +487,9 @@ export function EditListingForm({ initialData, categories }: EditListingFormProp
         {/* Brand */}
         <SectionCard title="Marca">
           <BrandInput
-            value={watch("brand") ?? ""}
-            onChange={(v) => setValue("brand", v, { shouldValidate: true })}
+            availableBrands={brands}
+            value={watch("brandId") ?? ""}
+            onChange={(v) => setValue("brandId", v, { shouldValidate: true })}
             disabled={noBrand}
           />
           <label className="flex items-center gap-3 mt-3 cursor-pointer p-1">
@@ -485,7 +502,7 @@ export function EditListingForm({ initialData, categories }: EditListingFormProp
               checked={noBrand}
               onChange={(e) => {
                 setNoBrand(e.target.checked)
-                if (e.target.checked) setValue("brand", "")
+                if (e.target.checked) setValue("brandId", "")
               }}
             />
             <span className="text-[14px] text-gray-600 dark:text-sage select-none">Esta peça não possui marca</span>

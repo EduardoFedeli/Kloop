@@ -15,7 +15,7 @@ export const createListingSchema = z.object({
     .min(500, "Preço mínimo é R$ 5,00")
     .max(10_000_000, "Preço máximo é R$ 100.000"),
   categoryId: z.string().min(1, "Selecione uma categoria"),
-  brand: z.string().max(50, "Marca deve ter no máximo 50 caracteres").optional(),
+  brandId: z.string().max(50, "Marca deve ter no máximo 50 caracteres").optional(),
   condition: z.enum(["NEW", "LIKE_NEW", "GOOD", "FAIR"], {
     message: "Selecione a condição do produto",
   }),

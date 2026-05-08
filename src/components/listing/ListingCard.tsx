@@ -93,7 +93,7 @@ export function ListingCard({
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
             {listing.brand && (
               <p className="text-[12px] font-bold text-[var(--color-teal)] dark:text-[var(--color-celadon)]">
-                {listing.brand.toLowerCase()}
+                {listing.brand.name.toLowerCase()}
               </p>
             )}
             {listing.brand && listing.size && (
@@ -190,8 +190,9 @@ export function ListingCard({
             {listing.title}
           </p>
           {listing.brand && (
-            <p className="text-[11px] text-gray-400 dark:text-sage/70">
-              {listing.brand}
+            <p className="text-[12px] font-bold text-[var(--color-teal)] dark:text-[var(--color-celadon)]">
+              {/* Você tem que garantir que está chamando .name */}
+              {listing.brand.name.toLowerCase()}
             </p>
           )}
           {location && (

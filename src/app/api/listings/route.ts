@@ -61,7 +61,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 422 })
   }
 
-  const { title, description, priceCents, categoryId, condition, brand, size, images, acceptsOffers, smartPriceEnabled, isTurbinado } =
+  // ATUALIZADO: Extraindo brandId
+  const { title, description, priceCents, categoryId, condition, brandId, size, images, acceptsOffers, smartPriceEnabled, isTurbinado } =
     parsed.data
 
   // Verify category is a leaf (no children)
@@ -94,7 +95,8 @@ export async function POST(req: NextRequest) {
         description,
         priceCents,
         condition: condition as ListingCondition,
-        brand: brand ?? null,
+        // ATUALIZADO: Salvando a relação da marca
+        brandId: brandId ?? null,
         size: size ?? null,
         status: "ACTIVE",
         acceptsOffers,

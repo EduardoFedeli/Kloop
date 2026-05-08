@@ -36,10 +36,12 @@ type Props = {
   userLocation?: { city: string; state: string } | null
   initialIsFollowing?: boolean
   followersCount?: number
+  // ADICIONADO: Nova prop para esconder lógica de usuário em páginas de Marca
+  isBrandStore?: boolean
 }
 
 export function ProfileStoreClient({
-  user, isOwn, listings, reviews, avgRating, totalRatings, planName, planVariant, megaphonesAvailable, itemsSold, followersCount = 0, initialIsFollowing = false, storeBrands, storeConditions, storeSizes, storeCategories, currentParams, userLocation
+  user, isOwn, listings, reviews, avgRating, totalRatings, planName, planVariant, megaphonesAvailable, itemsSold, followersCount = 0, initialIsFollowing = false, storeBrands, storeConditions, storeSizes, storeCategories, currentParams, userLocation, isBrandStore = false
 }: Props) {
   const [isEditing, setIsEditing] = useState(false)
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing)
@@ -61,7 +63,8 @@ export function ProfileStoreClient({
     setIsFollowing(prev => !prev)
     startFollowTransition(async () => {
       try {
-        await toggleFollow(user.id, "USER")
+        // ADICIONADO: Se for loja de marca, passa TARGET = BRAND. Se for usuário, TARGET = USER.
+        await toggleFollow(user.id, isBrandStore ? "BRAND" : "USER")
       } catch {
         setIsFollowing(prev => !prev)
         toast.error("Erro ao atualizar follow")
@@ -147,7 +150,9 @@ export function ProfileStoreClient({
     if (localSize) params.set('size', localSize); else params.delete('size')
     if (localCategory) params.set('category', localCategory); else params.delete('category')
     setIsFilterOpen(false)
-    router.push(`/profile/${user.id}?${params.toString()}`)
+    // Redireciona mantendo o contexto de usuário ou de marca
+    const basePath = isBrandStore ? `/marca` : `/profile`
+    router.push(`${basePath}/${user.id}?${params.toString()}`)
   }
 
   const clearAllFilters = () => {
@@ -155,24 +160,26 @@ export function ProfileStoreClient({
     params.delete('brand'); params.delete('minPrice'); params.delete('maxPrice'); params.delete('condition'); params.delete('size'); params.delete('category');
     setLocalBrand(""); setLocalMinPrice(""); setLocalMaxPrice(""); setLocalCondition(""); setLocalSize(""); setLocalCategory("");
     setIsFilterOpen(false)
-    router.push(`/profile/${user.id}?${params.toString()}`)
+    const basePath = isBrandStore ? `/marca` : `/profile`
+    router.push(`${basePath}/${user.id}?${params.toString()}`)
   }
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSort = e.target.value
     const params = new URLSearchParams(searchParams.toString())
     if (newSort) params.set('sort', newSort); else params.delete('sort');
-    router.push(`/profile/${user.id}?${params.toString()}`)
+    const basePath = isBrandStore ? `/marca` : `/profile`
+    router.push(`${basePath}/${user.id}?${params.toString()}`)
   }
 
   const conditionLabelMap: Record<string, string> = { NEW: 'novo', LIKE_NEW: 'seminovo', GOOD: 'bom estado', FAIR: 'usado' }
   const activeFilterTags = []
-  if (currentParams.category) { const p = new URLSearchParams(searchParams.toString()); p.delete('category'); activeFilterTags.push({ label: `Dep: ${currentParams.category}`, removeUrl: `/profile/${user.id}?${p.toString()}` }) }
-  if (currentParams.brand) { const p = new URLSearchParams(searchParams.toString()); p.delete('brand'); activeFilterTags.push({ label: `Marca: ${currentParams.brand}`, removeUrl: `/profile/${user.id}?${p.toString()}` }) }
-  if (currentParams.size) { const p = new URLSearchParams(searchParams.toString()); p.delete('size'); activeFilterTags.push({ label: `Tamanho: ${currentParams.size}`, removeUrl: `/profile/${user.id}?${p.toString()}` }) }
-  if (currentParams.minPrice) { const p = new URLSearchParams(searchParams.toString()); p.delete('minPrice'); activeFilterTags.push({ label: `A partir de R$ ${currentParams.minPrice}`, removeUrl: `/profile/${user.id}?${p.toString()}` }) }
-  if (currentParams.maxPrice) { const p = new URLSearchParams(searchParams.toString()); p.delete('maxPrice'); activeFilterTags.push({ label: `Até R$ ${currentParams.maxPrice}`, removeUrl: `/profile/${user.id}?${p.toString()}` }) }
-  if (currentParams.condition) { const p = new URLSearchParams(searchParams.toString()); p.delete('condition'); activeFilterTags.push({ label: conditionLabelMap[currentParams.condition] || 'condição', removeUrl: `/profile/${user.id}?${p.toString()}` }) }
+  if (currentParams.category) { const p = new URLSearchParams(searchParams.toString()); p.delete('category'); activeFilterTags.push({ label: `Dep: ${currentParams.category}`, removeUrl: `${isBrandStore ? '/marca' : '/profile'}/${user.id}?${p.toString()}` }) }
+  if (currentParams.brand) { const p = new URLSearchParams(searchParams.toString()); p.delete('brand'); activeFilterTags.push({ label: `Marca: ${currentParams.brand}`, removeUrl: `${isBrandStore ? '/marca' : '/profile'}/${user.id}?${p.toString()}` }) }
+  if (currentParams.size) { const p = new URLSearchParams(searchParams.toString()); p.delete('size'); activeFilterTags.push({ label: `Tamanho: ${currentParams.size}`, removeUrl: `${isBrandStore ? '/marca' : '/profile'}/${user.id}?${p.toString()}` }) }
+  if (currentParams.minPrice) { const p = new URLSearchParams(searchParams.toString()); p.delete('minPrice'); activeFilterTags.push({ label: `A partir de R$ ${currentParams.minPrice}`, removeUrl: `${isBrandStore ? '/marca' : '/profile'}/${user.id}?${p.toString()}` }) }
+  if (currentParams.maxPrice) { const p = new URLSearchParams(searchParams.toString()); p.delete('maxPrice'); activeFilterTags.push({ label: `Até R$ ${currentParams.maxPrice}`, removeUrl: `${isBrandStore ? '/marca' : '/profile'}/${user.id}?${p.toString()}` }) }
+  if (currentParams.condition) { const p = new URLSearchParams(searchParams.toString()); p.delete('condition'); activeFilterTags.push({ label: conditionLabelMap[currentParams.condition] || 'condição', removeUrl: `${isBrandStore ? '/marca' : '/profile'}/${user.id}?${p.toString()}` }) }
 
   const defaultCover = "linear-gradient(135deg, #a8ff78 0%, #78ffd6 100%)"
   const backgroundStyle = user.coverUrl ? `url(${user.coverUrl})` : defaultCover
@@ -185,7 +192,6 @@ export function ProfileStoreClient({
   if (isReviewsModalOpen) {
     return (
       <div className="fixed inset-0 z-50 bg-[var(--color-forest)] flex flex-col animate-in fade-in zoom-in-95 duration-200 overflow-y-auto">
-        {/* Header Modal */}
         <div className="sticky top-0 z-40 bg-[var(--color-pine)] p-4 shadow-md flex items-center gap-3">
           <button onClick={() => setIsReviewsModalOpen(false)} className="text-white hover:opacity-70 p-1">
             <ArrowLeft size={24} />
@@ -452,20 +458,27 @@ export function ProfileStoreClient({
             {planVariant !== 'basic' && <PlanBadge plan={planVariant} />}
           </div>
 
-          <button onClick={() => setIsReviewsModalOpen(true)} className="inline-flex items-center gap-1.5 mt-1.5 hover:opacity-80 transition-opacity group">
-            <div className="flex">
-              {[1,2,3,4,5].map(star => <Star key={star} size={12} className={cn("fill-current", avgRating && star <= Number(avgRating) ? "text-[#f5d547]" : "text-white/20")} />)}
-            </div>
-            <span className="text-[12px] font-medium text-[var(--color-sage)] group-hover:text-white transition-colors">{avgRating ? `${avgRating} (${totalRatings})` : 'sem avaliações'}</span>
-          </button>
+          {/* ADICIONADO: Condicional para não renderizar as estrelinhas se for loja de marca */}
+          {!isBrandStore && (
+            <button onClick={() => setIsReviewsModalOpen(true)} className="inline-flex items-center gap-1.5 mt-1.5 hover:opacity-80 transition-opacity group">
+              <div className="flex">
+                {[1,2,3,4,5].map(star => <Star key={star} size={12} className={cn("fill-current", avgRating && star <= Number(avgRating) ? "text-[#f5d547]" : "text-white/20")} />)}
+              </div>
+              <span className="text-[12px] font-medium text-[var(--color-sage)] group-hover:text-white transition-colors">{avgRating ? `${avgRating} (${totalRatings})` : 'sem avaliações'}</span>
+            </button>
+          )}
 
           {user.bio && <p className="text-[13px] text-white/80 mt-3 line-clamp-2">{user.bio}</p>}
 
           <div className="flex flex-wrap items-center gap-2 mt-4 text-[11px] font-bold text-white">
             <span className="flex items-center gap-1.5 bg-black/20 px-2.5 py-1.5 rounded-full border border-white/5"><Package size={12} className="opacity-80" /> {listings.length} anúncios</span>
-            <span className="flex items-center gap-1.5 bg-black/20 px-2.5 py-1.5 rounded-full border border-white/5"><Tag size={12} className="opacity-80" /> {itemsSold} vendidos</span>
-            <span className="flex items-center gap-1.5 bg-black/20 px-2.5 py-1.5 rounded-full border border-white/5 opacity-80"><CalendarDays size={12} className="opacity-80" /> kloop desde {new Date(user.createdAt).getFullYear()}</span>
-            {userLocation && (
+            {!isBrandStore && (
+              <span className="flex items-center gap-1.5 bg-black/20 px-2.5 py-1.5 rounded-full border border-white/5"><Tag size={12} className="opacity-80" /> {itemsSold} vendidos</span>
+            )}
+            {!isBrandStore && (
+               <span className="flex items-center gap-1.5 bg-black/20 px-2.5 py-1.5 rounded-full border border-white/5 opacity-80"><CalendarDays size={12} className="opacity-80" /> kloop desde {new Date(user.createdAt).getFullYear()}</span>
+            )}
+            {!isBrandStore && userLocation && (
               <span className="flex items-center gap-1.5 bg-black/20 px-2.5 py-1.5 rounded-full border border-white/5 opacity-80"><MapPin size={12} className="opacity-80" /> {userLocation.city}, {userLocation.state}</span>
             )}
           </div>

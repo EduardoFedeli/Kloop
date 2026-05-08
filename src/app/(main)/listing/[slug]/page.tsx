@@ -9,11 +9,9 @@ import { Star, Package, RotateCcw, AlertTriangle, Lock } from 'lucide-react'
 import { ProductImageCarousel } from '@/components/produto/ProductImageCarousel'
 import { ProductActions } from '@/components/produto/ProductActions'
 import { ViewTracker } from '@/components/produto/ViewTracker'
-// Importaremos os Client Components que vamos criar no próximo passo
 import { FollowButton } from '@/components/produto/FollowButton'
 import { ReportButton } from '@/components/produto/ReportButton'
 import type { ListingCondition } from '@prisma/client'
-
 
 const conditionLabel: Record<ListingCondition, string> = {
   NEW: 'novo',
@@ -35,16 +33,13 @@ async function getCategoryTree(categoryId: string): Promise<string[]> {
 
   if (!category) return [];
 
-  // Se tiver um parentId, chama a função de novo para pegar o pai dele
   if (category.parentId) {
     const parentNames = await getCategoryTree(category.parentId);
     return [...parentNames, category.name];
   }
 
-  // Se não tiver parentId, ele é o nível mais alto (Departamento)
   return [category.name];
 }
-
 
 export default async function ProdutoPage({ params }: Props) {
   const { slug } = await params
@@ -62,6 +57,8 @@ export default async function ProdutoPage({ params }: Props) {
         },
       },
       category: { select: { id: true, name: true, slug: true } },
+      // ATUALIZADO: Incluímos a marca de verdade para ter acesso ao nome e slug
+      brand: { select: { id: true, name: true, slug: true } },
       images: { orderBy: { displayOrder: 'asc' } },
       _count: { select: { favorites: true } },
     },
@@ -71,7 +68,6 @@ export default async function ProdutoPage({ params }: Props) {
 
   const isOwner = session?.user?.id === listing.sellerId
 
-  // Otimização monstra: Resolvemos todas as queries dependentes do usuário de uma vez só
   const [isFavoritedResult, buyerAddress, isFollowingResult, cashbackTxs, isBrandFollowedResult] = await Promise.all([
     session?.user?.id
       ? db.favorite.findUnique({ where: { userId_listingId: { userId: session.user.id, listingId: listing.id } } })
@@ -85,8 +81,16 @@ export default async function ProdutoPage({ params }: Props) {
     session?.user?.id
       ? db.cashbackTransaction.findMany({ where: { userId: session.user.id } })
       : Promise.resolve([]),
-    session?.user?.id && listing.brand
-      ? db.brandFollow.findUnique({ where: { userId_brand: { userId: session.user.id, brand: listing.brand } } })
+    // ATUALIZADO: Agora usamos o id da relação brand
+    session?.user?.id && listing.brand?.id
+      ? db.brandFollow.findUnique({
+          where: {
+            userId_brandId: {
+              userId: session.user.id,
+              brandId: listing.brand.id
+            }
+          }
+        })
       : Promise.resolve(null),
   ])
 
@@ -94,8 +98,6 @@ export default async function ProdutoPage({ params }: Props) {
   const isFollowing = isFollowingResult !== null
   const isBrandFollowed = isBrandFollowedResult !== null
 
-  // Cálculo REAL do Saldo de Bate e Volta (Cashback)
- // Cálculo REAL do Saldo de Bate e Volta (Cashback)
   const bateVoltaBalanceCents = cashbackTxs.reduce((acc: number, tx) => {
     const isCredit = ['CREDIT_SELLER', 'CREDIT_BUYER', 'REFUND_CANCELLATION'].includes(tx.type)
     return isCredit ? acc + tx.amountCents : acc - tx.amountCents
@@ -108,8 +110,7 @@ export default async function ProdutoPage({ params }: Props) {
   const sellerInitials = seller.name.substring(0, 2).toUpperCase()
 
   const installmentCents = Math.ceil(listing.priceCents / 12)
-  const cashbackGanhoCents = Math.round(listing.priceCents * 0.05) // O que ele GANHA nessa compra
-  // Agora usamos a função recursiva para montar a árvore completinha!
+  const cashbackGanhoCents = Math.round(listing.priceCents * 0.05)
   const categoryTreeNames = await getCategoryTree(listing.category.id);
   const breadcrumbs = categoryTreeNames.join(' / ').toLowerCase();
 
@@ -117,13 +118,12 @@ export default async function ProdutoPage({ params }: Props) {
     ? calculateShipping(sellerAddress.zipCode, buyerAddress.zipCode)
     : null
 
- return (
+  return (
     <div className="min-h-screen bg-[var(--background)]">
       <div className="max-w-2xl mx-auto pb-36 bg-white dark:bg-[var(--color-pine)] min-h-screen">
         
         <ViewTracker listingId={listing.id} />
         
-        {/* O Carrossel puro, ele já cuida do Voltar, Compartilhar e Curtir! */}
         <ProductImageCarousel 
           images={listing.images} 
           title={listing.title} 
@@ -164,7 +164,6 @@ export default async function ProdutoPage({ params }: Props) {
               </div>
             )}
             
-            {/* SÓ RENDERIZA O BATE E VOLTA SE O USUÁRIO TIVER SALDO REAL */}
             {bateVoltaBalanceCents > 0 && (
               <div className="bg-[#e9f5db] dark:bg-[var(--color-emerald)]/30 border border-[#b7e4c7] dark:border-[var(--color-teal)]/30 rounded-xl p-4 flex items-center justify-between">
                 <div>
@@ -172,7 +171,6 @@ export default async function ProdutoPage({ params }: Props) {
                   <p className="text-xs text-[var(--color-teal)] dark:text-sage mt-0.5 font-medium">desconto aplicado no checkout</p>
                 </div>
                 <div className="w-5 h-5 rounded border-2 border-[var(--color-pine)] dark:border-white flex items-center justify-center">
-                  {/* Mock de checkbox tick, pode adicionar Lucide Check aqui depois se quiser */}
                 </div>
               </div>
             )}
@@ -203,14 +201,17 @@ export default async function ProdutoPage({ params }: Props) {
 
           <hr className="border-gray-200 dark:border-white/10" />
           
+          {/* ATUALIZADO: Renderização do bloco de Marca usando a Relação */}
           {listing.brand && (
             <section className="flex items-center justify-between">
               <div>
                 <p className="text-[13px] text-gray-500 dark:text-sage mb-1">marca</p>
-                <p className="font-bold text-[14px] text-[var(--foreground)]">{listing.brand}</p>
+                {/* Link preparado para a futura rota da loja da marca */}
+                <Link href={`/marca/${listing.brand.slug}`} className="font-bold text-[14px] text-[var(--foreground)] hover:underline">
+                  {listing.brand.name}
+                </Link>
               </div>
-              {/* COMPONENTE INTERATIVO: Seguir Marca */}
-              <FollowButton targetId={listing.brand as string} targetType="BRAND" initialIsFollowing={isBrandFollowed} />
+              <FollowButton targetId={listing.brand.id} targetType="BRAND" initialIsFollowing={isBrandFollowed} />
             </section>
           )}
 
@@ -237,7 +238,6 @@ export default async function ProdutoPage({ params }: Props) {
                   {sellerAddress && <p className="text-[12px] text-gray-500 dark:text-sage mt-0.5">{sellerAddress.city.toLowerCase()}, {sellerAddress.state.toLowerCase()}</p>}
                 </div>
               </Link>
-              {/* COMPONENTE INTERATIVO: Seguir Vendedor */}
               {!isOwner && (
                 <FollowButton targetId={seller.id} targetType="USER" initialIsFollowing={isFollowing} />
               )}
@@ -291,7 +291,6 @@ export default async function ProdutoPage({ params }: Props) {
               <div className="flex-1">
                 <p className="text-[14px] font-bold text-[var(--foreground)] mb-1">denúncia</p>
                 <p className="text-[13px] text-gray-600 dark:text-sage leading-relaxed mb-2">encontrou algo de errado com esse anúncio? denuncie-o aqui.</p>
-                {/* COMPONENTE INTERATIVO: Denunciar */}
                 {!isOwner && <ReportButton targetId={listing.id} targetType="LISTING" />}
               </div>
             </div>

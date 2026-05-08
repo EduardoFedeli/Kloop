@@ -33,8 +33,9 @@ export async function toggleFollow(targetId: string, targetType: "USER" | "BRAND
   }
 
   // BRAND: persiste o follow de marca no banco
+  // ATUALIZADO: Usando brandId e userId_brandId
   const existing = await db.brandFollow.findUnique({
-    where: { userId_brand: { userId: session.user.id, brand: targetId } },
+    where: { userId_brandId: { userId: session.user.id, brandId: targetId } },
   })
 
   if (existing) {
@@ -43,7 +44,7 @@ export async function toggleFollow(targetId: string, targetType: "USER" | "BRAND
     return { following: false }
   } else {
     await db.brandFollow.create({
-      data: { userId: session.user.id, brand: targetId },
+      data: { userId: session.user.id, brandId: targetId },
     })
     revalidatePath('/perfil/marcas')
     return { following: true }
