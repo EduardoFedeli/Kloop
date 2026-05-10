@@ -122,7 +122,7 @@ export function MarcasClient({ followedBrands, brandFeeds, favoriteIds }: Props)
                   <ListingCard
                     listing={listing}
                     isFavorited={favoriteSet.has(listing.id)}
-                    minimal
+                    variant="search"
                     showSeller={false}
                   />
                 </div>

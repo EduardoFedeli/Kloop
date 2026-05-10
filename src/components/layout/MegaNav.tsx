@@ -74,6 +74,7 @@ interface MegaNavProps {
 export function MegaNav({ brands, user, unreadCount }: MegaNavProps) {
   const pathname = usePathname()
   const isHome = pathname === '/'
+  const isDeptPage = ['/mocas', '/rapazes', '/kids', '/casa'].includes(pathname)
   
   const [activeKey, setActiveKey] = useState<string | null>(null)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
@@ -105,7 +106,7 @@ export function MegaNav({ brands, user, unreadCount }: MegaNavProps) {
     <>
       <header className={cn(
         "sticky top-0 z-40 bg-white dark:bg-[var(--color-pine)] border-b border-gray-200 dark:border-forest transition-colors relative",
-        !isHome && "hidden md:block" 
+        !isHome && !isDeptPage && "hidden md:block"
       )}>
         {/* ── Main row ─────────────────────────────────────────────────────── */}
         <div className="max-w-screen-xl mx-auto px-4 h-[60px] flex items-center gap-3">
@@ -221,12 +222,12 @@ export function MegaNav({ brands, user, unreadCount }: MegaNavProps) {
         <div className="md:hidden overflow-x-auto border-t border-gray-100 dark:border-white/5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           <ul className="flex items-center px-4 [&::-webkit-scrollbar]:hidden">
             {[
-              { label: "pra você", href: "/", active: true },
-              { label: "kloop pro", href: "#", active: false, requiresAuth: true }, 
-              { label: "moças", href: "/search?dept=mocas", active: false },
-              { label: "rapazes", href: "/search?dept=rapazes", active: false },
-              { label: "kids", href: "/search?dept=criancas", active: false },
-              { label: "casa", href: "/search?dept=casa-e-decor", active: false },
+              { label: "pra você", href: "/", active: pathname === '/' },
+              { label: "kloop pro", href: "#", active: false, requiresAuth: true },
+              { label: "moças", href: "/mocas", active: pathname === '/mocas' },
+              { label: "rapazes", href: "/rapazes", active: pathname === '/rapazes' },
+              { label: "kids", href: "/kids", active: pathname === '/kids' },
+              { label: "casa", href: "/casa", active: pathname === '/casa' },
             ].map((item) => (
               <li key={item.label} className="flex-shrink-0">
                 <Link

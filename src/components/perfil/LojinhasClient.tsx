@@ -78,9 +78,15 @@ export function LojinhasClient({ followedSellers, feedLojinhas, favoriteIds }: P
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 gap-y-5">
           {feedLojinhas.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} isFavorited={favoriteSet.has(listing.id)} minimal showSeller={true} />
+            <ListingCard 
+              key={listing.id} 
+              listing={listing} 
+              isFavorited={favoriteSet.has(listing.id)} 
+              variant="search" 
+              showSeller={true} 
+            />
           ))}
         </div>
       )}
