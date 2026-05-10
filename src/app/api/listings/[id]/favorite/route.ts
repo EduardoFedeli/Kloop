@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { notifyUser } from "@/lib/notify"
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -20,7 +21,7 @@ export async function POST(_req: Request, { params }: RouteParams) {
 
   const listing = await db.listing.findUnique({
     where: { id: listingId },
-    select: { sellerId: true },
+    select: { sellerId: true, title: true, slug: true },
   })
   if (!listing) return NextResponse.json({ error: "Não encontrado" }, { status: 404 })
   if (listing.sellerId === session.user.id) {
@@ -31,6 +32,14 @@ export async function POST(_req: Request, { params }: RouteParams) {
     where: { userId_listingId: { userId: session.user.id, listingId } },
     create: { userId: session.user.id, listingId },
     update: {},
+  })
+
+  void notifyUser({
+    userId: listing.sellerId,
+    type: 'LIKE',
+    title: 'Alguém curtiu seu anúncio!',
+    content: listing.title,
+    actionUrl: `/listing/${listing.slug}`,
   })
 
   const count = await getCount(listingId)

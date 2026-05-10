@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { notifyUser } from "@/lib/notify"
 
 export type StartConversationResult = { conversationId: string } | { error: string }
 export type SendMessageResult = { success: true } | { error: string }
@@ -75,6 +76,29 @@ export async function sendMessage(
       data: { updatedAt: new Date() },
     }),
   ])
+
+  // Notificar o outro participante em background
+  void (async () => {
+    const conv = await db.conversation.findUnique({
+      where: { id: conversationId },
+      select: {
+        participants: { select: { userId: true } },
+        listing: { select: { title: true } },
+      },
+    })
+    if (!conv) return
+    const recipientId = conv.participants.find((p) => p.userId !== session.user!.id)?.userId
+    if (!recipientId) return
+    await notifyUser({
+      userId: recipientId,
+      type: 'MESSAGE',
+      title: 'Nova mensagem',
+      content: conv.listing?.title
+        ? `Mensagem sobre "${conv.listing.title}": ${trimmed.slice(0, 80)}${trimmed.length > 80 ? '…' : ''}`
+        : `${trimmed.slice(0, 100)}${trimmed.length > 100 ? '…' : ''}`,
+      actionUrl: `/chat/${conversationId}`,
+    })
+  })()
 
   return { success: true }
 }

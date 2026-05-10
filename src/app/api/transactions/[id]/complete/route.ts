@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { canTransitionTo } from '@/lib/transaction-rules'
 import { creditCashback, calcSellerCashback, calcBuyerCashback } from '@/lib/cashback'
 import { CashbackTransactionType } from '@prisma/client'
+import { notifyUser } from '@/lib/notify'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -24,7 +25,7 @@ export async function POST(_req: NextRequest, { params }: RouteParams) {
       buyerId: true,
       sellerId: true,
       status: true,
-      listing: { select: { priceCents: true } },
+      listing: { select: { priceCents: true, title: true } },
     },
   })
 
@@ -64,6 +65,14 @@ export async function POST(_req: NextRequest, { params }: RouteParams) {
     })
 
     return result
+  })
+
+  void notifyUser({
+    userId: transaction.sellerId,
+    type: 'SALE_COMPLETED',
+    title: 'Venda concluída!',
+    content: `O comprador confirmou o recebimento de "${transaction.listing.title}". O valor já está disponível.`,
+    actionUrl: '/vendas',
   })
 
   return NextResponse.json({ transaction: updated })

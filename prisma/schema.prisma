@@ -134,6 +134,16 @@ enum BundleOfferStatus {
   CANCELLED
 }
 
+enum NotificationType {
+  LIKE
+  OFFER
+  BUNDLE_OFFER
+  SALE_COMPLETED
+  MESSAGE
+  PRICE_DROP
+  OFFER_ACCEPTED
+}
+
 // ──────────────────────────────────────────
 // CORE: USERS & AUTH
 // ──────────────────────────────────────────
@@ -195,6 +205,9 @@ model User {
   store                  Store?
   communityMemberships   CommunityMember[]
   adminCommunities       Community[]              @relation("CommunityAdmin")
+
+  // Notificações
+  notifications          Notification[]
 
   @@map("users")
 }
@@ -882,4 +895,26 @@ model Brand {
   followers BrandFollow[]
 
   @@map("brands")
+}
+
+// ──────────────────────────────────────────
+// NOTIFICAÇÕES IN-APP
+// ──────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  content   String
+  isRead    Boolean          @default(false) @map("is_read")
+  actionUrl String?          @map("action_url")
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, isRead])
+  @@map("notifications")
 }

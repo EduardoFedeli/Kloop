@@ -6,6 +6,7 @@ import { listingSchema } from "@/lib/validators/listing"
 import { generateUniqueSlug } from "@/lib/slug"
 import { revalidatePath } from "next/cache"
 import type { ListingCondition } from "@prisma/client"
+import { notifyMany, formatPriceBRL } from "@/lib/notify"
 
 export type ListingActionResult =
   | { success: true; slug?: string }
@@ -125,7 +126,7 @@ export async function updateListingAction(
 
   const existing = await db.listing.findUnique({
     where: { id: listingId },
-    select: { sellerId: true, status: true, slug: true, title: true },
+    select: { sellerId: true, status: true, slug: true, title: true, priceCents: true },
   })
 
   if (!existing) return { success: false, error: "Anúncio não encontrado" }
@@ -185,6 +186,24 @@ export async function updateListingAction(
 
   revalidatePath(`/listing/${slug}`)
   revalidatePath("/dashboard")
+
+  // Notificar quem favoritou se o preço caiu
+  if (price < existing.priceCents) {
+    void (async () => {
+      const favorites = await db.favorite.findMany({
+        where: { listingId },
+        select: { userId: true },
+      })
+      const recipientIds = favorites.map((f) => f.userId)
+      await notifyMany(recipientIds, {
+        type: 'PRICE_DROP',
+        title: 'Queda de preço!',
+        content: `"${title}" baixou para ${formatPriceBRL(price)} (era ${formatPriceBRL(existing.priceCents)}).`,
+        actionUrl: `/listing/${slug}`,
+      })
+    })()
+  }
+
   return { success: true, slug }
 }
 

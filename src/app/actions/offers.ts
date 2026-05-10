@@ -12,6 +12,7 @@ import {
 } from '@/lib/offers'
 import { calculateShipping } from '@/lib/shipping'
 import type { Prisma, OfferStatus } from '@prisma/client'
+import { notifyUser, formatPriceBRL } from '@/lib/notify'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -79,6 +80,7 @@ export async function createOffer(input: {
     select: {
       id: true,
       slug: true,
+      title: true,
       sellerId: true,
       priceCents: true,
       status: true,
@@ -192,6 +194,16 @@ export async function createOffer(input: {
     revalidatePath('/perfil/ofertas')
     revalidatePath('/vendas/ofertas')
     revalidatePath(`/listing/${listing.slug}`)
+
+    // Vendedor recebe notificação de venda pelo Smart Price
+    void notifyUser({
+      userId: listing.sellerId,
+      type: 'OFFER_ACCEPTED',
+      title: 'Venda pelo Smart Price!',
+      content: `Sua peça "${listing.title}" foi vendida automaticamente por ${formatPriceBRL(priceCents)}.`,
+      actionUrl: '/vendas',
+    })
+
     return { offerId: transactionId, autoAccepted: true, transactionId }
   }
 
@@ -227,6 +239,15 @@ export async function createOffer(input: {
   revalidatePath('/vendas/ofertas')
   revalidatePath(`/listing/${listing.slug}`)
 
+  // Vendedor recebe proposta
+  void notifyUser({
+    userId: listing.sellerId,
+    type: 'OFFER',
+    title: 'Nova proposta recebida!',
+    content: `Alguém fez uma proposta de ${formatPriceBRL(priceCents)} em "${listing.title}".`,
+    actionUrl: '/vendas/ofertas',
+  })
+
   return { offerId: offer.id }
 }
 
@@ -253,6 +274,7 @@ export async function respondOffer(input: {
         select: {
           id: true,
           slug: true,
+          title: true,
           priceCents: true,
           status: true,
           sellerId: true,
@@ -376,6 +398,15 @@ export async function respondOffer(input: {
       throw err
     }
 
+    // Comprador recebe: oferta aceita
+    void notifyUser({
+      userId: offer.buyerId,
+      type: 'OFFER_ACCEPTED',
+      title: 'Proposta aceita!',
+      content: `Sua proposta de ${formatPriceBRL(offer.currentPriceCents)} para "${offer.listing.title}" foi aceita.`,
+      actionUrl: '/perfil/ofertas',
+    })
+
     revalidate()
     return { ok: true, transactionId }
   }
@@ -417,6 +448,18 @@ export async function respondOffer(input: {
       },
     })
   })
+
+  // Parte que recebe a contra-proposta é notificada
+  const counterRecipient = nextTurnUserId(offer, actorId)
+  if (counterRecipient) {
+    void notifyUser({
+      userId: counterRecipient,
+      type: 'OFFER',
+      title: 'Contraproposta recebida!',
+      content: `Você recebeu uma contraproposta de ${formatPriceBRL(counterPriceCents)} em "${offer.listing.title}".`,
+      actionUrl: '/perfil/ofertas',
+    })
+  }
 
   revalidate()
   return { ok: true }

@@ -1,25 +1,12 @@
 import { auth } from "@/lib/auth"
-import { db } from "@/lib/db"
 import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
+import { getUnreadCount } from "@/lib/actions/notifications"
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
 
-  // Conta conversas com mensagens não lidas (lastReadAt null = nunca leu)
-  const unreadCount = session?.user?.id
-    ? await db.conversationParticipant.count({
-        where: {
-          userId: session.user.id,
-          lastReadAt: null,
-          conversation: {
-            messages: {
-              some: { senderId: { not: session.user.id } },
-            },
-          },
-        },
-      })
-    : 0
+  const unreadCount = session?.user?.id ? await getUnreadCount() : 0
 
   return (
     <>
