@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   Store, MessageCircle, ArchiveX, ShoppingBag, ChevronRight,
-  PackageOpen, HelpCircle, Info, Coins, Handshake, Star,
+  PackageOpen, HelpCircle, Info, Coins, Handshake, Star, TrendingUp,
 } from 'lucide-react'
 import { PlanBadge } from '@/components/ui/PlanBadge'
 import { formatPrice } from '@/lib/utils'
@@ -77,53 +77,50 @@ export default async function VendasPage() {
 
   return (
     <div className="min-h-screen bg-[var(--background)] pb-32">
-
       <div className="md:max-w-2xl lg:max-w-5xl md:mx-auto">
 
-        {/* ── Capa e Perfil ── */}
+        {/* ── Perfil ── */}
         <section className="relative bg-white dark:bg-[var(--color-pine)]">
-          <div className="h-32 bg-gray-200 dark:bg-[var(--color-forest)] w-full overflow-hidden relative">
+          {/* Cover */}
+          <div className="h-40 bg-gradient-to-br from-[var(--color-emerald)] to-[var(--color-forest)] dark:from-[var(--color-forest)] dark:to-[#040e08] w-full overflow-hidden relative">
             <CoverUploader currentCoverUrl={coverUrl} />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white dark:from-[var(--color-pine)] to-transparent pointer-events-none" />
           </div>
 
-          <div className="px-4 pb-4 -mt-10 relative z-10 flex justify-between items-end">
+          <div className="px-4 pb-5 -mt-12 relative z-10 flex justify-between items-end">
             <div className="flex flex-col">
-              <div className="w-20 h-20 rounded-full border-4 border-white dark:border-[var(--color-pine)] bg-gray-100 dark:bg-[var(--color-forest)] flex items-center justify-center overflow-hidden shadow-sm flex-shrink-0">
+              {/* Avatar */}
+              <div className="w-[84px] h-[84px] rounded-full border-[3px] border-white dark:border-[var(--color-pine)] bg-[var(--color-frosted)] dark:bg-[var(--color-forest)] flex items-center justify-center overflow-hidden shadow-lg ring-4 ring-white/40 dark:ring-black/20 flex-shrink-0">
                 {avatarSrc ? (
-                  <Image
-                    src={avatarSrc}
-                    alt={displayName}
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-cover"
-                  />
+                  <Image src={avatarSrc} alt={displayName} width={84} height={84} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-[18px] font-black text-[var(--color-teal)] dark:text-[var(--color-celadon)]">{userInitials}</span>
+                  <span className="text-[20px] font-black text-[var(--color-teal)] dark:text-[var(--color-celadon)]">{userInitials}</span>
                 )}
               </div>
-              <div className="mt-2">
+
+              <div className="mt-2.5">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-[20px] font-black text-[var(--foreground)] tracking-tight leading-none">
+                  <h1 className="text-[19px] font-black text-[var(--foreground)] tracking-tight leading-none">
                     {displayName}
                   </h1>
                   <PlanBadge plan={userPlanSlug} />
                 </div>
-                <Link href="/vendas/avaliacoes" className="flex items-center gap-1.5 mt-1 hover:opacity-80 transition-opacity">
-                  <div className="flex">
+                <Link href="/vendas/avaliacoes" className="flex items-center gap-1.5 mt-1.5 hover:opacity-70 transition-opacity">
+                  <div className="flex gap-[1px]">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
                         key={i}
-                        size={13}
+                        size={12}
                         className={
                           i < Math.round(Number(avgRating ?? 0))
-                            ? 'fill-yellow-400 text-yellow-400'
-                            : 'fill-gray-300 text-gray-300 dark:fill-white/20 dark:text-white/20'
+                            ? 'fill-amber-400 text-amber-400'
+                            : 'fill-gray-200 text-gray-200 dark:fill-white/15 dark:text-white/15'
                         }
                       />
                     ))}
                   </div>
-                  <span className="text-[13px] text-gray-500 dark:text-sage">
+                  <span className="text-[12px] text-gray-400 dark:text-[var(--color-sage)]">
                     {avgRating !== null
                       ? `${avgRating} · ${totalRatings} ${totalRatings === 1 ? 'avaliação' : 'avaliações'}`
                       : 'sem avaliações'}
@@ -135,15 +132,15 @@ export default async function VendasPage() {
             <div className="flex items-center gap-2 mb-1">
               <Link
                 href="/create"
-                className="hidden md:flex items-center gap-2 bg-[var(--color-teal)] dark:bg-[var(--color-celadon)] text-white dark:text-[var(--color-pine)] px-5 py-2.5 rounded-full font-black text-[14px] shadow hover:opacity-90 transition-opacity"
+                className="hidden md:flex items-center gap-2 bg-[var(--color-teal)] text-white px-5 py-2.5 rounded-full font-black text-[13px] shadow-md shadow-[var(--color-teal)]/30 hover:opacity-90 active:scale-95 transition-all"
               >
                 criar anúncio
               </Link>
               <Link
                 href={`/profile/${myId}`}
-                className="w-10 h-10 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center text-[var(--foreground)] hover:bg-gray-200 dark:hover:bg-white/10 transition-colors shadow-sm"
+                className="w-9 h-9 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-500 dark:text-[var(--color-sage)] hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
               >
-                <ChevronRight size={22} strokeWidth={2.5} />
+                <ChevronRight size={20} strokeWidth={2.5} />
               </Link>
             </div>
           </div>
@@ -152,221 +149,235 @@ export default async function VendasPage() {
         {/* ── Layout duas colunas (lg+) ── */}
         <div className="lg:grid lg:grid-cols-5 lg:gap-6 lg:px-6 lg:mt-6 lg:items-start">
 
-          {/* Coluna esquerda */}
-          <div className="lg:col-span-3 space-y-6">
+          {/* Coluna esquerda — financeiro */}
+          <div className="lg:col-span-3 space-y-4">
 
-            {/* Meu Cashback */}
-            <section className="px-4 mt-6 lg:mt-0 lg:px-0">
-              <Link
-                href="/cashback"
-                className="group block rounded-2xl bg-[var(--color-celadon)]/15 dark:bg-[var(--color-celadon)]/10 border border-[var(--color-celadon)]/40 dark:border-[var(--color-celadon)]/20 p-5 relative overflow-hidden"
-              >
-                <div className="absolute right-[-20px] top-[-20px] w-28 h-28 bg-[var(--color-celadon)]/30 rounded-full blur-2xl group-hover:bg-[var(--color-celadon)]/50 transition-colors" />
-                <p className="text-[12px] font-bold uppercase tracking-widest text-[var(--color-teal)] dark:text-[var(--color-celadon)] mb-1">meu cashback</p>
-                <div className="flex items-end justify-between relative z-10">
-                  <div>
-                    <p className="text-[28px] font-black text-[var(--foreground)] leading-none">
-                      {formatPrice(cashbackBalanceCents)}
-                    </p>
-                    <p className="text-[13px] text-gray-500 dark:text-sage mt-1">saldo disponível</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Coins size={18} className="text-[var(--color-teal)] dark:text-[var(--color-celadon)]" />
-                    <ChevronRight size={18} className="text-gray-400" />
-                  </div>
-                </div>
-              </Link>
-            </section>
-
-            {/* KloopBank */}
-            <section className="px-4 lg:px-0">
+            {/* KloopBank — hero financeiro */}
+            <section className="px-4 mt-5 lg:mt-0 lg:px-0">
               <Link
                 href="/financeiro"
-                className="group block bg-[var(--color-pine)] dark:bg-[var(--color-forest)] rounded-2xl p-5 text-white shadow-md relative overflow-hidden border border-transparent dark:border-white/5"
+                className="group block relative overflow-hidden rounded-2xl p-5 shadow-lg"
+                style={{ background: 'linear-gradient(135deg, var(--color-pine) 0%, var(--color-emerald) 55%, var(--color-teal) 100%)' }}
               >
-                <div className="absolute right-[-20px] top-[-20px] w-32 h-32 bg-[var(--color-teal)]/20 rounded-full blur-2xl group-hover:bg-[var(--color-teal)]/40 transition-colors" />
-                <p className="text-[12px] font-bold uppercase tracking-widest text-[var(--color-celadon)] mb-1">meu kloopbank</p>
-                <div className="flex items-end justify-between relative z-10">
-                  <div>
-                    <p className="text-[28px] font-black leading-none">{formatPrice(revenue)}</p>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <p className="text-[13px] text-white/80">saldo disponível</p>
+                {/* Texture orbs */}
+                <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-white/5 blur-2xl pointer-events-none" />
+                <div className="absolute -left-4 -bottom-8 w-32 h-32 rounded-full bg-[var(--color-celadon)]/10 blur-2xl pointer-events-none" />
+                {/* Shine line */}
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                        <TrendingUp size={14} className="text-[var(--color-celadon)]" />
+                      </div>
+                      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--color-celadon)]">kloopbank</p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
                       <div className="relative group/tip">
-                        <Info size={14} className="text-white/50 cursor-pointer" />
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-[var(--color-forest)] text-white text-[11px] leading-relaxed font-medium px-3 py-2 rounded-xl shadow-xl opacity-0 group-hover/tip:opacity-100 pointer-events-none transition-opacity z-20">
-                          soma do valor líquido de todas as vendas concluídas, após desconto da comissão do kloop.
-                          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[var(--color-forest)]" />
+                        <Info size={14} className="text-white/40 cursor-pointer hover:text-white/70 transition-colors" />
+                        <div className="absolute bottom-full right-0 mb-2 w-56 bg-[var(--color-forest)] text-white text-[11px] leading-relaxed font-medium px-3 py-2 rounded-xl shadow-xl opacity-0 group-hover/tip:opacity-100 pointer-events-none transition-opacity z-20 border border-white/10">
+                          valor líquido de todas as vendas concluídas, após desconto da comissão.
                         </div>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                        <ChevronRight size={16} className="text-white" />
                       </div>
                     </div>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm group-hover:bg-white/20 transition-colors">
-                    <ChevronRight size={18} />
+
+                  <p className="text-[32px] font-black text-white leading-none tracking-tight">
+                    {formatPrice(revenue)}
+                  </p>
+                  <p className="text-[12px] text-white/50 mt-1.5">saldo disponível para saque</p>
+                </div>
+              </Link>
+            </section>
+
+            {/* Cashback — secundário */}
+            <section className="px-4 lg:px-0">
+              <Link
+                href="/cashback"
+                className="group block rounded-2xl bg-[var(--color-frosted)] dark:bg-[var(--color-celadon)]/8 border border-[var(--color-celadon)]/50 dark:border-[var(--color-celadon)]/15 p-5 relative overflow-hidden"
+              >
+                <div className="absolute right-[-16px] top-[-16px] w-24 h-24 bg-[var(--color-celadon)]/25 rounded-full blur-2xl pointer-events-none" />
+
+                <div className="flex items-center justify-between relative z-10">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <Coins size={14} className="text-[var(--color-teal)] dark:text-[var(--color-celadon)]" />
+                      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--color-teal)] dark:text-[var(--color-celadon)]">meu cashback</p>
+                    </div>
+                    <p className="text-[28px] font-black text-[var(--foreground)] leading-none tracking-tight">
+                      {formatPrice(cashbackBalanceCents)}
+                    </p>
+                    <p className="text-[12px] text-gray-400 dark:text-[var(--color-sage)] mt-1">saldo disponível</p>
+                  </div>
+                  <div className="w-9 h-9 rounded-full bg-[var(--color-celadon)]/20 dark:bg-[var(--color-celadon)]/10 flex items-center justify-center group-hover:bg-[var(--color-celadon)]/35 transition-colors">
+                    <ChevronRight size={17} className="text-[var(--color-teal)] dark:text-[var(--color-celadon)]" />
                   </div>
                 </div>
               </Link>
             </section>
 
-            {/* Botão criar — visível só em tablet */}
+            {/* Botão criar — tablet only */}
             <section className="px-4 md:px-0 lg:hidden">
               <Link
                 href="/create"
-                className="hidden md:flex items-center justify-center w-full bg-[var(--color-teal)] dark:bg-[var(--color-celadon)] text-white dark:text-[var(--color-pine)] py-4 rounded-full font-black text-[15px] shadow hover:opacity-90 transition-opacity"
+                className="hidden md:flex items-center justify-center w-full bg-[var(--color-teal)] text-white py-4 rounded-full font-black text-[14px] shadow-md shadow-[var(--color-teal)]/25 hover:opacity-90 active:scale-[0.98] transition-all"
               >
                 criar novo anúncio
               </Link>
             </section>
-
           </div>
 
-          {/* Coluna direita */}
+          {/* Coluna direita — métricas + ações */}
           <div className="lg:col-span-2 space-y-4">
 
-            {/* Métricas 2x2 */}
-            <section className="px-4 mt-6 lg:mt-0 lg:px-0">
-              <div className="grid grid-cols-2 gap-3">
-                <Link href="/vendas/ativos" className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col justify-between min-h-[110px] shadow-sm group">
-                  <div className="flex items-start justify-between">
-                    <div className="w-10 h-10 rounded-full bg-[var(--color-teal)]/10 dark:bg-[var(--color-celadon)]/10 flex items-center justify-center text-[var(--color-pine)] dark:text-[var(--color-celadon)] group-hover:bg-[var(--color-teal)]/20 transition-colors">
-                      <Store size={20} />
-                    </div>
-                    <span className="text-[20px] font-black text-[var(--foreground)]">{active}</span>
+            {/* Métricas 2×2 */}
+            <section className="px-4 mt-5 lg:mt-0 lg:px-0">
+              <div className="grid grid-cols-2 gap-2.5">
+
+                <Link href="/vendas/ativos" className="group bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex flex-col gap-3 hover:border-[var(--color-celadon)]/50 dark:hover:border-[var(--color-celadon)]/20 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <Store size={18} className="text-[var(--color-teal)] dark:text-[var(--color-celadon)]" />
+                    <ChevronRight size={14} className="text-gray-300 dark:text-white/20 group-hover:text-gray-400 transition-colors" />
                   </div>
-                  <p className="text-[14px] font-bold text-[var(--foreground)] tracking-tight mt-2">à venda</p>
+                  <div>
+                    <p className="text-[30px] font-black text-[var(--foreground)] leading-none">{active}</p>
+                    <p className="text-[12px] text-gray-400 dark:text-[var(--color-sage)] mt-1">à venda</p>
+                  </div>
                 </Link>
 
-                <Link href="/vendas/pendentes" className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col justify-between min-h-[110px] shadow-sm group">
-                  <div className="flex items-start justify-between">
-                    <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center text-orange-600 dark:text-orange-400 group-hover:bg-orange-200 transition-colors">
-                      <MessageCircle size={20} />
-                    </div>
+                <Link href="/vendas/pendentes" className="group bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex flex-col gap-3 hover:border-orange-200 dark:hover:border-orange-500/20 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <MessageCircle size={18} className="text-orange-500 dark:text-orange-400" />
                     <div className="flex items-center gap-1">
-                      <span className="text-[20px] font-black text-[var(--foreground)]">{pendingCount}</span>
-                      {pendingCount > 0 && <span className="w-2.5 h-2.5 rounded-full bg-red-500 mb-3" />}
+                      {pendingCount > 0 && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
+                      <ChevronRight size={14} className="text-gray-300 dark:text-white/20 group-hover:text-gray-400 transition-colors" />
                     </div>
                   </div>
-                  <p className="text-[14px] font-bold text-[var(--foreground)] tracking-tight mt-2">pedidos pendentes</p>
+                  <div>
+                    <p className="text-[30px] font-black text-[var(--foreground)] leading-none">{pendingCount}</p>
+                    <p className="text-[12px] text-gray-400 dark:text-[var(--color-sage)] mt-1">pendentes</p>
+                  </div>
                 </Link>
 
-                <Link href="/vendas/inativos" className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col justify-between min-h-[110px] shadow-sm group">
-                  <div className="flex items-start justify-between">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-500 dark:text-sage group-hover:bg-gray-200 transition-colors">
-                      <ArchiveX size={20} />
-                    </div>
-                    <span className="text-[20px] font-black text-[var(--foreground)]">{inactive}</span>
+                <Link href="/vendas/inativos" className="group bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex flex-col gap-3 hover:border-gray-200 dark:hover:border-white/10 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <ArchiveX size={18} className="text-gray-400 dark:text-[var(--color-sage)]" />
+                    <ChevronRight size={14} className="text-gray-300 dark:text-white/20 group-hover:text-gray-400 transition-colors" />
                   </div>
-                  <p className="text-[14px] font-bold text-[var(--foreground)] tracking-tight mt-2">anúncios inativos</p>
+                  <div>
+                    <p className="text-[30px] font-black text-[var(--foreground)] leading-none">{inactive}</p>
+                    <p className="text-[12px] text-gray-400 dark:text-[var(--color-sage)] mt-1">inativos</p>
+                  </div>
                 </Link>
 
-                <Link href="/vendas/historico" className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col justify-between min-h-[110px] shadow-sm group">
-                  <div className="flex items-start justify-between">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:bg-blue-200 transition-colors">
-                      <ShoppingBag size={20} />
-                    </div>
-                    <span className="text-[20px] font-black text-[var(--foreground)]">{sold}</span>
+                <Link href="/vendas/historico" className="group bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex flex-col gap-3 hover:border-blue-200 dark:hover:border-blue-500/20 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <ShoppingBag size={18} className="text-blue-500 dark:text-blue-400" />
+                    <ChevronRight size={14} className="text-gray-300 dark:text-white/20 group-hover:text-gray-400 transition-colors" />
                   </div>
-                  <p className="text-[14px] font-bold text-[var(--foreground)] tracking-tight mt-2">produtos vendidos</p>
+                  <div>
+                    <p className="text-[30px] font-black text-[var(--foreground)] leading-none">{sold}</p>
+                    <p className="text-[12px] text-gray-400 dark:text-[var(--color-sage)] mt-1">vendidos</p>
+                  </div>
                 </Link>
+
               </div>
             </section>
 
-            {/* Ofertas pendentes */}
+            {/* Ações agrupadas */}
             <section className="px-4 lg:px-0">
-              <Link
-                href="/vendas/ofertas"
-                className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex items-center justify-between shadow-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center text-orange-600 dark:text-orange-400 flex-shrink-0">
-                    <Handshake size={20} />
-                  </div>
-                  <div>
-                    <p className="text-[14px] font-bold text-[var(--foreground)]">ofertas recebidas</p>
-                    <p className="text-[12px] text-gray-500 dark:text-sage mt-0.5">
-                      {pendingOffersCount > 0
-                        ? `${pendingOffersCount} ${pendingOffersCount === 1 ? 'oferta aguardando' : 'ofertas aguardando'} sua resposta`
-                        : 'nenhuma oferta pendente'}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {pendingOffersCount > 0 && (
-                    <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-orange-500 text-white text-[11px] font-black flex items-center justify-center">
-                      {pendingOffersCount}
-                    </span>
-                  )}
-                  <ChevronRight size={18} className="text-gray-400" />
-                </div>
-              </Link>
-            </section>
+              <div className="bg-white dark:bg-[var(--color-pine)] rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden divide-y divide-gray-50 dark:divide-white/5">
 
-            {/* Minhas Compras */}
-            <section className="px-4 lg:px-0">
-              <Link
-                href="/compras"
-                className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex items-center justify-between shadow-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400 flex-shrink-0">
-                    <ShoppingBag size={20} />
+                {/* Ofertas */}
+                <Link href="/vendas/ofertas" className="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-white/3 transition-colors group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+                      <Handshake size={18} className="text-orange-500 dark:text-orange-400" />
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-bold text-[var(--foreground)]">ofertas recebidas</p>
+                      <p className="text-[11px] text-gray-400 dark:text-[var(--color-sage)] mt-0.5">
+                        {pendingOffersCount > 0
+                          ? `${pendingOffersCount} aguardando resposta`
+                          : 'nenhuma pendente'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[14px] font-bold text-[var(--foreground)]">minhas compras</p>
-                    <p className="text-[12px] text-gray-500 dark:text-sage mt-0.5">
-                      {activeOrdersCount > 0
-                        ? `${activeOrdersCount} ${activeOrdersCount === 1 ? 'pedido' : 'pedidos'} em andamento`
-                        : 'ver histórico de compras'}
-                    </p>
+                  <div className="flex items-center gap-2">
+                    {pendingOffersCount > 0 && (
+                      <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-orange-500 text-white text-[10px] font-black flex items-center justify-center">
+                        {pendingOffersCount}
+                      </span>
+                    )}
+                    <ChevronRight size={16} className="text-gray-300 dark:text-white/20 group-hover:text-gray-400 transition-colors" />
                   </div>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {activeOrdersCount > 0 && <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />}
-                  <ChevronRight size={18} className="text-gray-400" />
-                </div>
-              </Link>
-            </section>
+                </Link>
 
-            {/* Kloop Pro -> Redirecionamento Dinâmico */}
-            <section className="px-4 lg:px-0">
-              <Link href="/pro/dashboard" className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex items-center justify-between shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 flex-shrink-0">
-                    <PackageOpen size={24} />
+                {/* Compras */}
+                <Link href="/compras" className="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-white/3 transition-colors group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center flex-shrink-0">
+                      <ShoppingBag size={18} className="text-purple-500 dark:text-purple-400" />
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-bold text-[var(--foreground)]">minhas compras</p>
+                      <p className="text-[11px] text-gray-400 dark:text-[var(--color-sage)] mt-0.5">
+                        {activeOrdersCount > 0
+                          ? `${activeOrdersCount} em andamento`
+                          : 'ver histórico'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[15px] font-black text-[var(--foreground)]">painel kloop pro</p>
-                    <p className="text-[12px] text-gray-500 dark:text-sage mt-0.5">acompanhe seus lotes e vendas pro</p>
+                  <div className="flex items-center gap-2">
+                    {activeOrdersCount > 0 && <span className="w-2 h-2 rounded-full bg-purple-500" />}
+                    <ChevronRight size={16} className="text-gray-300 dark:text-white/20 group-hover:text-gray-400 transition-colors" />
                   </div>
-                </div>
-                <ChevronRight size={20} className="text-gray-400" />
-              </Link>
-            </section>
+                </Link>
 
-            {/* Ajuda */}
-            <section className="px-4 lg:px-0">
-              <Link href="/ajuda" className="bg-white dark:bg-[var(--color-pine)] p-4 rounded-2xl border border-gray-100 dark:border-white/5 flex items-center justify-between shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/10 flex items-center justify-center text-blue-500 flex-shrink-0">
-                    <HelpCircle size={24} />
+                {/* Kloop Pro */}
+                <Link href="/pro/dashboard" className="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-white/3 transition-colors group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+                      <PackageOpen size={18} className="text-violet-600 dark:text-violet-400" />
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-bold text-[var(--foreground)]">painel kloop pro</p>
+                      <p className="text-[11px] text-gray-400 dark:text-[var(--color-sage)] mt-0.5">lotes e vendas pro</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[15px] font-black text-[var(--foreground)]">central de ajuda</p>
-                    <p className="text-[12px] text-gray-500 dark:text-sage mt-0.5">dúvidas sobre vendas, envios ou taxas?</p>
+                  <ChevronRight size={16} className="text-gray-300 dark:text-white/20 group-hover:text-gray-400 transition-colors" />
+                </Link>
+
+                {/* Ajuda */}
+                <Link href="/ajuda" className="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-white/3 transition-colors group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center flex-shrink-0">
+                      <HelpCircle size={18} className="text-sky-500 dark:text-sky-400" />
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-bold text-[var(--foreground)]">central de ajuda</p>
+                      <p className="text-[11px] text-gray-400 dark:text-[var(--color-sage)] mt-0.5">dúvidas sobre vendas e envios</p>
+                    </div>
                   </div>
-                </div>
-                <ChevronRight size={20} className="text-gray-400" />
-              </Link>
+                  <ChevronRight size={16} className="text-gray-300 dark:text-white/20 group-hover:text-gray-400 transition-colors" />
+                </Link>
+
+              </div>
             </section>
 
           </div>
         </div>
       </div>
 
-      {/* FAB — só mobile */}
+      {/* FAB — mobile only */}
       <div className="md:hidden fixed bottom-[80px] left-1/2 -translate-x-1/2 z-30 w-full px-4 max-w-sm">
         <Link
           href="/create"
-          className="w-full bg-[var(--color-teal)] dark:bg-[var(--color-celadon)] text-white dark:text-[var(--color-pine)] px-6 py-4 rounded-full flex items-center justify-center shadow-lg shadow-[var(--color-teal)]/30 dark:shadow-[var(--color-celadon)]/20 hover:scale-[1.02] transition-transform font-black text-[15px]"
+          className="w-full bg-[var(--color-teal)] text-white px-6 py-4 rounded-full flex items-center justify-center shadow-xl shadow-[var(--color-teal)]/35 hover:opacity-95 active:scale-[0.97] transition-all font-black text-[14px] tracking-wide"
         >
           criar novo anúncio
         </Link>
