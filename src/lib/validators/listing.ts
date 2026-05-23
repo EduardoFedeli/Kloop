@@ -27,6 +27,7 @@ export const createListingSchema = z.object({
   acceptsOffers: z.boolean(),
   smartPriceEnabled: z.boolean(),
   isTurbinado: z.boolean().optional(),
+  communityIds: z.array(z.string()).optional(),
 })
 
 export type CreateListingInput = z.infer<typeof createListingSchema>

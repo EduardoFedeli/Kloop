@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { AuthModal } from "@/components/auth/AuthModal"
 import { signOut } from "next-auth/react"
-import { User, LogOut, Settings, Package, ChevronDown, Crown } from "lucide-react"
+import { User, LogOut, Settings, Package, ChevronDown, Crown, Monitor } from "lucide-react"
 
 interface HeaderAuthProps {
   user?: {
@@ -115,6 +115,14 @@ export function HeaderAuth({ user }: HeaderAuthProps) {
               className="flex w-full items-center gap-2 px-4 py-2 text-sm text-airforce hover:bg-gray-50"
             >
               <Settings className="h-4 w-4" /> Configurações
+            </Link>
+
+            <Link
+              href="/totem-access"
+              onClick={closeMenu}
+              className="flex w-full items-center gap-2 px-4 py-2 text-sm text-airforce hover:bg-gray-50"
+            >
+              <Monitor className="h-4 w-4" /> Acesso ao totem
             </Link>
 
             <div className="my-1 h-px bg-gray-100" />

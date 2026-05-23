@@ -209,6 +209,9 @@ model User {
   // Notificações
   notifications          Notification[]
 
+  // Totem
+  totemTokens            TotemToken[]
+
   @@map("users")
 }
 
@@ -327,8 +330,9 @@ model Listing {
 
   seller      User     @relation("SellerListings", fields: [sellerId], references: [id], onDelete: Cascade)
   store        Store?         @relation(fields: [storeId], references: [id])
-  community    Community?     @relation(fields: [communityId], references: [id])
-  category     Category       @relation(fields: [categoryId], references: [id])
+  community          Community?         @relation(fields: [communityId], references: [id])
+  listingCommunities ListingCommunity[]
+  category           Category           @relation(fields: [categoryId], references: [id])
   images       ListingImage[]
   transactions Transaction[]
   viewHistories ViewHistory[]
@@ -567,10 +571,12 @@ model Community {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  admin    User              @relation("CommunityAdmin", fields: [adminUserId], references: [id])
-  members  CommunityMember[]
-  listings Listing[]
-  rules    CommunityRule[]
+  admin              User               @relation("CommunityAdmin", fields: [adminUserId], references: [id])
+  members            CommunityMember[]
+  listings           Listing[]
+  listingCommunities ListingCommunity[]
+  rules              CommunityRule[]
+  totemTokens        TotemToken[]
 
   @@map("communities")
 }
@@ -605,6 +611,19 @@ model CommunityRule {
   @@map("community_rules")
 }
 
+model ListingCommunity {
+  id          String   @id @default(cuid())
+  listingId   String   @map("listing_id")
+  communityId String   @map("community_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  listing   Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, communityId])
+  @@index([communityId])
+  @@map("listing_communities")
+}
 
 // ──────────────────────────────────────────
 // MVP: SISTEMA DE OFERTAS
@@ -917,4 +936,27 @@ model Notification {
   @@index([userId, createdAt(sort: Desc)])
   @@index([userId, isRead])
   @@map("notifications")
+}
+
+// ──────────────────────────────────────────
+// TOTEM: TOKENS DE LOGIN VIA QR CODE
+// ──────────────────────────────────────────
+
+model TotemToken {
+  id          String    @id @default(cuid())
+  token       String    @unique @default(cuid())
+  communityId String    @map("community_id")
+  userId      String?   @map("user_id")
+  numericCode String?   @map("numeric_code")
+  status      String    @default("PENDING") // PENDING | CONFIRMED | EXPIRED
+  expiresAt   DateTime  @map("expires_at")
+  confirmedAt DateTime? @map("confirmed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  community Community @relation(fields: [communityId], references: [id])
+  user      User?     @relation(fields: [userId], references: [id])
+
+  @@index([token, status])
+  @@index([expiresAt])
+  @@map("totem_tokens")
 }

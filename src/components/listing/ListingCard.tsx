@@ -3,6 +3,7 @@ import { ListingCondition } from '@prisma/client'
 import { formatPrice } from '@/lib/utils'
 import type { ListingWithDetails } from '@/types/listing'
 import { FavoriteButton } from './FavoriteButton'
+import { Building2 } from 'lucide-react'
 
 const conditionLabel: Record<ListingCondition, string> = {
   NEW: 'novo',
@@ -11,22 +12,40 @@ const conditionLabel: Record<ListingCondition, string> = {
   FAIR: 'usado',
 }
 
+type CommunityBadge = { type: 'generic' } | { type: 'named'; name: string }
+
 type Props = {
   listing: ListingWithDetails
   isFavorited: boolean
   minimal?: boolean
-  variant?: 'default' | 'search' 
+  variant?: 'default' | 'search'
   showSeller?: boolean
-  hideFavorite?: boolean // 1. Aqui nós declaramos que essa prop existe
+  hideFavorite?: boolean
+  communityBadge?: CommunityBadge
 }
 
-export function ListingCard({ 
-  listing, 
-  isFavorited, 
-  minimal = false, 
+function CommunityBadgePill({ badge }: { badge: CommunityBadge }) {
+  const label =
+    badge.type === 'generic'
+      ? 'Em comunidades'
+      : `Em ${badge.name.length > 20 ? badge.name.slice(0, 20) + '…' : badge.name}`
+
+  return (
+    <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-white/90 dark:bg-[var(--color-pine)]/90 backdrop-blur-sm border border-[var(--color-teal)]/20 text-[var(--color-teal)] dark:text-[var(--color-celadon)] text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+      <Building2 size={10} strokeWidth={2.5} />
+      {label}
+    </div>
+  )
+}
+
+export function ListingCard({
+  listing,
+  isFavorited,
+  minimal = false,
   variant = 'default',
   showSeller = false,
-  hideFavorite = false // 2. Aqui dizemos que o padrão dela é "false" (não esconder)
+  hideFavorite = false,
+  communityBadge,
 }: Props) {
   const image = listing.images[0]
   const location = listing.seller.addresses[0]
@@ -44,6 +63,7 @@ export function ListingCard({
     return (
       <article className="group flex flex-col">
         <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-100 dark:bg-[var(--color-forest)] mb-2">
+          {communityBadge && <CommunityBadgePill badge={communityBadge} />}
           <Link href={`/listing/${listing.slug}`} className="block w-full h-full">
             {image ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -115,6 +135,7 @@ export function ListingCard({
     return (
       <article className="group flex flex-col gap-2">
         <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-100 dark:bg-[var(--color-forest)]">
+          {communityBadge && <CommunityBadgePill badge={communityBadge} />}
           <Link href={`/listing/${listing.slug}`} className="block w-full h-full">
             {image ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -159,6 +180,7 @@ export function ListingCard({
   return (
     <article className="group">
       <Link href={`/listing/${listing.slug}`} className="block relative aspect-square rounded-xl overflow-hidden bg-gray-100">
+        {communityBadge && <CommunityBadgePill badge={communityBadge} />}
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

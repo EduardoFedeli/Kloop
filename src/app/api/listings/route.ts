@@ -61,9 +61,36 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 422 })
   }
 
-  // ATUALIZADO: Extraindo brandId
-  const { title, description, priceCents, categoryId, condition, brandId, size, images, acceptsOffers, smartPriceEnabled, isTurbinado } =
-    parsed.data
+  const {
+    title,
+    description,
+    priceCents,
+    categoryId,
+    condition,
+    brandId,
+    size,
+    images,
+    acceptsOffers,
+    smartPriceEnabled,
+    isTurbinado,
+    communityIds = [],
+  } = parsed.data
+
+  // Validar membership em comunidades solicitadas
+  if (communityIds.length > 0) {
+    const memberships = await db.communityMember.findMany({
+      where: { userId, communityId: { in: communityIds }, status: "ACTIVE" },
+      select: { communityId: true },
+    })
+    const allowedIds = new Set(memberships.map((m) => m.communityId))
+    const unauthorized = communityIds.find((id) => !allowedIds.has(id))
+    if (unauthorized) {
+      return NextResponse.json(
+        { error: "Você não é membro de uma ou mais comunidades selecionadas." },
+        { status: 403 },
+      )
+    }
+  }
 
   // Verify category is a leaf (no children)
   const category = await db.category.findUnique({
@@ -119,6 +146,14 @@ export async function POST(req: NextRequest) {
 
     return created
   })
+
+  // Vincular listing às comunidades selecionadas
+  if (communityIds.length > 0) {
+    await db.listingCommunity.createMany({
+      data: communityIds.map((communityId) => ({ listingId: listing.id, communityId })),
+      skipDuplicates: true,
+    })
+  }
 
   revalidatePath("/")
   return NextResponse.json({ slug: listing.slug })

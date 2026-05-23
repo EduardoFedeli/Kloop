@@ -8,16 +8,18 @@ type Props = {
   compact?: boolean
   minimal?: boolean
   variant?: 'default' | 'search'
-  hideFavorite?: boolean // 1. Aqui na tipagem
+  hideFavorite?: boolean
+  showCommunityBadges?: boolean
 }
 
-export function ListingGrid({ 
-  listings, 
-  favoriteIds, 
-  compact, 
-  minimal = false, 
+export function ListingGrid({
+  listings,
+  favoriteIds,
+  compact,
+  minimal = false,
   variant = 'default',
-  hideFavorite = false // 2. AQUI ESTAVA O ERRO! Faltou receber ele na função
+  hideFavorite = false,
+  showCommunityBadges = false,
 }: Props) {
   if (listings.length === 0) {
     return (
@@ -36,16 +38,21 @@ export function ListingGrid({
           : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
       )}
     >
-      {listings.map((listing) => (
-        <ListingCard
-          key={listing.id}
-          listing={listing}
-          isFavorited={(favoriteIds ?? []).includes(listing.id)}
-          minimal={minimal}
-          variant={variant}
-          hideFavorite={hideFavorite} // 3. Agora sim ele é repassado sem dar undefined
-        />
-      ))}
+      {listings.map((listing) => {
+        const hasCommunities =
+          showCommunityBadges && (listing._count?.listingCommunities ?? 0) > 0
+        return (
+          <ListingCard
+            key={listing.id}
+            listing={listing}
+            isFavorited={(favoriteIds ?? []).includes(listing.id)}
+            minimal={minimal}
+            variant={variant}
+            hideFavorite={hideFavorite}
+            communityBadge={hasCommunities ? { type: 'generic' } : undefined}
+          />
+        )
+      })}
     </div>
   )
 }

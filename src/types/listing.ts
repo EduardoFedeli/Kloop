@@ -16,7 +16,7 @@ export type ListingWithDetails = {
   size?: string | null
   isTurbinado?: boolean
   viewsCount?: number
-  _count?: { favorites: number }
+  _count?: { favorites: number; listingCommunities?: number }
   category: {
     id: string
     name: string

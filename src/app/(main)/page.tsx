@@ -41,6 +41,8 @@ export default async function FeedPage() {
             },
           },
         },
+        brand: { select: { id: true, name: true, slug: true } },
+        _count: { select: { favorites: true, listingCommunities: true } },
       },
       orderBy: { createdAt: 'desc' },
     }),

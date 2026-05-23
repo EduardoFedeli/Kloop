@@ -6,6 +6,7 @@ import { ArrowRight, Tag, Zap, Megaphone } from 'lucide-react'
 import type { ListingWithDetails, CategoryOption } from '@/types/listing'
 import type { SellerPreview } from '@/app/(main)/page'
 import { CategoryFilter } from './CategoryFilter'
+import { ListingCard } from './ListingCard'
 import { ListingGrid } from './ListingGrid'
 
 type Props = {
@@ -23,8 +24,8 @@ export function HomeFeed({ listings, categories, favoriteIds, sellers = [] }: Pr
       ? listings
       : listings.filter((l) => l.category.slug === selectedCategory)
 
-  const turbinados = listings.slice(0, 4)
-  const megafonados = listings.slice(4, 8)
+  const turbinados = listings.filter((l) => l.isTurbinado === true).slice(0, 4)
+  const megafonados = listings.filter((l) => !l.isTurbinado).slice(0, 4)
 
   return (
     <div className="space-y-12 pb-8 overflow-hidden pt-4">
@@ -47,7 +48,7 @@ export function HomeFeed({ listings, categories, favoriteIds, sellers = [] }: Pr
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-celadon)]" />
               novidade
             </span>
-            <h1 className="text-[28px] md:text-[38px] font-black leading-[1.1] tracking-tight">
+            <h1 className="text-[28px] md:text-[38px] font-semibold leading-[1.1] tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
               anuncie 5 produtos<br />
               <span className="text-[var(--color-celadon)]">ganhe R$ 30 de crédito</span>
             </h1>
@@ -79,7 +80,7 @@ export function HomeFeed({ listings, categories, favoriteIds, sellers = [] }: Pr
       {sellers.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[17px] font-black text-[var(--foreground)]">lojinhas que amamos</h2>
+            <h2 className="text-[19px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>lojinhas que amamos</h2>
             <Link href="/search" className="text-[12px] font-bold text-[var(--color-teal)] dark:text-[var(--color-celadon)] hover:opacity-70 flex items-center gap-1 transition-opacity">
               ver todas <ArrowRight size={13} />
             </Link>
@@ -142,13 +143,30 @@ export function HomeFeed({ listings, categories, favoriteIds, sellers = [] }: Pr
             <div className="w-6 h-6 rounded-full bg-[var(--color-teal)] flex items-center justify-center flex-shrink-0">
               <Zap size={13} fill="currentColor" className="text-white" />
             </div>
-            <h2 className="text-[17px] font-black text-[var(--foreground)]">sacolas turbinadas</h2>
+            <h2 className="text-[19px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>sacolas turbinadas</h2>
           </div>
           <p className="text-[12px] text-gray-400 dark:text-[var(--color-sage)] mb-5 pl-[34px]">
             leve mais itens da mesma loja com desconto
           </p>
           <div className="bg-[var(--color-teal)]/4 dark:bg-[var(--color-celadon)]/4 -mx-4 px-4 py-6 rounded-3xl border border-[var(--color-teal)]/8 dark:border-[var(--color-celadon)]/8">
-            <ListingGrid listings={turbinados} favoriteIds={favoriteIds} minimal={true} />
+            {/* Mobile: horizontal shelf */}
+            <div className="sm:hidden -mx-4 px-4 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex gap-3">
+                {turbinados.map((listing) => (
+                  <div key={listing.id} className="w-[155px] flex-shrink-0">
+                    <ListingCard
+                      listing={listing}
+                      isFavorited={(favoriteIds ?? []).includes(listing.id)}
+                      minimal={true}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Desktop: grid */}
+            <div className="hidden sm:block">
+              <ListingGrid listings={turbinados} favoriteIds={favoriteIds} minimal={true} />
+            </div>
           </div>
         </section>
       )}
@@ -160,19 +178,36 @@ export function HomeFeed({ listings, categories, favoriteIds, sellers = [] }: Pr
             <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0">
               <Megaphone size={13} fill="currentColor" className="text-white" />
             </div>
-            <h2 className="text-[17px] font-black text-[var(--foreground)]">megafonados</h2>
+            <h2 className="text-[19px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>megafonados</h2>
           </div>
           <p className="text-[12px] text-gray-400 dark:text-[var(--color-sage)] mb-5 pl-[34px]">
             acabaram de gritar por aqui
           </p>
-          <ListingGrid listings={megafonados} favoriteIds={favoriteIds} minimal={true} />
+          {/* Mobile: horizontal shelf */}
+          <div className="sm:hidden -mx-4 px-4 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-3">
+              {megafonados.map((listing) => (
+                <div key={listing.id} className="w-[155px] flex-shrink-0">
+                  <ListingCard
+                    listing={listing}
+                    isFavorited={(favoriteIds ?? []).includes(listing.id)}
+                    minimal={true}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Desktop: grid */}
+          <div className="hidden sm:block">
+            <ListingGrid listings={megafonados} favoriteIds={favoriteIds} minimal={true} />
+          </div>
         </section>
       )}
 
       {/* ── Feed principal ── */}
       <section className="pt-4 border-t border-gray-100 dark:border-white/5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-          <h2 className="text-[17px] font-black text-[var(--foreground)]">
+          <h2 className="text-[19px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>
             {selectedCategory
               ? categories.find((c) => c.slug === selectedCategory)?.name.toLowerCase() ?? 'produtos'
               : 'mais novidades'}
@@ -189,7 +224,7 @@ export function HomeFeed({ listings, categories, favoriteIds, sellers = [] }: Pr
         />
 
         <div className="mt-5">
-          <ListingGrid listings={filtered} favoriteIds={favoriteIds} minimal={true} />
+          <ListingGrid listings={filtered} favoriteIds={favoriteIds} minimal={true} showCommunityBadges={true} />
         </div>
       </section>
     </div>

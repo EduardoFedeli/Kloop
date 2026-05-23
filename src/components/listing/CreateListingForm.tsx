@@ -32,12 +32,19 @@ interface Brand {
 }
 
 
+interface UserCommunityOption {
+  id: string
+  name: string
+  unitNumber: string | null
+}
+
 interface CreateListingFormProps {
   activeCount: number
   maxListings: number
   planName: string
   categories: Category[]
-  brands: Brand[] // <--- Nova prop
+  brands: Brand[]
+  userCommunities?: UserCommunityOption[]
 }
 // ─── Static data ──────────────────────────────────────────────────────────────
 
@@ -311,7 +318,7 @@ function ValorAReceberModal({ priceCents, onClose }: { priceCents: number; onClo
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export function CreateListingForm({ activeCount, maxListings, planName, categories, brands }: CreateListingFormProps) {
+export function CreateListingForm({ activeCount, maxListings, planName, categories, brands, userCommunities = [] }: CreateListingFormProps) {
   const router = useRouter()
   const [step, setStep] = useState<1 | 2>(1)
   const [toast, setToast] = useState("")
@@ -327,6 +334,7 @@ export function CreateListingForm({ activeCount, maxListings, planName, categori
   const [weight, setWeight] = useState("")
   const [size, setSize] = useState("")
   const [sizeCtx, setSizeCtx] = useState<SizeContext>({ show: false })
+  const [selectedCommunityIds, setSelectedCommunityIds] = useState<string[]>([])
 
   const hasReachedLimit = maxListings !== -1 && activeCount >= maxListings
 
@@ -395,11 +403,12 @@ export function CreateListingForm({ activeCount, maxListings, planName, categori
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...data, // Agora "data" contém "brandId" porque você arrumou o Zod
+          ...data,
           size: sizeCtx.show ? size : undefined,
           acceptsOffers,
           smartPriceEnabled: smartPrice,
           isTurbinado: mode === "turbinado",
+          communityIds: selectedCommunityIds,
         }),
       })
       const json = (await res.json()) as { slug?: string; error?: string }
@@ -592,6 +601,53 @@ export function CreateListingForm({ activeCount, maxListings, planName, categori
             error={errors.categoryId?.message}
           />
         </SectionCard>
+
+        {/* Communities — only when user is member of at least one */}
+        {userCommunities.length > 0 && (
+          <SectionCard title="Comunidades">
+            <p className="text-[13px] text-gray-500 dark:text-sage mb-3 leading-relaxed">
+              Marque as comunidades onde você quer que este anúncio apareça. Ele continua visível no feed público.
+            </p>
+            <div className="space-y-2">
+              {userCommunities.map((c) => {
+                const checked = selectedCommunityIds.includes(c.id)
+                return (
+                  <label
+                    key={c.id}
+                    className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-gray-100 dark:border-white/10 hover:border-[var(--color-teal)] dark:hover:border-[var(--color-celadon)] transition-colors"
+                  >
+                    <div
+                      className={cn(
+                        "w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors",
+                        checked
+                          ? "bg-[var(--color-teal)] border-[var(--color-teal)]"
+                          : "border-gray-300 dark:border-white/30",
+                      )}
+                    >
+                      {checked && <Check size={12} className="text-white" strokeWidth={3} />}
+                    </div>
+                    <input
+                      type="checkbox"
+                      className="hidden"
+                      checked={checked}
+                      onChange={() =>
+                        setSelectedCommunityIds((prev) =>
+                          prev.includes(c.id) ? prev.filter((id) => id !== c.id) : [...prev, c.id],
+                        )
+                      }
+                    />
+                    <div>
+                      <p className="text-[14px] font-bold text-[var(--foreground)]">{c.name}</p>
+                      {c.unitNumber && (
+                        <p className="text-[12px] text-gray-400 dark:text-sage">{c.unitNumber}</p>
+                      )}
+                    </div>
+                  </label>
+                )
+              })}
+            </div>
+          </SectionCard>
+        )}
 
         {/* Size — only when category context provides options */}
         {sizeCtx.show && (

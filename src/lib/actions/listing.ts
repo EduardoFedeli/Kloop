@@ -89,7 +89,7 @@ export async function createListingAction(formData: FormData): Promise<ListingAc
     return { success: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos" }
   }
 
-  const { title, description, priceCents: price, categoryId, condition, brandId, size, imageUrls } =
+  const { title, description, priceCents: price, categoryId, condition, brand, size, imageUrls } =
     parsed.data
 
   const slug = await generateUniqueSlug(title)
@@ -103,7 +103,7 @@ export async function createListingAction(formData: FormData): Promise<ListingAc
       description,
       priceCents: price,
       condition: condition as ListingCondition,
-      brandId: brandId || null, // <--- AQUI
+      brandId: brand || null,
       size: size || null,
       status: "ACTIVE",
       images: {

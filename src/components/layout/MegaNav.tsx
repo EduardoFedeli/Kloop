@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import Link from "next/link"
-import { Search, Bell, HelpCircle, Heart, MessageCircle, ShoppingBag } from "lucide-react"
+import { Search, Bell, HelpCircle, Heart, MessageCircle, ShoppingBag, Building2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { HeaderAuth } from "./HeaderAuth"
 import { ThemeToggle } from "./ThemeToggle"
@@ -67,11 +67,12 @@ interface MegaNavProps {
   brands: { mocas: string[]; rapazes: string[]; criancas: string[]; outros: string[] }
   user?: { name?: string | null; email?: string | null; image?: string | null }
   unreadCount?: number
+  communitiesCount?: number
 }
 
 // ── MegaNav ────────────────────────────────────────────────────────────────
 
-export function MegaNav({ brands, user, unreadCount }: MegaNavProps) {
+export function MegaNav({ brands, user, unreadCount, communitiesCount = 0 }: MegaNavProps) {
   const pathname = usePathname()
   const isHome = pathname === '/'
   const isDeptPage = ['/mocas', '/rapazes', '/kids', '/casa'].includes(pathname)
@@ -113,7 +114,7 @@ export function MegaNav({ brands, user, unreadCount }: MegaNavProps) {
 
           {/* Logo */}
           <Link href="/" className="shrink-0 flex items-center">
-            <span className="text-xl font-black text-[var(--color-teal)] dark:text-[var(--color-celadon)] tracking-tight">Kloop</span>
+            <span className="text-2xl font-semibold text-[var(--color-teal)] dark:text-[var(--color-celadon)] tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>Kloop</span>
           </Link>
 
          {/* Search — desktop */}
@@ -167,6 +168,11 @@ export function MegaNav({ brands, user, unreadCount }: MegaNavProps) {
 
             {/* Icons */}
             <div className="flex items-center">
+              {communitiesCount > 0 && (
+                <Link href="/comunidades" aria-label="Minhas comunidades" className={iconCls}>
+                  <Building2 size={20} />
+                </Link>
+              )}
               <Link href="/ajuda" aria-label="Ajuda" className={iconCls}>
                 <HelpCircle size={20} />
               </Link>
@@ -202,9 +208,11 @@ export function MegaNav({ brands, user, unreadCount }: MegaNavProps) {
             <Link href="/search" aria-label="Buscar" className={iconCls}>
               <Search size={22} />
             </Link>
-            <Link href="/sacola" aria-label="Sacola" className={iconCls}>
-              <ShoppingBag size={22} />
-            </Link>
+            {communitiesCount > 0 && (
+              <Link href="/comunidades" aria-label="Minhas comunidades" className={iconCls}>
+                <Building2 size={22} />
+              </Link>
+            )}
             <Link href="/chat" aria-label="Mensagens" className={cn(iconCls, "relative")}>
               <MessageCircle size={22} />
               {unreadCount && unreadCount > 0 ? (

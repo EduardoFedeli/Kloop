@@ -3,6 +3,7 @@ import { db } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { ProfileStoreClient } from "@/components/profile/ProfileStoreClient"
 import { ListingStatus } from "@prisma/client"
+import type { ListingWithDetails } from "@/types/listing"
 
 interface MarcaPageProps {
   params: Promise<{ slug: string }>
@@ -47,11 +48,28 @@ export default async function MarcaStorePage({ params, searchParams }: MarcaPage
           addresses: { where: { isDefault: true }, select: { city: true, state: true }, take: 1 } 
         } 
       },
-      _count: { select: { favorites: true } },
+      _count: { select: { favorites: true, listingCommunities: true } },
     },
     orderBy: { createdAt: 'desc' },
     take: 50
   })
+
+  const typedListings: ListingWithDetails[] = listings.map((l) => ({
+    id: l.id,
+    title: l.title,
+    slug: l.slug,
+    priceCents: l.priceCents,
+    condition: l.condition,
+    status: l.status,
+    brand: l.brand ? { id: l.brand.id, name: l.brand.name, slug: l.brand.slug } : null,
+    size: l.size,
+    isTurbinado: l.isTurbinado,
+    viewsCount: l.viewsCount,
+    _count: l._count,
+    category: l.category,
+    images: l.images,
+    seller: l.seller as ListingWithDetails['seller'],
+  }))
 
   // 3. Verifica se o usuário logado segue esta marca
   const isFollowing = session?.user?.id 
@@ -73,9 +91,9 @@ export default async function MarcaStorePage({ params, searchParams }: MarcaPage
 
   return (
     <ProfileStoreClient
-      user={brandAsUser as any}
+      user={brandAsUser}
       isOwn={false}
-      listings={listings as any}
+      listings={typedListings}
       reviews={[]} // Marcas não recebem reviews, apenas os vendedores das peças
       avgRating={null}
       totalRatings={0}

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma *)",
+      "Bash(npm run *)",
+      "Bash(dir \"c:/Users/Eduardo Fedeli/Downloads/Fredoka/static\")",
+      "Bash(npx tsc *)",
+      "Bash(npm install *)"
+    ]
+  }
+}

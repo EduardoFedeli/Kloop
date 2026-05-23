@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { ProfileStoreClient } from "@/components/profile/ProfileStoreClient"
 import { ListingStatus, ListingCondition } from "@prisma/client"
+import type { ListingWithDetails } from "@/types/listing"
 
 interface ProfilePageProps {
   params: Promise<{ id: string }>
@@ -110,7 +111,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
           brand: true,
           images: { orderBy: { displayOrder: "asc" }, take: 1, select: { url: true, altText: true } },
           seller: { select: { id: true, name: true, avatarUrl: true, addresses: { where: { isDefault: true }, select: { city: true, state: true }, take: 1 } } },
-          _count: { select: { favorites: true } },
+          _count: { select: { favorites: true, listingCommunities: true } },
         },
         orderBy,
         take: 40,
@@ -146,7 +147,14 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
     <ProfileStoreClient
        user={{ id: user.id, name: user.name, bio: user.bio, avatarUrl: user.avatarUrl, coverUrl: user.coverUrl, createdAt: user.createdAt }}
        isOwn={isOwn}
-       listings={user.listings as any} // Cast necessário temporariamente, pois atualizamos o tipo do db
+       listings={user.listings.map((l): ListingWithDetails => ({
+         id: l.id, title: l.title, slug: l.slug, priceCents: l.priceCents,
+         condition: l.condition, status: l.status,
+         brand: l.brand ? { id: l.brand.id, name: l.brand.name, slug: l.brand.slug } : null,
+         size: l.size, isTurbinado: l.isTurbinado, viewsCount: l.viewsCount,
+         _count: l._count, category: l.category, images: l.images,
+         seller: l.seller as ListingWithDetails['seller'],
+       }))}
        reviews={user.reviewsReceived}
        avgRating={avgRating}
        totalRatings={totalRatings}

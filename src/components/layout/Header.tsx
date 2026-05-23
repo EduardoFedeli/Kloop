@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { ListingStatus } from "@prisma/client"
 import { MegaNav } from "@/components/layout/MegaNav"
+import { getUserCommunitiesCount } from "@/lib/data/communities"
 
 async function getBrandsForDepts(deptNames: string[], limit = 7): Promise<string[]> {
   const depts = await db.category.findMany({
@@ -26,20 +27,27 @@ async function getBrandsForDepts(deptNames: string[], limit = 7): Promise<string
   if (allIds.length === 0) return []
 
   const groups = await db.listing.groupBy({
-    by: ["brand"],
+    by: ["brandId"],
     where: {
       status: ListingStatus.ACTIVE,
-      brand: { not: null },
+      brandId: { not: null },
       categoryId: { in: allIds },
     },
-    _count: { brand: true },
-    orderBy: { _count: { brand: "desc" } },
+    _count: { brandId: true },
+    orderBy: { _count: { brandId: "desc" } },
     take: limit,
   })
 
-  return groups
-    .map((g) => g.brand)
-    .filter((b): b is string => typeof b === "string" && b.trim() !== "")
+  const brandIds = groups.map((g) => g.brandId).filter((id): id is string => id !== null)
+  if (brandIds.length === 0) return []
+
+  const brands = await db.brand.findMany({
+    where: { id: { in: brandIds } },
+    select: { id: true, name: true },
+  })
+
+  const brandNameById = new Map(brands.map((b) => [b.id, b.name]))
+  return brandIds.map((id) => brandNameById.get(id)).filter((n): n is string => !!n)
 }
 
 interface Props {
@@ -49,11 +57,14 @@ interface Props {
 export async function Header({ unreadCount }: Props) {
   const session = await auth()
 
-  const [mocasBrands, rapazesBrands, criancasBrands, outrosBrands] = await Promise.all([
+  const userId = session?.user?.id
+
+  const [mocasBrands, rapazesBrands, criancasBrands, outrosBrands, communitiesCount] = await Promise.all([
     getBrandsForDepts(["moças"]),
     getBrandsForDepts(["rapazes"]),
     getBrandsForDepts(["crianças"]),
     getBrandsForDepts(["casa e decor", "eletrônicos", "eletrodomésticos", "livros e papelarias", "pets", "etc e tal", "antiguidades"]),
+    userId ? getUserCommunitiesCount(userId) : Promise.resolve(0),
   ])
 
   return (
@@ -67,6 +78,7 @@ export async function Header({ unreadCount }: Props) {
         }}
         user={session?.user ?? undefined}
         unreadCount={unreadCount}
+        communitiesCount={communitiesCount}
       />
     </header>
   )

@@ -111,6 +111,15 @@ Exemplo: feat: implementar mock de interface do carrinho de compras
 
 Ao compactar, SEMPRE preservar: lista de arquivos modificados, comandos de teste usados, decisões de arquitetura tomadas na sessão, e o status atual da feature sendo implementada.
 
+## Comunidades (B2B Fase 3)
+
+- Relação Listing↔Community é N:N via tabela join `listing_communities` (modelo `ListingCommunity`).
+- O campo legado `Listing.communityId` (N:1) permanece no schema mas está deprecated — não remover.
+- Rotas: `/comunidades` (lista das comunidades do usuário), `/comunidades/[slug]` (feed da comunidade).
+- Badge `communityBadge` no `ListingCard`: `{ type: 'generic' }` no feed público, `{ type: 'named', name }` dentro da comunidade.
+- Contagem de comunidades no header: `getUserCommunitiesCount(userId)` chamado em `Header.tsx` e passado ao `MegaNav` via prop `communitiesCount`. Ícone `Building2` visível apenas quando `communitiesCount > 0`.
+- Fora do escopo: criação/edição de comunidades no app, aprovação de membros, painel de condomínio, fluxo de portaria, split de pagamento.
+
 ## Leitura adicional
 
 - Regras de negócio do domínio: ver `.claude/skills/thex-domain/SKILL.md`

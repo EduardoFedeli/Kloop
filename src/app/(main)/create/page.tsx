@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { CreateListingForm } from "@/components/listing/CreateListingForm"
 import { requireAddress } from "@/lib/guards/require-address"
+import { getUserCommunities } from "@/lib/data/communities"
 
 export default async function CreateListingPage() {
   const session = await auth()
@@ -12,8 +13,7 @@ export default async function CreateListingPage() {
 
   const userId = session.user.id
 
-  // Adicionamos as 'brands' no array de retorno do Promise.all
-  const [subscription, activeCount, categories, brands] = await Promise.all([
+  const [subscription, activeCount, categories, brands, userCommunities] = await Promise.all([
     db.userSubscription.findUnique({
       where: { userId },
       include: { plan: { select: { name: true, maxActiveListings: true } } },
@@ -23,12 +23,12 @@ export default async function CreateListingPage() {
       select: { id: true, name: true, parentId: true },
       orderBy: [{ parentId: "asc" }, { sortOrder: "asc" }],
     }),
-    // ADICIONADO: Busca das marcas ativas no banco de dados ordenadas de A a Z
     db.brand.findMany({
       where: { isActive: true },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
+    getUserCommunities(userId),
   ])
 
   const maxListings = subscription?.plan?.maxActiveListings ?? 5
@@ -47,7 +47,12 @@ export default async function CreateListingPage() {
         maxListings={maxListings}
         planName={planName}
         categories={categories}
-        brands={brands} // ADICIONADO: Passando a lista real de marcas
+        brands={brands}
+        userCommunities={userCommunities.map((c) => ({
+          id: c.id,
+          name: c.name,
+          unitNumber: c.unitNumber,
+        }))}
       />
     </div>
   )

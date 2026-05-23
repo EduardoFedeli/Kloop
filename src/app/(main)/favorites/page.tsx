@@ -34,13 +34,30 @@ export default async function FavoritesPage() {
               },
             },
           },
+          brand: { select: { id: true, name: true, slug: true } },
+          _count: { select: { favorites: true, listingCommunities: true } },
         },
       },
     },
     orderBy: { createdAt: 'desc' },
   })
 
-  const listings = favorites.map((f) => f.listing) as ListingWithDetails[]
+  const listings: ListingWithDetails[] = favorites.map((f) => ({
+    id: f.listing.id,
+    title: f.listing.title,
+    slug: f.listing.slug,
+    priceCents: f.listing.priceCents,
+    condition: f.listing.condition,
+    status: f.listing.status,
+    brand: f.listing.brand,
+    size: f.listing.size,
+    isTurbinado: f.listing.isTurbinado,
+    viewsCount: f.listing.viewsCount,
+    _count: f.listing._count,
+    category: f.listing.category,
+    images: f.listing.images,
+    seller: f.listing.seller as ListingWithDetails['seller'],
+  }))
 
   // On this page, all listed items ARE the user's favorites
   const favoriteIds = listings.map((l) => l.id)

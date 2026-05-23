@@ -3,6 +3,15 @@
 /* Dark mode via classe .dark no <html> */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ── Fredoka Variable Font ── */
+@font-face {
+  font-family: "Fredoka";
+  src: url("/fonts/Fredoka-Variable.ttf") format("truetype");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: #F8FAF8;
   --foreground: #1B4332;
@@ -18,18 +27,19 @@
   --color-linen: #F8FAF8;
 
   /* Escala verde completa (do mais claro ao mais escuro) */
-  --color-frosted: #D8F3DC;   /* Frosted Mint */
-  --color-celadon: #B7E4C7;   /* Celadon */
-  --color-sage: #95D5B2;      /* Celadon 2 */
-  --color-mint: #74C69D;      /* Mint Leaf */
-  --color-teal-muted: #52B788; /* Mint Leaf 2 */
-  --color-teal: #40916C;      /* Sea Green — CTA principal */
-  --color-airforce: #40916C;  /* alias para compatibilidade — mesmo que teal */
-  --color-emerald: #2D6A4F;   /* Dark Emerald */
-  --color-pine: #1B4332;      /* Pine Teal */
-  --color-forest: #081C15;    /* Evergreen */
+  --color-frosted: #D8F3DC;
+  --color-celadon: #B7E4C7;
+  --color-sage: #95D5B2;
+  --color-mint: #74C69D;
+  --color-teal-muted: #52B788;
+  --color-teal: #40916C;
+  --color-airforce: #40916C;
+  --color-emerald: #2D6A4F;
+  --color-pine: #1B4332;
+  --color-forest: #081C15;
 
   --font-sans: "Inter", "system-ui", "sans-serif";
+  --font-display: "Fredoka", "Inter", "system-ui", "sans-serif";
 }
 
 body {
