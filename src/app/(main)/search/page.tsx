@@ -163,19 +163,17 @@ export default async function SearchPage({ searchParams }: PageProps) {
   
   const brandsData = await db.brand.findMany({
     where: { id: { in: validBrandIds } },
-    select: { id: true, name: true }
+    select: { id: true, name: true, slug: true }
   })
 
-  // Retorna um array de strings (apenas nomes) para não quebrar a UI
   const topBrands = brandGroups
     .map(g => {
       const match = brandsData.find(b => b.id === g.brandId)
-      return match ? match.name : null
+      return match ? { name: match.name, slug: match.slug } : null
     })
-    .filter((name): name is string => name !== null)
+    .filter((b): b is { name: string; slug: string } => b !== null)
 
 
-  // Se a busca estiver vazia, retorna a vitrine com as topBrands
   if (isSearchEmpty) {
     return <SearchVitrine topBrands={topBrands} />
   }
@@ -287,7 +285,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
         favoriteIds={favoriteIds}
         breadcrumbs={breadcrumbs}
         pills={pills}
-        brands={topBrands}
+        brands={topBrands.map(b => b.name)}
         availableConditions={availableConditions}
         totalCount={rawListings.length}
         currentParams={sp}

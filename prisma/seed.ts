@@ -1,69 +1,79 @@
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
 async function main() {
   console.log('🌱 Iniciando o seed...')
 
+  // 0. Criar usuários principais com senha e email verificado
+  const SENHA = await bcrypt.hash('kloop123', 10)
+
+  const seedUsers = [
+    { name: 'Eduardo Fedeli', email: 'eduardo@kloop.com' },
+    { name: 'Gabriel',        email: 'gabriel@kloop.com' },
+    { name: 'Otávio',         email: 'otavio@kloop.com' },
+    { name: 'Caique',         email: 'caique@kloop.com' },
+    { name: 'Rodrigo',        email: 'rodrigo@kloop.com' },
+    { name: 'João Visitante', email: 'visitante@kloop.com' },
+  ]
+
+  for (const u of seedUsers) {
+    await prisma.user.upsert({
+      where: { email: u.email },
+      update: { emailVerified: new Date(), password: SENHA },
+      create: { name: u.name, email: u.email, password: SENHA, emailVerified: new Date(), role: 'USER' },
+    })
+    console.log(`✅ Usuário: ${u.email}`)
+  }
+
   // 1. Garantir que os planos existam com as regras de negócio
   const planBasic = await prisma.subscriptionPlan.upsert({
     where: { slug: 'basic' },
-    update: {},
+    update: { commissionRate: 0.10, features: { cashbackVendas: '3%', cashbackCompras: '2%' } },
     create: {
       name: 'Kloop Basic',
       slug: 'basic',
       priceCents: 0,
       interval: 'MONTHLY',
       maxActiveListings: 20,
-      commissionRate: 0.05,
-      features: { cashbackVendas: '5%', cashbackCompras: '2%' },
+      commissionRate: 0.10,
+      features: { cashbackVendas: '3%', cashbackCompras: '2%' },
       isActive: true,
     },
   })
 
   const planPro = await prisma.subscriptionPlan.upsert({
     where: { slug: 'pro' },
-    update: {},
+    update: { commissionRate: 0.05, features: { cashbackVendas: '3%', cashbackCompras: '2%' } },
     create: {
       name: 'Kloop Pro',
       slug: 'pro',
       priceCents: 2990,
       interval: 'MONTHLY',
       maxActiveListings: 40,
-      commissionRate: 0.08,
-      features: { cashbackVendas: '8%', cashbackCompras: '4%' },
+      commissionRate: 0.05,
+      features: { cashbackVendas: '3%', cashbackCompras: '2%' },
       isActive: true,
     },
   })
 
   const planPremium = await prisma.subscriptionPlan.upsert({
     where: { slug: 'premium' },
-    update: {},
+    update: { commissionRate: 0.03, features: { cashbackVendas: '3%', cashbackCompras: '2%', megafone: 10 } },
     create: {
       name: 'Kloop Premium',
       slug: 'premium',
       priceCents: 5990,
       interval: 'MONTHLY',
       maxActiveListings: 60,
-      commissionRate: 0.08,
-      features: { cashbackVendas: '8%', cashbackCompras: '4%', megafone: 10 },
+      commissionRate: 0.03,
+      features: { cashbackVendas: '3%', cashbackCompras: '2%', megafone: 10 },
       isActive: true,
     },
   })
 
-  // 2. Criar usuário extra se não existir
-  await prisma.user.upsert({
-    where: { email: 'visitante@kloop.com' },
-    update: {},
-    create: {
-      name: 'João Visitante',
-      email: 'visitante@kloop.com',
-      emailVerified: new Date(),
-      role: 'USER',
-    },
-  })
-
-  // 3. Mapear planos por usuário
+  // 2. Mapear planos por usuário
   const userPlanMap = [
     { email: 'eduardo@kloop.com', planId: planPremium.id },
     { email: 'gabriel@kloop.com', planId: planPremium.id },

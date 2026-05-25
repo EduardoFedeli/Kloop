@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { profileSchema } from "@/lib/validators/profile"
 import { addressSchema } from "@/lib/validators/address"
+import { genderPreferenceSchema } from "@/lib/validators/auth"
 import { revalidatePath } from "next/cache"
 
 export type ProfileActionResult =
@@ -17,6 +18,7 @@ export async function updateProfileAction(formData: FormData): Promise<ProfileAc
   const rawPhone = formData.get("phone") as string
   const rawBio = formData.get("bio") as string
   const rawAvatarUrl = formData.get("avatarUrl") as string
+  const rawGenderPref = formData.get("genderPreference") as string | null
 
   const parsed = profileSchema.safeParse({
     name: formData.get("name"),
@@ -29,6 +31,9 @@ export async function updateProfileAction(formData: FormData): Promise<ProfileAc
     return { success: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos" }
   }
 
+  const genderPrefParsed = genderPreferenceSchema.safeParse(rawGenderPref || undefined)
+  const genderPreference = genderPrefParsed.success ? (genderPrefParsed.data ?? null) : null
+
   const { name, bio, phone, avatarUrl } = parsed.data
 
   await db.user.update({
@@ -38,6 +43,7 @@ export async function updateProfileAction(formData: FormData): Promise<ProfileAc
       bio: bio ?? null,
       phone: phone ?? null,
       avatarUrl: avatarUrl ?? null,
+      genderPreference,
     },
   })
 

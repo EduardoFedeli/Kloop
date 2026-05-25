@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Plus, Trash2, CheckCircle, XCircle } from "lucide-react"
-import { createBrand, toggleBrandStatus, deleteBrand } from "@/lib/actions/admin"
+import { Plus, Trash2, CheckCircle, XCircle, Pencil, Check } from "lucide-react"
+import { createBrand, toggleBrandStatus, deleteBrand, updateBrandName } from "@/lib/actions/admin"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -18,6 +18,8 @@ export function MarcasClient({ initialMarcas }: { initialMarcas: Marca[] }) {
   const [isPending, startTransition] = useTransition()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [newBrandName, setNewBrandName] = useState("")
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingName, setEditingName] = useState("")
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -43,17 +45,33 @@ export function MarcasClient({ initialMarcas }: { initialMarcas: Marca[] }) {
     })
   }
 
-  async function handleDelete(id: string, count: number) {
-    if (count > 0) {
-      toast.error("Não é possível excluir uma marca que possui produtos vinculados.")
-      return
-    }
-    if (!confirm("Tem certeza que deseja excluir esta marca?")) return
+  function startEdit(marca: Marca) {
+    setEditingId(marca.id)
+    setEditingName(marca.name)
+  }
+
+  async function handleSaveEdit(id: string) {
+    if (!editingName.trim()) return
+    startTransition(async () => {
+      const res = await updateBrandName(id, editingName.trim())
+      if (res.error) toast.error(res.error)
+      else {
+        toast.success("Nome atualizado!")
+        setEditingId(null)
+      }
+    })
+  }
+
+  async function handleDelete(id: string, name: string, count: number) {
+    const msg = count > 0
+      ? `Excluir "${name}" e seus ${count} produto(s) vinculado(s)? Esta ação não pode ser desfeita.`
+      : `Excluir a marca "${name}"?`
+    if (!confirm(msg)) return
 
     startTransition(async () => {
       const res = await deleteBrand(id)
       if (res.error) toast.error(res.error)
-      else toast.success("Marca excluída com sucesso!")
+      else toast.success("Marca excluída!")
     })
   }
 
@@ -89,7 +107,31 @@ export function MarcasClient({ initialMarcas }: { initialMarcas: Marca[] }) {
             ) : (
               initialMarcas.map((marca) => (
                 <tr key={marca.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50">
-                  <td className="p-4 font-bold text-[var(--color-pine)]">{marca.name}</td>
+                  <td className="p-4 font-bold text-[var(--color-pine)]">
+                    {editingId === marca.id ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveEdit(marca.id)
+                            if (e.key === 'Escape') setEditingId(null)
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm font-bold w-40 focus:outline-none focus:ring-1 focus:ring-[var(--color-airforce)]"
+                          autoFocus
+                        />
+                        <button onClick={() => handleSaveEdit(marca.id)} disabled={isPending} className="text-green-600 hover:text-green-700 p-1">
+                          <Check size={16} />
+                        </button>
+                        <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-600 p-1">
+                          <XCircle size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      marca.name
+                    )}
+                  </td>
                   <td className="p-4 text-gray-500 font-mono text-xs">{marca.slug}</td>
                   <td className="p-4 text-center">
                     <span className="bg-[var(--color-celadon)]/30 text-[var(--color-emerald)] px-2.5 py-1 rounded-md font-bold">
@@ -111,14 +153,24 @@ export function MarcasClient({ initialMarcas }: { initialMarcas: Marca[] }) {
                     </button>
                   </td>
                   <td className="p-4 text-right">
-                    <button
-                      onClick={() => handleDelete(marca.id, marca._count.listings)}
-                      disabled={isPending || marca._count.listings > 0}
-                      className="text-red-500 hover:text-red-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors p-2"
-                      title={marca._count.listings > 0 ? "Existem produtos com esta marca" : "Excluir marca"}
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => startEdit(marca)}
+                        disabled={isPending || editingId === marca.id}
+                        className="text-blue-500 hover:text-blue-700 disabled:opacity-30 transition-colors p-2"
+                        title="Editar nome"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(marca.id, marca.name, marca._count.listings)}
+                        disabled={isPending}
+                        className="text-red-500 hover:text-red-700 disabled:opacity-30 transition-colors p-2"
+                        title={marca._count.listings > 0 ? `Excluir marca e ${marca._count.listings} produto(s)` : "Excluir marca"}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -127,17 +179,15 @@ export function MarcasClient({ initialMarcas }: { initialMarcas: Marca[] }) {
         </table>
       </div>
 
-      {/* Modal Simples (Substitui navegação complexa) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
             <div className="p-5 border-b border-gray-100 flex justify-between items-center">
               <h3 className="font-bold text-lg text-gray-900">Adicionar Nova Marca</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
                 <XCircle size={24} />
               </button>
             </div>
-            
             <form onSubmit={handleCreate} className="p-5 space-y-4">
               <div>
                 <label className="block text-sm font-bold text-[var(--color-pine)] mb-1">Nome da Marca</label>
@@ -151,18 +201,10 @@ export function MarcasClient({ initialMarcas }: { initialMarcas: Marca[] }) {
                 />
               </div>
               <div className="flex justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 font-bold text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
-                >
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 font-bold text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
                   Cancelar
                 </button>
-                <button
-                  type="submit"
-                  disabled={isPending || !newBrandName.trim()}
-                  className="px-5 py-2 font-bold text-white bg-[var(--color-pine)] hover:bg-[var(--color-emerald)] rounded-lg transition-colors disabled:opacity-50"
-                >
+                <button type="submit" disabled={isPending || !newBrandName.trim()} className="px-5 py-2 font-bold text-white bg-[var(--color-pine)] hover:bg-[var(--color-emerald)] rounded-lg transition-colors disabled:opacity-50">
                   {isPending ? "Salvando..." : "Salvar"}
                 </button>
               </div>

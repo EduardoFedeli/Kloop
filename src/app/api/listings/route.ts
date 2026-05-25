@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
         priceCents,
         condition: condition as ListingCondition,
         // ATUALIZADO: Salvando a relação da marca
-        brandId: brandId ?? null,
+        brandId: (brandId && brandId.length > 0) ? brandId : null,
         size: size ?? null,
         status: "ACTIVE",
         acceptsOffers,

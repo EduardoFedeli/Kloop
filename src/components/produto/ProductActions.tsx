@@ -2,10 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ShoppingBag, MessageCircle, Tag, Loader2, Check } from 'lucide-react'
+import { ShoppingBag, Tag, Loader2, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { startConversation } from '@/app/actions/chat'
 import { MakeOfferModal } from '@/components/produto/MakeOfferModal'
 import { useCartStore } from '@/store/cart'
 import type { ListingStatus } from '@prisma/client'
@@ -21,7 +20,6 @@ type Props = {
   sellerId?: string
   sellerName?: string
   buyerHasAddress?: boolean
-  chatOnly?: boolean
   acceptsOffers?: boolean
   isTurbinado?: boolean
 }
@@ -37,12 +35,10 @@ export function ProductActions({
   sellerId,
   sellerName,
   buyerHasAddress,
-  chatOnly = false,
   acceptsOffers = true,
   isTurbinado = false,
 }: Props) {
   const router = useRouter()
-  const [isStartingChat, setIsStartingChat] = useState(false)
   const [isBuying, setIsBuying] = useState(false)
   const [offerModalOpen, setOfferModalOpen] = useState(false)
   const isAvailable = listingStatus === 'ACTIVE'
@@ -67,44 +63,6 @@ export function ProductActions({
     toast.success('Adicionado à sacola!', {
       action: { label: 'ver sacola', onClick: () => router.push('/sacola') },
     })
-  }
-
-  const handleChat = async () => {
-    if (!currentUserId) {
-      router.push('/login')
-      return
-    }
-    setIsStartingChat(true)
-    const result = await startConversation(listingId)
-    setIsStartingChat(false)
-    if ('error' in result) {
-      const msgs: Record<string, string> = {
-        listing_not_available: 'Este anúncio não está mais disponível.',
-        cannot_chat_with_self: 'Você não pode conversar consigo mesmo.',
-      }
-      toast.error(msgs[result.error] ?? 'Erro ao iniciar conversa.')
-      return
-    }
-    router.push(`/chat/${result.conversationId}`)
-  }
-
-  // Inline mode — used inside "faça sua pergunta" section
-  if (chatOnly) {
-    return (
-      <button
-        onClick={() => void handleChat()}
-        disabled={isStartingChat || !isAvailable}
-        className={cn(
-          'flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-bold transition-colors',
-          isAvailable && !isStartingChat
-            ? 'border border-teal dark:border-celadon text-teal dark:text-celadon hover:bg-teal hover:text-white dark:hover:bg-celadon dark:hover:text-forest'
-            : 'border border-gray-200 text-gray-300 cursor-not-allowed',
-        )}
-      >
-        <MessageCircle size={16} />
-        {isStartingChat ? 'aguarde...' : 'enviar mensagem'}
-      </button>
-    )
   }
 
   const handleBuy = async () => {

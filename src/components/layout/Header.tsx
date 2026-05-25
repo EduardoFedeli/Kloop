@@ -50,11 +50,7 @@ async function getBrandsForDepts(deptNames: string[], limit = 7): Promise<string
   return brandIds.map((id) => brandNameById.get(id)).filter((n): n is string => !!n)
 }
 
-interface Props {
-  unreadCount?: number
-}
-
-export async function Header({ unreadCount }: Props) {
+export async function Header() {
   const session = await auth()
 
   const userId = session?.user?.id
@@ -77,7 +73,6 @@ export async function Header({ unreadCount }: Props) {
           outros: outrosBrands,
         }}
         user={session?.user ?? undefined}
-        unreadCount={unreadCount}
         communitiesCount={communitiesCount}
       />
     </header>

@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const { name, email, password } = parsed.data
+    const { name, email, password, genderPreference } = parsed.data
 
     const existingUser = await db.user.findUnique({ where: { email } })
     if (existingUser) {
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     const hashedPassword = await bcrypt.hash(password, 10)
 
     const user = await db.user.create({
-      data: { name, email, password: hashedPassword },
+      data: { name, email, password: hashedPassword, genderPreference: genderPreference ?? null },
     })
 
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)

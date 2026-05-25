@@ -1,29 +1,21 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Tag, Zap, Megaphone } from 'lucide-react'
-import type { ListingWithDetails, CategoryOption } from '@/types/listing'
-import type { SellerPreview } from '@/app/(main)/page'
-import { CategoryFilter } from './CategoryFilter'
+import { ArrowRight, Tag, Zap, Megaphone, Building2 } from 'lucide-react'
+import type { ListingWithDetails } from '@/types/listing'
+import type { SellerPreview, CommunitySection, BentoCard } from '@/app/(main)/page'
 import { ListingCard } from './ListingCard'
 import { ListingGrid } from './ListingGrid'
 
 type Props = {
   listings: ListingWithDetails[]
-  categories: CategoryOption[]
   favoriteIds?: string[]
   sellers?: SellerPreview[]
+  communitySection?: CommunitySection | null
+  bentoCards?: BentoCard[]
 }
 
-export function HomeFeed({ listings, categories, favoriteIds, sellers = [] }: Props) {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-
-  const filtered =
-    selectedCategory === null
-      ? listings
-      : listings.filter((l) => l.category.slug === selectedCategory)
-
+export function HomeFeed({ listings, favoriteIds, sellers = [], communitySection, bentoCards = [] }: Props) {
   const turbinados = listings.filter((l) => l.isTurbinado === true).slice(0, 4)
   const megafonados = listings.filter((l) => !l.isTurbinado).slice(0, 4)
 
@@ -204,29 +196,91 @@ export function HomeFeed({ listings, categories, favoriteIds, sellers = [] }: Pr
         </section>
       )}
 
-      {/* ── Feed principal ── */}
-      <section className="pt-4 border-t border-gray-100 dark:border-white/5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-          <h2 className="text-[19px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>
-            {selectedCategory
-              ? categories.find((c) => c.slug === selectedCategory)?.name.toLowerCase() ?? 'produtos'
-              : 'mais novidades'}
-          </h2>
-          <span className="text-[12px] text-gray-400 dark:text-[var(--color-sage)] font-medium tabular-nums">
-            {filtered.length} {filtered.length === 1 ? 'resultado' : 'resultados'}
-          </span>
-        </div>
+      {/* ── Comunidade ── */}
+      {communitySection && communitySection.listings.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-6 h-6 rounded-full bg-[var(--color-emerald)] flex items-center justify-center flex-shrink-0">
+                <Building2 size={13} className="text-white" />
+              </div>
+              <h2 className="text-[19px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>
+                {communitySection.communityName.toLowerCase()}
+              </h2>
+            </div>
+            <Link
+              href={`/comunidades/${communitySection.communitySlug}`}
+              className="text-[12px] font-bold text-[var(--color-teal)] dark:text-[var(--color-celadon)] hover:opacity-70 flex items-center gap-1 transition-opacity"
+            >
+              ver tudo <ArrowRight size={13} />
+            </Link>
+          </div>
+          <div className="-mx-4 px-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-3">
+              {communitySection.listings.map((listing) => (
+                <div key={listing.id} className="w-[155px] flex-shrink-0">
+                  <ListingCard
+                    listing={listing}
+                    isFavorited={(favoriteIds ?? []).includes(listing.id)}
+                    minimal={true}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
-        <CategoryFilter
-          categories={categories}
-          selected={selectedCategory}
-          onChange={setSelectedCategory}
-        />
+      {/* ── Preferência de gênero — bento de categorias ── */}
+      {bentoCards.length > 0 && (
+        <section>
+          <div className="mb-4">
+            <h2 className="text-[19px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>
+              escolhido para você
+            </h2>
+            <p className="text-[12px] text-gray-400 dark:text-[var(--color-sage)] mt-0.5">
+              baseado nas suas preferências
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {/* Big card — first item */}
+            <Link
+              href={bentoCards[0].href}
+              className="col-span-1 row-span-2 relative rounded-2xl overflow-hidden h-[220px] group"
+              style={{ background: 'linear-gradient(135deg, var(--color-pine), var(--color-emerald))' }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+              <div className="absolute bottom-4 left-4 right-4">
+                <p className="text-white text-[18px] font-black leading-tight capitalize">
+                  {bentoCards[0].label.toLowerCase()}
+                </p>
+                <p className="text-white/60 text-[11px] mt-0.5">ver produtos</p>
+              </div>
+              <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                <ArrowRight size={16} className="text-white" />
+              </div>
+            </Link>
 
-        <div className="mt-5">
-          <ListingGrid listings={filtered} favoriteIds={favoriteIds} minimal={true} showCommunityBadges={true} />
-        </div>
-      </section>
+            {/* Small cards — remaining */}
+            {bentoCards.slice(1, 5).map((card) => (
+              <Link
+                key={card.href}
+                href={card.href}
+                className="relative rounded-2xl overflow-hidden h-[102px] group bg-white dark:bg-[var(--color-pine)] border border-gray-100 dark:border-white/5 flex items-end p-3 hover:border-[var(--color-teal)]/40 transition-colors"
+              >
+                <div>
+                  <p className="text-[var(--foreground)] text-[14px] font-bold leading-tight capitalize">
+                    {card.label.toLowerCase()}
+                  </p>
+                  <p className="text-gray-400 dark:text-[var(--color-sage)] text-[11px] mt-0.5">explorar</p>
+                </div>
+                <ArrowRight size={13} className="absolute top-3 right-3 text-gray-300 dark:text-white/20 group-hover:text-[var(--color-teal)] transition-colors" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
     </div>
   )
 }

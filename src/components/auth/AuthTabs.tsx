@@ -183,10 +183,12 @@ function RegisterForm() {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<RegisterInput>({ resolver: zodResolver(registerSchema) })
 
   const passwordValue = watch("password") ?? ""
+  const genderPref = watch("genderPreference")
 
   async function onSubmit(data: RegisterInput) {
     setServerError(null)
@@ -301,6 +303,33 @@ function RegisterForm() {
         {errors.confirmPassword && (
           <p className="text-xs text-red-500">{errors.confirmPassword.message}</p>
         )}
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-semibold text-airforce">
+          O que você prefere ver no feed? <span className="text-gray-400 font-normal">(opcional)</span>
+        </label>
+        <div className="flex gap-2">
+          {(["FEMININE", "MASCULINE", "BOTH"] as const).map((opt) => {
+            const labels = { FEMININE: "Feminino", MASCULINE: "Masculino", BOTH: "Ambos" }
+            const active = genderPref === opt
+            return (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setValue("genderPreference", active ? undefined : opt)}
+                className={cn(
+                  "flex-1 py-2 rounded-lg text-sm font-bold border transition-all",
+                  active
+                    ? "bg-teal border-teal text-white"
+                    : "border-teal-muted/40 text-airforce hover:border-teal"
+                )}
+              >
+                {labels[opt]}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       <button

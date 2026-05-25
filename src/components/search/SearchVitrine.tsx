@@ -4,8 +4,13 @@ import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { GlobalSearchBar } from './GlobalSearchBar'
 
-// Fallback caso o banco não tenha marcas cadastradas ainda
-const FALLBACK_BRANDS = ['ZARA', 'FARM', 'AREZZO', 'SCHUTZ', 'NIKE']
+const FALLBACK_BRANDS = [
+  { name: 'ZARA', slug: 'zara' },
+  { name: 'FARM', slug: 'farm' },
+  { name: 'AREZZO', slug: 'arezzo' },
+  { name: 'SCHUTZ', slug: 'schutz' },
+  { name: 'NIKE', slug: 'nike' },
+]
 
 const DEPARTAMENTOS = [
   { name: 'moças', icon: '👗', slug: 'mocas' },
@@ -35,11 +40,10 @@ const DESTAQUES_PILLS = [
 ]
 
 interface Props {
-  topBrands?: string[]
+  topBrands?: { name: string; slug: string }[]
 }
 
 export function SearchVitrine({ topBrands = [] }: Props) {
-  // Pega as top 8 marcas do banco, ou o fallback se o banco estiver vazio
   const displayBrands = topBrands.length > 0 ? topBrands.slice(0, 8) : FALLBACK_BRANDS
 
   return (
@@ -81,19 +85,19 @@ export function SearchVitrine({ topBrands = [] }: Props) {
             </Link>
           </div>
           <div className="flex gap-5 overflow-x-auto pb-4 -mx-4 px-4 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
-            {displayBrands.map((brandName) => (
-              <Link 
-                key={brandName} 
-                href={`/search?brand=${encodeURIComponent(brandName)}`} 
+            {displayBrands.map((brand) => (
+              <Link
+                key={brand.slug}
+                href={`/marca/${brand.slug}`}
                 className="flex flex-col items-center gap-2 flex-shrink-0 group"
               >
                 <div className="w-20 h-20 bg-[var(--color-pine)] rounded-full shadow-sm flex items-center justify-center hover:opacity-90 transition-opacity overflow-hidden">
                    <span className="text-[12px] font-black tracking-tighter text-white uppercase px-2 text-center break-words w-full line-clamp-2">
-                     {brandName}
+                     {brand.name}
                    </span>
                 </div>
                 <span className="text-[12px] font-bold text-[var(--foreground)] w-20 text-center truncate">
-                  {brandName.toLowerCase()}
+                  {brand.name.toLowerCase()}
                 </span>
               </Link>
             ))}

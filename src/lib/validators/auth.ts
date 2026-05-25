@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+export const genderPreferenceSchema = z.enum(["FEMININE", "MASCULINE", "BOTH"]).optional()
+
 export const registerSchema = z
   .object({
     name: z.string().min(2, "nome é obrigatório"),
@@ -10,6 +12,7 @@ export const registerSchema = z
       .regex(/[a-zA-Z]/, "a senha deve ter pelo menos 1 letra")
       .regex(/\d/, "a senha deve ter pelo menos 1 número"),
     confirmPassword: z.string(),
+    genderPreference: genderPreferenceSchema,
   })
   .refine((d) => d.password === d.confirmPassword, {
     message: "as senhas não conferem",

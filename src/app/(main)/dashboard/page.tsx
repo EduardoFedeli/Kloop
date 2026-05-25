@@ -21,6 +21,7 @@ export default async function DashboardPage() {
         email: true,
         phone: true,
         avatarUrl: true,
+        genderPreference: true,
         createdAt: true,
         addresses: { orderBy: { createdAt: "asc" } },
         subscription: {
@@ -74,6 +75,7 @@ export default async function DashboardPage() {
             name: user.name,
             phone: user.phone,
             avatarUrl: user.avatarUrl,
+            genderPreference: user.genderPreference,
           }}
         />
       </section>

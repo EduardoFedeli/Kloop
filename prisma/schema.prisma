@@ -108,7 +108,7 @@ enum ProShippingMethod {
 }
 
 enum CashbackTransactionType {
-  CREDIT_SELLER       // Vendedor ganhou 5% por venda concluída
+  CREDIT_SELLER       // Vendedor ganhou 3% por venda concluída
   CREDIT_BUYER        // Comprador ganhou 2% por compra concluída
   DEBIT_PURCHASE      // Comprador usou no checkout
   REFUND_CANCELLATION // Cashback devolvido após cancelamento
@@ -139,9 +139,16 @@ enum NotificationType {
   OFFER
   BUNDLE_OFFER
   SALE_COMPLETED
-  MESSAGE
+  QUESTION
+  ANSWER
   PRICE_DROP
   OFFER_ACCEPTED
+}
+
+enum GenderPreference {
+  FEMININE
+  MASCULINE
+  BOTH
 }
 
 // ──────────────────────────────────────────
@@ -159,6 +166,7 @@ model User {
   avatarUrl     String?   @map("avatar_url")
   coverUrl      String?   @map("cover_url")
   bio           String?
+  genderPreference GenderPreference? @map("gender_preference")
   role          UserRole  @default(USER)
   isVerified    Boolean   @default(false) @map("is_verified")
   createdAt     DateTime  @default(now()) @map("created_at")
@@ -174,13 +182,14 @@ model User {
   reviewsWritten         Review[]                 @relation("ReviewAuthor")
   reviewsReceived        Review[]                 @relation("ReviewTarget")
   favorites              Favorite[]
-  conversationMembers    ConversationParticipant[]
-  messagesSent           Message[]
   accounts      Account[]
   sessions      Session[]
   emailVerificationTokens EmailVerificationToken[]
   cashbackTransactions    CashbackTransaction[]
   
+  // Q&A
+  questions              Question[]
+
   // Novas Relações (Follows e Reports)
   following Follow[] @relation("UserFollows")
   followers Follow[] @relation("UserFollowers")
@@ -205,6 +214,9 @@ model User {
   store                  Store?
   communityMemberships   CommunityMember[]
   adminCommunities       Community[]              @relation("CommunityAdmin")
+
+  // Pagamentos de assinatura
+  subscriptionPayments   SubscriptionPayment[]
 
   // Notificações
   notifications          Notification[]
@@ -254,7 +266,8 @@ model SubscriptionPlan {
   createdAt         DateTime             @default(now()) @map("created_at")
   updatedAt         DateTime             @updatedAt @map("updated_at")
 
-  subscriptions UserSubscription[]
+  subscriptions        UserSubscription[]
+  subscriptionPayments SubscriptionPayment[]
 
   @@map("subscription_plans")
 }
@@ -279,6 +292,25 @@ model UserSubscription {
   plan SubscriptionPlan @relation(fields: [planId], references: [id])
 
   @@map("user_subscriptions")
+}
+
+model SubscriptionPayment {
+  id               String        @id @default(cuid())
+  userId           String        @map("user_id")
+  planId           String        @map("plan_id")
+  amountCents      Int           @map("amount_cents")
+  status           String        @default("PAID") // PAID | FAILED | REFUNDED
+  paymentMethod    PaymentMethod? @map("payment_method")
+  periodStart      DateTime      @map("period_start")
+  periodEnd        DateTime      @map("period_end")
+  gatewayPaymentId String?       @map("gateway_payment_id")
+  createdAt        DateTime      @default(now()) @map("created_at")
+
+  user User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("subscription_payments")
 }
 
 // ──────────────────────────────────────────
@@ -337,7 +369,7 @@ model Listing {
   transactions Transaction[]
   viewHistories ViewHistory[]
   favorites    Favorite[]
-  conversations Conversation[]
+  questions    Question[]
   boosts            StoreBoost[]
   offers            Offer[]
   bundleOfferItems  BundleOfferItem[]
@@ -465,48 +497,34 @@ model Favorite {
 }
 
 // ──────────────────────────────────────────
-// MVP: MENSAGENS / CHAT
+// MVP: PERGUNTAS & RESPOSTAS (Q&A)
 // ──────────────────────────────────────────
 
-model Conversation {
+model Question {
   id        String   @id @default(cuid())
-  listingId String?  @map("listing_id") // Conversa pode ser sobre um anúncio específico
+  listingId String   @map("listing_id")
+  askerId   String   @map("asker_id")
+  body      String
+  isDeleted Boolean  @default(false) @map("is_deleted")
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
 
-  listing      Listing?                  @relation(fields: [listingId], references: [id])
-  participants ConversationParticipant[]
-  messages     Message[]
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  asker   User    @relation(fields: [askerId], references: [id], onDelete: Cascade)
+  answer  Answer?
 
-  @@map("conversations")
+  @@index([listingId, isDeleted, createdAt(sort: Desc)])
+  @@map("questions")
 }
 
-model ConversationParticipant {
-  id             String    @id @default(cuid())
-  conversationId String    @map("conversation_id")
-  userId         String    @map("user_id")
-  lastReadAt     DateTime? @map("last_read_at")
-  createdAt      DateTime  @default(now()) @map("created_at")
+model Answer {
+  id         String   @id @default(cuid())
+  questionId String   @unique @map("question_id")
+  body       String
+  createdAt  DateTime @default(now()) @map("created_at")
 
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id])
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
-  @@unique([conversationId, userId])
-  @@map("conversation_participants")
-}
-
-model Message {
-  id             String   @id @default(cuid())
-  conversationId String   @map("conversation_id")
-  senderId       String   @map("sender_id")
-  content        String
-  createdAt      DateTime @default(now()) @map("created_at")
-
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender       User         @relation(fields: [senderId], references: [id])
-
-  @@index([conversationId, createdAt])
-  @@map("messages")
+  @@map("answers")
 }
 
 // ──────────────────────────────────────────

@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import Link from "next/link"
-import { Search, Bell, HelpCircle, Heart, MessageCircle, ShoppingBag, Building2 } from "lucide-react"
+import { Search, Bell, HelpCircle, Heart, ShoppingBag, Building2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { HeaderAuth } from "./HeaderAuth"
 import { ThemeToggle } from "./ThemeToggle"
@@ -66,13 +66,12 @@ const OUTROS_SIMPLE = [
 interface MegaNavProps {
   brands: { mocas: string[]; rapazes: string[]; criancas: string[]; outros: string[] }
   user?: { name?: string | null; email?: string | null; image?: string | null }
-  unreadCount?: number
   communitiesCount?: number
 }
 
 // ── MegaNav ────────────────────────────────────────────────────────────────
 
-export function MegaNav({ brands, user, unreadCount, communitiesCount = 0 }: MegaNavProps) {
+export function MegaNav({ brands, user, communitiesCount = 0 }: MegaNavProps) {
   const pathname = usePathname()
   const isHome = pathname === '/'
   const isDeptPage = ['/mocas', '/rapazes', '/kids', '/casa'].includes(pathname)
@@ -182,14 +181,6 @@ export function MegaNav({ brands, user, unreadCount, communitiesCount = 0 }: Meg
               <Link href="/favoritos" aria-label="Favoritos" className={iconCls}>
                 <Heart size={20} />
               </Link>
-              <Link href="/chat" aria-label="Mensagens" className={cn(iconCls, "relative")}>
-                <MessageCircle size={20} />
-                {unreadCount && unreadCount > 0 ? (
-                  <span className="absolute top-1 right-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                ) : null}
-              </Link>
               <Link href="/sacola" aria-label="Sacola" className={iconCls}>
                 <ShoppingBag size={20} />
               </Link>
@@ -208,18 +199,11 @@ export function MegaNav({ brands, user, unreadCount, communitiesCount = 0 }: Meg
             <Link href="/search" aria-label="Buscar" className={iconCls}>
               <Search size={22} />
             </Link>
-            {communitiesCount > 0 && (
-              <Link href="/comunidades" aria-label="Minhas comunidades" className={iconCls}>
-                <Building2 size={22} />
-              </Link>
-            )}
-            <Link href="/chat" aria-label="Mensagens" className={cn(iconCls, "relative")}>
-              <MessageCircle size={22} />
-              {unreadCount && unreadCount > 0 ? (
-                <span className="absolute top-0.5 right-0.5 inline-flex items-center justify-center w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              ) : null}
+            <Link href="/comunidades" aria-label="Minhas comunidades" className={iconCls}>
+              <Building2 size={22} />
+            </Link>
+            <Link href="/sacola" aria-label="Sacola" className={iconCls}>
+              <ShoppingBag size={22} />
             </Link>
             <ThemeToggle />
             <HeaderAuth user={user} />

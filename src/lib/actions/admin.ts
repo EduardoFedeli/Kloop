@@ -83,14 +83,39 @@ export async function toggleBrandStatus(id: string, isActive: boolean) {
   }
 }
 
+export async function updateBrandName(id: string, name: string) {
+  try {
+    const slug = slugify(name)
+    await db.brand.update({ where: { id }, data: { name, slug } })
+    revalidatePath("/admin/marcas")
+    return { success: true }
+  } catch (error) {
+    console.error("Erro ao atualizar marca:", error)
+    return { error: "Erro ao atualizar o nome da marca." }
+  }
+}
+
 export async function deleteBrand(id: string) {
   try {
-    // Nota: Se houver produtos vinculados, o Prisma bloqueará o delete ou setará nulo dependendo da relation
+    const listings = await db.listing.findMany({
+      where: { brandId: id },
+      select: { id: true },
+    })
+    const listingIds = listings.map(l => l.id)
+
+    if (listingIds.length > 0) {
+      await db.listingCommunity.deleteMany({ where: { listingId: { in: listingIds } } })
+      await db.favorite.deleteMany({ where: { listingId: { in: listingIds } } })
+      await db.listingImage.deleteMany({ where: { listingId: { in: listingIds } } })
+      await db.listing.deleteMany({ where: { id: { in: listingIds } } })
+    }
+
+    await db.brandFollow.deleteMany({ where: { brandId: id } })
     await db.brand.delete({ where: { id } })
     revalidatePath("/admin/marcas")
     return { success: true }
   } catch (error) {
     console.error("Erro ao deletar marca:", error)
-    return { error: "Não é possível deletar uma marca que já possui anúncios vinculados." }
+    return { error: "Erro ao excluir a marca." }
   }
 }

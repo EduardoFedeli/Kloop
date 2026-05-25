@@ -6,10 +6,13 @@ import { Camera } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { updateProfileAction } from "@/lib/actions/profile"
 
+type GenderPreference = "FEMININE" | "MASCULINE" | "BOTH"
+
 type ProfileData = {
   name: string
   phone: string | null
   avatarUrl: string | null
+  genderPreference: GenderPreference | null
 }
 
 type Props = {
@@ -19,6 +22,7 @@ type Props = {
 export function ProfileForm({ profile }: Props) {
   const [isPending, startTransition] = useTransition()
   const [avatarPreview, setAvatarPreview] = useState<string>(profile.avatarUrl ?? "")
+  const [genderPref, setGenderPref] = useState<GenderPreference | null>(profile.genderPreference)
   const avatarDataRef = useRef<string>(profile.avatarUrl ?? "")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -123,6 +127,34 @@ export function ProfileForm({ profile }: Props) {
           className="w-full px-4 py-2.5 rounded-xl border border-teal-muted/40 bg-white text-gray-800 focus:outline-none focus:border-teal text-sm"
           placeholder="(11) 99999-9999"
         />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-airforce mb-2">
+          O que você prefere ver no feed?
+        </label>
+        <div className="flex gap-2">
+          {(["FEMININE", "MASCULINE", "BOTH"] as const).map((opt) => {
+            const labels: Record<typeof opt, string> = { FEMININE: "Feminino", MASCULINE: "Masculino", BOTH: "Ambos" }
+            const active = genderPref === opt
+            return (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setGenderPref(active ? null : opt)}
+                className={cn(
+                  "flex-1 py-2 rounded-xl text-sm font-bold border transition-all",
+                  active
+                    ? "bg-teal border-teal text-white"
+                    : "border-teal-muted/40 text-airforce hover:border-teal"
+                )}
+              >
+                {labels[opt]}
+              </button>
+            )
+          })}
+        </div>
+        <input type="hidden" name="genderPreference" value={genderPref ?? ""} />
       </div>
 
       <button

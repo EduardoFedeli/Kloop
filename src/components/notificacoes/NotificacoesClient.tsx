@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useOptimistic } from 'react'
 import { useRouter } from 'next/navigation'
-import { Bell, Check, Heart, Tag, ShoppingBag, MessageCircle, TrendingDown, Handshake } from 'lucide-react'
+import { Bell, Check, Heart, Tag, ShoppingBag, HelpCircle, MessageSquare, TrendingDown, Handshake } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { markAsRead, markAllAsRead } from '@/lib/actions/notifications'
 import type { NotificationType } from '@prisma/client'
@@ -33,7 +33,8 @@ function NotificationIcon({ type }: { type: NotificationType }) {
     case 'OFFER':          return <Tag {...props} />
     case 'BUNDLE_OFFER':   return <ShoppingBag {...props} />
     case 'SALE_COMPLETED': return <Check {...props} />
-    case 'MESSAGE':        return <MessageCircle {...props} />
+    case 'QUESTION':       return <HelpCircle {...props} />
+    case 'ANSWER':         return <MessageSquare {...props} />
     case 'PRICE_DROP':     return <TrendingDown {...props} />
     case 'OFFER_ACCEPTED': return <Handshake {...props} />
     default:               return <Bell {...props} />
@@ -46,7 +47,8 @@ function iconBg(type: NotificationType): string {
     case 'OFFER':          return 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
     case 'BUNDLE_OFFER':   return 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
     case 'SALE_COMPLETED': return 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
-    case 'MESSAGE':        return 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+    case 'QUESTION':       return 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+    case 'ANSWER':         return 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
     case 'PRICE_DROP':     return 'bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400'
     case 'OFFER_ACCEPTED': return 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
     default:               return 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'

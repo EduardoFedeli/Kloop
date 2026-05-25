@@ -23,6 +23,7 @@ export default async function PerfilPerfilPage() {
         email: true,
         phone: true,
         avatarUrl: true,
+        genderPreference: true,
         createdAt: true,
         addresses: { orderBy: { createdAt: 'asc' }, take: 1 },
         subscription: {
@@ -70,6 +71,7 @@ export default async function PerfilPerfilPage() {
             name: user.name,
             phone: user.phone,
             avatarUrl: user.avatarUrl,
+            genderPreference: user.genderPreference,
           }}
         />
       </section>

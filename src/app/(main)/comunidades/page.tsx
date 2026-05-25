@@ -33,10 +33,9 @@ export default async function ComunidadesPage() {
       {communities.length === 0 ? (
         <div className="text-center py-16 px-4">
           <Building2 size={48} className="mx-auto text-gray-200 dark:text-white/10 mb-4" />
-          <p className="font-bold text-[var(--foreground)] mb-2">Nenhuma comunidade ainda</p>
+          <p className="font-bold text-[var(--foreground)] mb-2">Você não pertence a nenhuma comunidade no momento</p>
           <p className="text-sm text-gray-500 dark:text-sage leading-relaxed max-w-sm mx-auto">
-            Você ainda não faz parte de nenhuma comunidade. Comunidades Kloop são exclusivas para
-            condomínios e clubes parceiros.
+            Comunidades Kloop são exclusivas para condomínios e clubes parceiros. Entre em contato com seu síndico ou responsável para solicitar acesso.
           </p>
         </div>
       ) : (

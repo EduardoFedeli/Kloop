@@ -5,7 +5,26 @@
       "Bash(npm run *)",
       "Bash(dir \"c:/Users/Eduardo Fedeli/Downloads/Fredoka/static\")",
       "Bash(npx tsc *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(mkdir -p \"d:\\\\Eduardo Fedeli\\\\Projetos\\\\Faculdade\\\\TCC FIAP STARTUP ONE\\\\Kloop\\\\Code\\\\kloop\\\\src\\\\app\\\\\\(main\\)\\\\marca\\\\[slug]\")",
+      "Bash(npx tsx -e ' *)",
+      "Bash(node -e ' *)",
+      "Bash(cd \"d:\\\\Eduardo Fedeli\\\\Projetos\\\\Faculdade\\\\TCC FIAP STARTUP ONE\\\\Kloop\\\\Code\\\\kloop\" && echo \"=== COMPONENTS THAT EXIST ===\" && find src/components -type f \\\\\\( -name \"*.tsx\" -o -name \"*.ts\" \\\\\\) | sed 's/^src\\\\/components\\\\///' | sed 's/\\\\.tsx$//' | sed 's/\\\\.ts$//' | sort > /tmp/all_comp.txt && wc -l /tmp/all_comp.txt && echo && echo \"=== IMPORTED COMPONENTS ===\" && grep -r \"from.*components\" --include=\"*.tsx\" --include=\"*.ts\" src/app src/components | grep -oE \"from ['\\\\\"]@/components/[^'\\\\\"]+['\\\\\"]\" | sed \"s/from ['\\\\\"]@\\\\/components\\\\///\" | sed \"s/['\\\\\"]$//\" | sort | uniq > /tmp/imported.txt && wc -l /tmp/imported.txt)",
+      "Read(//tmp/**)",
+      "Bash(Remove-Item \"src/components/listing/CategoryFilter.tsx\" -Force)",
+      "Bash(Remove-Item \"src/components/listing/ListingActions.tsx\" -Force)",
+      "Bash(Remove-Item \"src/components/listing/PhotoCarousel.tsx\" -Force)",
+      "Bash(Remove-Item \"src/components/offers/OfferTimeline.tsx\" -Force)",
+      "Bash(Remove-Item \"src/components/search/SearchFilters.tsx\" -Force)",
+      "Bash(Remove-Item -Recurse -Force \"src\\\\app\\\\\\(main\\)\\\\chat\" -ErrorAction SilentlyContinue)",
+      "Bash(Remove-Item -Force \"src\\\\app\\\\actions\\\\chat.ts\" -ErrorAction SilentlyContinue)",
+      "Bash(Remove-Item -Recurse -Force \"src\\\\app\\\\api\\\\chat\" -ErrorAction SilentlyContinue)",
+      "Bash(Remove-Item -Recurse -Force \"src\\\\components\\\\chat\" -ErrorAction SilentlyContinue)",
+      "Bash(Write-Host \"Done\")"
+    ],
+    "additionalDirectories": [
+      "d:\\Eduardo Fedeli\\Projetos\\Faculdade\\TCC FIAP STARTUP ONE\\Kloop\\Code\\kloop\\src\\app\\(main)\\marca\\[slug]"
     ]
   }
 }

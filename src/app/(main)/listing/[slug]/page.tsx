@@ -8,6 +8,7 @@ import Image from 'next/image'
 import { Star, Package, RotateCcw, AlertTriangle, Lock } from 'lucide-react'
 import { ProductImageCarousel } from '@/components/produto/ProductImageCarousel'
 import { ProductActions } from '@/components/produto/ProductActions'
+import { QASection } from '@/components/produto/QASection'
 import { ViewTracker } from '@/components/produto/ViewTracker'
 import { FollowButton } from '@/components/produto/FollowButton'
 import { ReportButton } from '@/components/produto/ReportButton'
@@ -68,7 +69,7 @@ export default async function ProdutoPage({ params }: Props) {
 
   const isOwner = session?.user?.id === listing.sellerId
 
-  const [isFavoritedResult, buyerAddress, isFollowingResult, cashbackTxs, isBrandFollowedResult] = await Promise.all([
+  const [isFavoritedResult, buyerAddress, isFollowingResult, cashbackTxs, isBrandFollowedResult, rawQuestions] = await Promise.all([
     session?.user?.id
       ? db.favorite.findUnique({ where: { userId_listingId: { userId: session.user.id, listingId: listing.id } } })
       : Promise.resolve(null),
@@ -92,7 +93,24 @@ export default async function ProdutoPage({ params }: Props) {
           }
         })
       : Promise.resolve(null),
+    db.question.findMany({
+      where: { listingId: listing.id, isDeleted: false },
+      select: {
+        id: true,
+        body: true,
+        askerId: true,
+        createdAt: true,
+        answer: { select: { id: true, body: true, createdAt: true } },
+      },
+      orderBy: { createdAt: 'asc' },
+    }),
   ])
+
+  const questions = rawQuestions.map((q) => ({
+    ...q,
+    createdAt: q.createdAt.toISOString(),
+    answer: q.answer ? { ...q.answer, createdAt: q.answer.createdAt.toISOString() } : null,
+  }))
 
   const isFavorited = isFavoritedResult !== null
   const isFollowing = isFollowingResult !== null
@@ -260,13 +278,12 @@ export default async function ProdutoPage({ params }: Props) {
 
           <hr className="border-gray-200 dark:border-white/10" />
           
-          {!isOwner && (
-            <section>
-              <h2 className="text-[15px] font-bold text-[var(--foreground)] mb-1">faça sua pergunta</h2>
-              <p className="text-[13px] text-gray-500 dark:text-sage mb-4">tire suas dúvidas com a gente</p>
-              <ProductActions listingId={listing.id} listingSlug={listing.slug} listingTitle={listing.title} listingPriceCents={listing.priceCents} listingImageUrl={listing.images[0]?.url} listingStatus={listing.status} currentUserId={session?.user?.id} sellerId={listing.sellerId} sellerName={seller.name} buyerHasAddress={!!buyerAddress} acceptsOffers={listing.acceptsOffers} isTurbinado={listing.isTurbinado} chatOnly />
-            </section>
-          )}
+          <QASection
+            listingId={listing.id}
+            questions={questions}
+            currentUserId={session?.user?.id}
+            isOwner={isOwner}
+          />
 
           <section className="bg-gray-50 dark:bg-[var(--color-forest)] rounded-2xl p-5 space-y-6">
             <div className="flex gap-4">
