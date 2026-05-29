@@ -44,8 +44,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: message }, { status: 422 })
   }
 
-  // ATUALIZADO: Extraindo brandId em vez de brand
-  const { title, description, priceCents, categoryId, condition, brandId, size, images, acceptsOffers, smartPriceEnabled, isTurbinado } =
+  const { title, description, priceCents, categoryId, condition, brandId, size, images, acceptsOffers, acceptsDiscount, isTurbinado } =
     parsed.data
 
   const category = await db.category.findUnique({
@@ -59,9 +58,6 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
   const slug = title !== existing.title ? await generateUniqueSlug(title, listingId) : existing.slug
 
-  const idealPriceMinCents = smartPriceEnabled ? Math.round(priceCents * 0.70) : null
-  const idealPriceMaxCents = smartPriceEnabled ? priceCents : null
-
   await db.$transaction(async (tx) => {
     await tx.listingImage.deleteMany({ where: { listingId } })
     await tx.listing.update({
@@ -73,13 +69,10 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         description,
         priceCents,
         condition: condition as ListingCondition,
-        // ATUALIZADO: Salvando o brandId
         brandId: brandId ?? null,
         size: size ?? null,
         acceptsOffers,
-        smartPriceEnabled,
-        idealPriceMinCents,
-        idealPriceMaxCents,
+        acceptsDiscount,
         isTurbinado,
       },
     })

@@ -33,20 +33,13 @@ export default async function LojinhasPage() {
 
   const userId = session.user.id
 
-  const [follows, favoriteRows] = await Promise.all([
-    db.follow.findMany({
-      where: { followerId: userId },
-      include: { following: { select: { id: true, name: true, avatarUrl: true } } },
-    }),
-    db.favorite.findMany({
-      where: { userId },
-      select: { listingId: true },
-    }),
-  ])
+  const follows = await db.follow.findMany({
+    where: { followerId: userId },
+    include: { following: { select: { id: true, name: true, avatarUrl: true } } },
+  })
 
   const followedSellers = follows.map((f) => f.following)
   const followingIds = followedSellers.map((s) => s.id)
-  const favoriteIds = favoriteRows.map((f) => f.listingId)
 
   const feedLojinhasRows = followingIds.length > 0
     ? await db.listing.findMany({
@@ -63,7 +56,6 @@ export default async function LojinhasPage() {
     <LojinhasClient
       followedSellers={followedSellers}
       feedLojinhas={feedLojinhas}
-      favoriteIds={favoriteIds}
     />
   )
 }

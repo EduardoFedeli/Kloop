@@ -26,7 +26,6 @@ const LISTING_SELECT = {
       },
     },
   },
-  _count: { select: { favorites: true } },
 } as const
 
 export default async function HistoricoPage() {
@@ -52,13 +51,6 @@ export default async function HistoricoPage() {
   // 2. Extrai o produto de dentro do registro de histórico
   const listings = historyRecords.map((record) => record.listing) as unknown as ListingWithDetails[]
 
-  // 3. Busca quais desses o usuário curtiu
-  const listingIds = listings.map((l) => l.id)
-  const favoriteRows = listingIds.length > 0
-    ? await db.favorite.findMany({ where: { userId: session.user.id, listingId: { in: listingIds } }, select: { listingId: true } })
-    : []
-  const favoriteSet = new Set(favoriteRows.map((f) => f.listingId))
-
   if (listings.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 px-8 text-center gap-5">
@@ -82,7 +74,7 @@ export default async function HistoricoPage() {
   return (
     <div className="grid grid-cols-2 gap-2.5">
       {listings.map((listing) => (
-        <ListingCard key={listing.id} listing={listing} isFavorited={favoriteSet.has(listing.id)} variant="search" />
+        <ListingCard key={listing.id} listing={listing} variant="search" />
       ))}
     </div>
   )

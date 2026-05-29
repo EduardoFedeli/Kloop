@@ -2,13 +2,14 @@
 
 import { useState, useRef } from "react"
 import Link from "next/link"
-import { Search, Bell, HelpCircle, Heart, ShoppingBag, Building2 } from "lucide-react"
+import { Search, Bell, HelpCircle, ShoppingBag, Building2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { HeaderAuth } from "./HeaderAuth"
 import { ThemeToggle } from "./ThemeToggle"
 import { usePathname } from "next/navigation"
 import { GlobalSearchBar } from "../search/GlobalSearchBar"
 import { AuthModal } from "@/components/auth/AuthModal"
+import { useCartStore } from "@/store/cart"
 
 // ── Static nav structure ───────────────────────────────────────────────────
 
@@ -73,6 +74,7 @@ interface MegaNavProps {
 
 export function MegaNav({ brands, user, communitiesCount = 0 }: MegaNavProps) {
   const pathname = usePathname()
+  const cartCount = useCartStore((s) => s.items.length)
   const isHome = pathname === '/'
   const isDeptPage = ['/mocas', '/rapazes', '/kids', '/casa'].includes(pathname)
   
@@ -178,11 +180,13 @@ export function MegaNav({ brands, user, communitiesCount = 0 }: MegaNavProps) {
               <button type="button" aria-label="Notificações" className={iconCls}>
                 <Bell size={20} />
               </button>
-              <Link href="/favoritos" aria-label="Favoritos" className={iconCls}>
-                <Heart size={20} />
-              </Link>
-              <Link href="/sacola" aria-label="Sacola" className={iconCls}>
+              <Link href="/sacola" aria-label="Sacola" className={cn(iconCls, "relative")}>
                 <ShoppingBag size={20} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 rounded-full bg-[var(--color-teal)] text-white text-[9px] font-black flex items-center justify-center leading-none">
+                    {cartCount > 9 ? '9+' : cartCount}
+                  </span>
+                )}
               </Link>
               <ThemeToggle />
             </div>
@@ -202,8 +206,13 @@ export function MegaNav({ brands, user, communitiesCount = 0 }: MegaNavProps) {
             <Link href="/comunidades" aria-label="Minhas comunidades" className={iconCls}>
               <Building2 size={22} />
             </Link>
-            <Link href="/sacola" aria-label="Sacola" className={iconCls}>
+            <Link href="/sacola" aria-label="Sacola" className={cn(iconCls, "relative")}>
               <ShoppingBag size={22} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 rounded-full bg-[var(--color-teal)] text-white text-[9px] font-black flex items-center justify-center leading-none">
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
             </Link>
             <ThemeToggle />
             <HeaderAuth user={user} />
@@ -215,7 +224,7 @@ export function MegaNav({ brands, user, communitiesCount = 0 }: MegaNavProps) {
           <ul className="flex items-center px-4 [&::-webkit-scrollbar]:hidden">
             {[
               { label: "pra você", href: "/", active: pathname === '/' },
-              { label: "kloop pro", href: "#", active: false, requiresAuth: true },
+              { label: "kloop shop", href: "/kloop-shop", active: false, requiresAuth: false },
               { label: "moças", href: "/mocas", active: pathname === '/mocas' },
               { label: "rapazes", href: "/rapazes", active: pathname === '/rapazes' },
               { label: "kids", href: "/kids", active: pathname === '/kids' },

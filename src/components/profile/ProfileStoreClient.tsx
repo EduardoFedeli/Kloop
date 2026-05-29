@@ -511,7 +511,7 @@ export function ProfileStoreClient({
 
       <div className="px-4">
         {listings.length > 0 ? (
-          <ListingGrid listings={listings} variant="search" hideFavorite={isOwn} />
+          <ListingGrid listings={listings} variant="search" />
         ) : (
           <div className="text-center py-16 text-gray-500 dark:text-sage">
             <p className="text-[15px] font-medium">Esta loja ainda não tem anúncios.</p>

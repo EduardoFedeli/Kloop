@@ -8,7 +8,6 @@ import type { ListingWithDetails } from '@/types/listing'
 
 type Props = {
   favorites: ListingWithDetails[]
-  favoriteIds: string[]
 }
 
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
@@ -31,10 +30,9 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
   )
 }
 
-export function FavoritosClient({ favorites, favoriteIds }: Props) {
+export function FavoritosClient({ favorites }: Props) {
   const [onlyAvailable, setOnlyAvailable] = useState(true)
 
-  const favoriteSet = new Set(favoriteIds)
   const displayed = onlyAvailable
     ? favorites.filter((l) => l.status === 'ACTIVE')
     : favorites
@@ -71,7 +69,7 @@ export function FavoritosClient({ favorites, favoriteIds }: Props) {
       ) : (
         <div className="grid grid-cols-2 gap-2.5">
           {displayed.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} isFavorited={favoriteSet.has(listing.id)} variant="search" />
+            <ListingCard key={listing.id} listing={listing} variant="search" />
           ))}
         </div>
       )}

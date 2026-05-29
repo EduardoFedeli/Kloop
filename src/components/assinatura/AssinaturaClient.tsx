@@ -3,7 +3,7 @@
 import { useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Check, Crown, Zap, Rocket, Megaphone, Loader2 } from "lucide-react"
+import { ArrowLeft, Check, Crown, Zap, Rocket, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { subscribeToPlan } from "@/lib/actions/subscription"
 import { toast } from "sonner"
@@ -28,54 +28,31 @@ interface Plan {
 const plans: Plan[] = [
   {
     id: "basic",
-    name: "Kloop Basic",
+    name: "Kloop",
     priceLabel: "Grátis",
     priceSuffix: "para sempre",
     description: "Para quem está começando a desapegar",
     isDark: false,
-    ctaText: "Mudar para o Basic",
+    ctaText: "Continuar com o Kloop",
     features: [
       { text: "Até 20 anúncios ativos" },
-      { text: "Sacolinha Turbinada (grátis!)", highlight: true },
       { text: "5 megafones por semana" },
-      { text: "Vendas geram 3% de cashback" },
-      { text: "Compras geram 2% de cashback" },
-    ],
-  },
-  {
-    id: "pro",
-    name: "Kloop Pro",
-    priceLabel: "R$ 15",
-    priceSuffix: "/mês",
-    description: "Para vendedores ativos",
-    badge: "MAIS POPULAR",
-    isDark: true,
-    ctaText: "Assinar Kloop Pro",
-    features: [
-      { text: "Até 40 anúncios ativos", highlight: true },
-      { text: "Sacolinha Turbinada (grátis!)" },
-      { text: "10 megafones por semana", highlight: true },
-      { text: "Vendas geram 3% de cashback", highlight: true },
-      { text: "Compras geram 2% de cashback", highlight: true },
-      { text: "Acesso ao Kloop Pro (curadoria)", highlight: true },
+      { text: "Taxa de 14% por venda" },
     ],
   },
   {
     id: "premium",
-    name: "Kloop Premium",
-    priceLabel: "R$ 40",
+    name: "Kloop Pro",
+    priceLabel: "R$ 14,99",
     priceSuffix: "/mês",
     description: "Para quem vende de verdade",
     isDark: true,
-    ctaText: "Assinar Kloop Premium",
+    ctaText: "Assinar Kloop Pro",
     features: [
-      { text: "Até 60 anúncios ativos", highlight: true },
-      { text: "Sacolinha Turbinada (grátis!)" },
-      { text: "25 megafones por semana", highlight: true },
-      { text: "Vendas geram 3% de cashback" },
-      { text: "Compras geram 2% de cashback" },
-      { text: "Acesso ao Kloop Pro (curadoria)" },
-      { text: "Loja personalizável (Banner, URL, Cores)", highlight: true },
+      { text: "Anúncios ilimitados", highlight: true },
+      { text: "15 megafones por semana", highlight: true },
+      { text: "Taxa reduzida de 12%", highlight: true },
+      { text: "Loja personalizável (Banner, Cores)", highlight: true },
     ],
   },
 ]
@@ -86,11 +63,6 @@ function PlanIcon({ id, isDark }: { id: string; isDark: boolean }) {
   if (id === "basic") return (
     <div className={cn(base, "bg-gray-100 dark:bg-white/10")}>
       <Zap size={18} className="text-gray-500 dark:text-white/60" />
-    </div>
-  )
-  if (id === "pro") return (
-    <div className={cn(base, isDark ? "bg-[var(--color-celadon)]/15" : "bg-[var(--color-teal)]/10")}>
-      <Crown size={18} className={isDark ? "text-[var(--color-celadon)]" : "text-[var(--color-teal)]"} />
     </div>
   )
   return (
@@ -112,30 +84,23 @@ function PlanCard({
   isPending: boolean
 }) {
   const isBasic = plan.id === "basic"
-  const isPro = plan.id === "pro"
   const isPremium = plan.id === "premium"
 
   const cardClasses = cn(
     "relative rounded-3xl p-5 overflow-hidden shrink-0 snap-center w-[85vw] sm:w-[320px] md:w-full",
     isBasic && "bg-white dark:bg-[var(--color-pine)] border border-gray-100 dark:border-white/5",
-    isPro && "bg-[var(--color-pine)] border border-[var(--color-teal)]/40",
     isPremium && "border border-amber-400/25"
   )
 
   const textColor = plan.isDark ? "text-white" : "text-[var(--foreground)]"
   const subtextColor = plan.isDark ? "text-white/55" : "text-gray-500 dark:text-sage"
   const featureColor = plan.isDark ? "text-white/85" : "text-gray-700 dark:text-white/80"
-  const checkColor = isPremium
-    ? "text-amber-400"
-    : isPro
-    ? "text-[var(--color-celadon)]"
-    : "text-[var(--color-teal)]"
+  const checkColor = isPremium ? "text-amber-400" : "text-[var(--color-teal)]"
 
   const ctaClasses = cn(
     "w-full py-3 rounded-2xl text-[14px] font-black transition-all flex items-center justify-center gap-2",
     isCurrent && "border border-gray-200 dark:border-white/10 text-gray-400 dark:text-white/30 cursor-default",
     !isCurrent && isBasic && "bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-white hover:bg-gray-200 dark:hover:bg-white/15",
-    !isCurrent && isPro && "bg-[var(--color-teal)] text-white hover:opacity-90",
     !isCurrent && isPremium && "bg-gradient-to-r from-amber-400 to-amber-500 text-[var(--color-pine)] hover:opacity-90",
     isPending && "opacity-70 cursor-not-allowed"
   )
@@ -145,11 +110,8 @@ function PlanCard({
       {isPremium && (
         <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-pine)] via-[var(--color-forest)] to-[#0c2218] -z-0" />
       )}
-      {(isPro || isPremium) && (
-        <div className={cn(
-          "absolute right-[-30px] top-[-30px] w-40 h-40 rounded-full blur-3xl pointer-events-none",
-          isPremium ? "bg-amber-400/10" : "bg-[var(--color-teal)]/10"
-        )} />
+      {isPremium && (
+        <div className="absolute right-[-30px] top-[-30px] w-40 h-40 rounded-full blur-3xl pointer-events-none bg-amber-400/10" />
       )}
 
       <div className="relative z-10 flex flex-col h-full">
@@ -247,7 +209,7 @@ export function AssinaturaClient({ currentPlanSlug }: { currentPlanSlug: string 
           <div>
             <h1 className="text-[16px] font-black text-[var(--foreground)]">Escolha seu plano</h1>
             <p className="text-[12px] text-gray-500 dark:text-sage">
-              Turbinar é grátis para todos · Megafones variam por plano
+              Cancele quando quiser · Megafones variam por plano
             </p>
           </div>
         </div>
@@ -255,17 +217,8 @@ export function AssinaturaClient({ currentPlanSlug }: { currentPlanSlug: string 
 
       <div className="max-w-4xl mx-auto px-4 pb-24">
         {/* Destaque da feature Turbinar — gratuita para todos */}
-        <div className="mt-6 mb-6 mx-auto max-w-sm rounded-2xl bg-[var(--color-teal)]/8 dark:bg-[var(--color-teal)]/10 border border-[var(--color-teal)]/20 px-4 py-3 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-[var(--color-teal)]/15 flex items-center justify-center flex-shrink-0">
-            <Megaphone size={15} className="text-[var(--color-teal)]" />
-          </div>
-          <p className="text-[12px] text-[var(--color-teal)] dark:text-[var(--color-celadon)] font-medium leading-snug">
-            <span className="font-black">Sacolinha Turbinada</span> agora é grátis para todos os planos — incluindo o Basic.
-          </p>
-        </div>
-
         {/* Scroll Horizontal no Mobile, Grid no Desktop */}
-        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 px-4 -mx-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 md:gap-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 px-4 -mx-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 md:max-w-2xl md:mx-auto md:gap-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {plans.map((plan) => (
             <PlanCard
               key={plan.id}

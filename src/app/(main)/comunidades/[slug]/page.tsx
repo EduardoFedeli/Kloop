@@ -4,7 +4,6 @@ import { getCommunityBySlug, getCommunityListings } from "@/lib/data/communities
 import { ListingCard } from "@/components/listing/ListingCard"
 import Link from "next/link"
 import { Building2, Plus, Users } from "lucide-react"
-import { db } from "@/lib/db"
 import type { ListingWithDetails } from "@/types/listing"
 import type { ListingCondition, ListingStatus } from "@prisma/client"
 
@@ -39,14 +38,7 @@ export default async function CommunityFeedPage({ params }: Props) {
     )
   }
 
-  const [communityListings, favoriteIds] = await Promise.all([
-    getCommunityListings(community.id),
-    session?.user?.id
-      ? db.favorite
-          .findMany({ where: { userId: session.user.id }, select: { listingId: true } })
-          .then((favs) => favs.map((f) => f.listingId))
-      : Promise.resolve<string[]>([]),
-  ])
+  const communityListings = await getCommunityListings(community.id)
 
   const listings: ListingWithDetails[] = communityListings.map((l) => ({
     id: l.id,
@@ -96,7 +88,6 @@ export default async function CommunityFeedPage({ params }: Props) {
               <ListingCard
                 key={listing.id}
                 listing={listing}
-                isFavorited={favoriteIds.includes(listing.id)}
                 minimal
                 communityBadge={{ type: "named", name: community.name }}
               />

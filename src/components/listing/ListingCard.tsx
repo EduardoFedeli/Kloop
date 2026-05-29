@@ -1,9 +1,8 @@
 import Link from 'next/link'
 import { ListingCondition } from '@prisma/client'
-import { formatPrice } from '@/lib/utils'
+import { formatPrice, getListingDiscount } from '@/lib/utils'
 import type { ListingWithDetails } from '@/types/listing'
-import { FavoriteButton } from './FavoriteButton'
-import { Building2 } from 'lucide-react'
+import { Building2, Zap } from 'lucide-react'
 
 const conditionLabel: Record<ListingCondition, string> = {
   NEW: 'novo',
@@ -16,11 +15,9 @@ type CommunityBadge = { type: 'generic' } | { type: 'named'; name: string }
 
 type Props = {
   listing: ListingWithDetails
-  isFavorited: boolean
   minimal?: boolean
   variant?: 'default' | 'search'
   showSeller?: boolean
-  hideFavorite?: boolean
   communityBadge?: CommunityBadge
 }
 
@@ -40,11 +37,9 @@ function CommunityBadgePill({ badge }: { badge: CommunityBadge }) {
 
 export function ListingCard({
   listing,
-  isFavorited,
   minimal = false,
   variant = 'default',
   showSeller = false,
-  hideFavorite = false,
   communityBadge,
 }: Props) {
   const image = listing.images[0]
@@ -53,13 +48,15 @@ export function ListingCard({
   const firstName = listing.seller.name?.split(' ')[0].toLowerCase() || 'vendedor'
   const initials = listing.seller.name?.substring(0, 2).toUpperCase() || 'KL'
 
-  const hasDiscount = true; 
-  const discountPercent = 15; 
-  const originalPriceCents = listing.priceCents * 1.15; 
+  const discount = listing.createdAt
+    ? getListingDiscount(listing.priceCents, listing.createdAt, listing.acceptsDiscount ?? false)
+    : null
+  const hasDiscount = discount !== null
+  const discountPercent = discount?.discountPercent ?? 0
+  const discountedPriceCents = discount?.discountedPriceCents ?? listing.priceCents
 
   // ── 1. VERSÃO BUSCA (Foco em conversão rápida, estilo Enjoei) ──
   if (variant === 'search') {
-    const likesCount = listing._count?.favorites ?? 0
     return (
       <article className="group flex flex-col">
         <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-100 dark:bg-[var(--color-forest)] mb-2">
@@ -78,30 +75,29 @@ export function ListingCard({
             )}
           </Link>
 
+          {listing.isTurbinado && (
+            <div className="absolute top-2 right-2 z-10 flex items-center gap-0.5 bg-[var(--color-teal)] text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-sm">
+              <Zap size={8} fill="currentColor" />
+              turbinado
+            </div>
+          )}
+
           {hasDiscount && (
             <div className="absolute bottom-1.5 left-1.5 bg-[var(--color-celadon)] text-[var(--color-pine)] text-[11px] font-black px-1.5 py-0.5 rounded-md shadow-sm">
               {discountPercent}%
             </div>
           )}
 
-          {!hideFavorite && (
-            <FavoriteButton
-              listingId={listing.id}
-              initialFavorited={isFavorited}
-              showCount
-              count={likesCount}
-            />
-          )}
         </div>
 
         <Link href={`/listing/${listing.slug}`} className="block px-1 flex-1 flex flex-col">
           <div className="flex items-center gap-1.5 mb-1">
             <span className="font-extrabold text-[15px] text-[var(--foreground)]">
-              {formatPrice(listing.priceCents)}
+              {formatPrice(hasDiscount ? discountedPriceCents : listing.priceCents)}
             </span>
             {hasDiscount && (
               <span className="text-[11px] font-medium text-gray-400 line-through">
-                {formatPrice(originalPriceCents)}
+                {formatPrice(listing.priceCents)}
               </span>
             )}
           </div>
@@ -155,6 +151,13 @@ export function ListingCard({
               {formatPrice(listing.priceCents)}
             </span>
           </Link>
+
+          {listing.isTurbinado && (
+            <div className="absolute top-2 right-2 z-10 flex items-center gap-0.5 bg-[var(--color-teal)] text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-sm">
+              <Zap size={8} fill="currentColor" />
+              turbinado
+            </div>
+          )}
         </div>
 
         {showSeller && listing.seller && (
@@ -191,11 +194,6 @@ export function ListingCard({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-4xl text-gray-300">📦</div>
-        )}
-
-        {/* Bloqueio na versão padrão */}
-        {!hideFavorite && (
-          <FavoriteButton listingId={listing.id} initialFavorited={isFavorited} />
         )}
 
         <span className="absolute bottom-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/85 backdrop-blur-sm text-gray-700">

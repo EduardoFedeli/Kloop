@@ -25,6 +25,29 @@ export function formatZipCode(zip: string): string {
   return digits.length === 8 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : zip
 }
 
+// Discount tiers applied by the platform (seller cannot choose %)
+// Days 0-14: none | 15-21: -15% | 22-29: -25% | 30-36: -32% | 37+: -40%
+export function getListingDiscount(
+  priceCents: number,
+  createdAt: Date | string,
+  acceptsDiscount: boolean
+): { discountPercent: number; discountedPriceCents: number } | null {
+  if (!acceptsDiscount) return null
+  const daysSinceListed = Math.floor(
+    (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)
+  )
+  let discountPercent = 0
+  if (daysSinceListed >= 37) discountPercent = 40
+  else if (daysSinceListed >= 30) discountPercent = 32
+  else if (daysSinceListed >= 22) discountPercent = 25
+  else if (daysSinceListed >= 15) discountPercent = 15
+  else return null
+  return {
+    discountPercent,
+    discountedPriceCents: Math.round(priceCents * (1 - discountPercent / 100)),
+  }
+}
+
 export function timeAgo(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date
   const diff = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000))

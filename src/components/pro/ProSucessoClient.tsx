@@ -114,7 +114,7 @@ export function ProSucessoClient({ code, metodo, withBag }: Props) {
               <div>
                 <p className="text-[13px] font-bold text-[var(--foreground)]">sacola a caminho!</p>
                 <p className="text-[12px] text-gray-500 dark:text-sage mt-0.5 leading-relaxed">
-                  Sua sacola do Kloop Pro será enviada para o endereço cadastrado em até 5 dias úteis.
+                  Sua sacola do kloop shop será enviada para o endereço cadastrado em até 5 dias úteis.
                 </p>
               </div>
             </div>
@@ -142,7 +142,7 @@ export function ProSucessoClient({ code, metodo, withBag }: Props) {
             href="/pro/dashboard"
             className="w-full py-4 bg-[var(--color-teal)] text-white rounded-2xl font-black text-[14px] hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-lg shadow-[var(--color-teal)]/20"
           >
-            Ir para meu painel Kloop Pro
+            Ir para meu painel kloop shop
           </Link>
         </div>
 
@@ -168,7 +168,7 @@ export function ProSucessoClient({ code, metodo, withBag }: Props) {
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <p className="text-[18px] font-black text-[var(--foreground)]">kloop</p>
-                    <p className="text-[11px] text-gray-400 dark:text-white/30">declaração de conteúdo kloop pro</p>
+                    <p className="text-[11px] text-gray-400 dark:text-white/30">declaração de conteúdo kloop shop</p>
                   </div>
                   <span className="px-2 py-0.5 rounded-full bg-[var(--color-teal)] text-white text-[11px] font-black">PRO</span>
                 </div>
@@ -192,7 +192,7 @@ export function ProSucessoClient({ code, metodo, withBag }: Props) {
 
                 <div className="mt-6 pt-4 border-t border-dashed border-gray-200 dark:border-white/10">
                   <p className="text-[10px] text-gray-400 dark:text-white/25 leading-relaxed">
-                    Ao enviar este lote você confirma que todas as peças estão em perfeito estado de conservação e de acordo com as políticas do Kloop Pro. Peças não aceitas serão devolvidas ou doadas conforme sua preferência.
+                    Ao enviar este lote você confirma que todas as peças estão em perfeito estado de conservação e de acordo com as políticas do kloop shop. Peças não aceitas serão devolvidas ou doadas conforme sua preferência.
                   </p>
                 </div>
               </div>

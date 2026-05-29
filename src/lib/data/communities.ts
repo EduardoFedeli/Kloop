@@ -103,7 +103,7 @@ export type CommunityListing = {
   brand: { id: string; name: string; slug: string } | null
   size: string | null
   isTurbinado: boolean
-  _count: { favorites: number; listingCommunities: number }
+  _count: { listingCommunities: number }
   status: string
   category: { id: string; name: string; slug: string }
   viewsCount: number
@@ -134,7 +134,7 @@ export async function getCommunityListings(
             },
           },
           brand: { select: { id: true, name: true, slug: true } },
-          _count: { select: { favorites: true, listingCommunities: true } },
+          _count: { select: { listingCommunities: true } },
         },
       },
     },

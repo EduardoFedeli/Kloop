@@ -114,8 +114,8 @@ export default async function PerfilPerfilPage() {
               <Package size={22} className="text-[var(--color-teal)] dark:text-[var(--color-celadon)]" />
             </div>
             <div>
-              <p className="text-[15px] font-bold text-[var(--foreground)]">kloop pro</p>
-              <p className="text-[12px] text-gray-500 dark:text-sage mt-0.5">painel de lotes e vendas pro</p>
+              <p className="text-[15px] font-bold text-[var(--foreground)]">kloop shop</p>
+              <p className="text-[12px] text-gray-500 dark:text-sage mt-0.5">painel de lotes e vendas shop</p>
             </div>
           </div>
           <ChevronRight size={18} className="text-gray-400 dark:text-sage group-hover:text-[var(--color-teal)] dark:group-hover:text-[var(--color-celadon)] transition-colors" />

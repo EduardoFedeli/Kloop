@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { HomeFeed } from '@/components/listing/HomeFeed'
 import type { ListingWithDetails } from '@/types/listing'
+import { getListingDiscount } from '@/lib/utils'
 
 export type SellerPreview = {
   id: string
@@ -62,7 +63,7 @@ export default async function FeedPage() {
           },
         },
         brand: { select: { id: true, name: true, slug: true } },
-        _count: { select: { favorites: true, listingCommunities: true } },
+        _count: { select: { listingCommunities: true } },
       },
     }),
     db.user.findMany({
@@ -78,21 +79,16 @@ export default async function FeedPage() {
   ])
 
   const listings: ListingWithDetails[] = shuffle(rawListings)
+
+  const promoListings = listings
+    .filter((l) => getListingDiscount(l.priceCents, l.createdAt!, l.acceptsDiscount ?? false) !== null)
+    .slice(0, 8)
   const sellers: SellerPreview[] = shuffle(rawSellers).slice(0, 8).map((s) => ({
     id: s.id,
     name: s.name,
     avatarUrl: s.avatarUrl,
     listingCount: s._count.listings,
   }))
-
-  const favoriteIds = selfId
-    ? await db.favorite
-        .findMany({
-          where: { userId: selfId },
-          select: { listingId: true },
-        })
-        .then((favs) => favs.map((f) => f.listingId))
-    : []
 
   let communitySection: CommunitySection | null = null
   let bentoCards: BentoCard[] = []
@@ -131,7 +127,7 @@ export default async function FeedPage() {
                         },
                       },
                       brand: { select: { id: true, name: true, slug: true } },
-                      _count: { select: { favorites: true, listingCommunities: true } },
+                      _count: { select: { listingCommunities: true } },
                     },
                   },
                 },
@@ -190,10 +186,10 @@ export default async function FeedPage() {
   return (
     <HomeFeed
       listings={listings}
-      favoriteIds={favoriteIds}
       sellers={sellers}
       communitySection={communitySection}
       bentoCards={bentoCards}
+      promoListings={promoListings}
     />
   )
 }

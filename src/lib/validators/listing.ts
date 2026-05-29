@@ -25,7 +25,7 @@ export const createListingSchema = z.object({
     .min(1, "Adicione pelo menos 1 foto")
     .max(6, "Máximo de 6 fotos"),
   acceptsOffers: z.boolean(),
-  smartPriceEnabled: z.boolean(),
+  acceptsDiscount: z.boolean(),
   isTurbinado: z.boolean().optional(),
   communityIds: z.array(z.string()).optional(),
 })

@@ -15,8 +15,12 @@ export type ListingWithDetails = {
   } | null
   size?: string | null
   isTurbinado?: boolean
+  isMegafonado?: boolean
+  megafonadoUntil?: Date | string | null
   viewsCount?: number
-  _count?: { favorites: number; listingCommunities?: number }
+  acceptsDiscount?: boolean
+  createdAt?: Date | string
+  _count?: { listingCommunities?: number }
   category: {
     id: string
     name: string

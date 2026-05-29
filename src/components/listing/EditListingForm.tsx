@@ -35,7 +35,7 @@ export interface EditInitialData {
   brandId: string | null
   size: string | null
   acceptsOffers: boolean
-  smartPriceEnabled: boolean
+  acceptsDiscount: boolean
   isTurbinado: boolean
   images: UploadedImage[]
 }
@@ -122,7 +122,7 @@ function SelectField({ placeholder, value, options, onChange }: {
   )
 }
 
-const COMMISSION_RATE = 0.18
+const COMMISSION_RATE = 0.14
 const FIXED_FEE = 7.5
 
 function fmtBRL(val: number): string {
@@ -286,7 +286,7 @@ export function EditListingForm({ initialData, categories, brands }: EditListing
   const [priceDisplay, setPriceDisplay] = useState(initialPriceDisplay)
   const [noBrand, setNoBrand] = useState(!initialData.brandId)
   const [acceptsOffers, setAcceptsOffers] = useState(initialData.acceptsOffers)
-  const [smartPrice, setSmartPrice] = useState(initialData.smartPriceEnabled)
+  const [acceptsDiscount, setAcceptsDiscount] = useState(initialData.acceptsDiscount)
   const [isTurbinado, setIsTurbinado] = useState(initialData.isTurbinado)
   const [size, setSize] = useState(initialData.size ?? "")
 
@@ -309,7 +309,7 @@ export function EditListingForm({ initialData, categories, brands }: EditListing
       size: initialData.size ?? "",
       images: initialData.images,
       acceptsOffers: initialData.acceptsOffers,
-      smartPriceEnabled: initialData.smartPriceEnabled,
+      acceptsDiscount: initialData.acceptsDiscount,
       isTurbinado: initialData.isTurbinado,
     },
   })
@@ -355,7 +355,7 @@ const onSubmit = async (data: CreateListingInput) => {
           brandId: data.brandId === "" ? undefined : data.brandId,
           size: size || undefined,
           acceptsOffers,
-          smartPriceEnabled: smartPrice,
+          acceptsDiscount,
           isTurbinado,
         }),
       })
@@ -572,6 +572,15 @@ const onSubmit = async (data: CreateListingInput) => {
           {errors.priceCents && (
             <p className="text-[12px] text-red-500 pl-1 font-medium">{errors.priceCents.message}</p>
           )}
+          {watchedPriceCents > 0 && !errors.priceCents && (
+            <p className="text-[12px] text-[var(--color-teal)] dark:text-[var(--color-celadon)] font-medium mt-1 pl-1">
+              você recebe até{' '}
+              <span className="font-black">
+                R$ {fmtBRL(Math.max(0, (watchedPriceCents / 100) * (1 - COMMISSION_RATE) - FIXED_FEE))}
+              </span>
+              {' '}após taxas
+            </p>
+          )}
           <hr className="border-gray-100 dark:border-white/5 my-2" />
           <div className="space-y-4 pt-2">
             <Toggle
@@ -581,36 +590,43 @@ const onSubmit = async (data: CreateListingInput) => {
               onChange={setAcceptsOffers}
             />
             <div className="py-1">
-              <button type="button" onClick={() => setSmartPrice(!smartPrice)} className="flex items-center justify-between w-full text-left">
-                <span className="text-[14px] font-bold text-[var(--foreground)]">Preço esperto ✨</span>
-                <div className={cn("relative w-12 h-7 rounded-full transition-colors flex-shrink-0", smartPrice ? "bg-[var(--color-pine)] dark:bg-[var(--color-celadon)]" : "bg-gray-200 dark:bg-white/10")}>
-                  <div className={cn("absolute top-1 w-5 h-5 bg-white dark:bg-[var(--color-forest)] rounded-full shadow transition-all", smartPrice ? "left-6" : "left-1")} />
+              <button type="button" onClick={() => setAcceptsDiscount(!acceptsDiscount)} className="flex items-center justify-between w-full text-left">
+                <span className="text-[14px] font-bold text-[var(--foreground)]">Queda de preço progressiva</span>
+                <div className={cn("relative w-12 h-7 rounded-full transition-colors flex-shrink-0", acceptsDiscount ? "bg-[var(--color-pine)] dark:bg-[var(--color-celadon)]" : "bg-gray-200 dark:bg-white/10")}>
+                  <div className={cn("absolute top-1 w-5 h-5 bg-white dark:bg-[var(--color-forest)] rounded-full shadow transition-all", acceptsDiscount ? "left-6" : "left-1")} />
                 </div>
               </button>
-              {smartPrice && (
-                <div className="mt-3 space-y-2">
-                  {watchedPriceCents >= 500 ? (
-                    <div className="bg-[var(--color-teal)]/8 dark:bg-[var(--color-teal)]/10 border border-[var(--color-teal)]/20 rounded-xl p-3.5 space-y-2">
-                      <p className="text-[13px] font-bold text-[var(--color-pine)] dark:text-[var(--color-celadon)]">
-                        faixa de preço ideal
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[13px] text-gray-600 dark:text-sage">de</span>
-                        <span className="font-black text-[15px] text-[var(--color-pine)] dark:text-[var(--color-celadon)]">
-                          R$ {fmtBRL(watchedPriceCents * 0.70 / 100)}
-                        </span>
-                        <span className="text-[13px] text-gray-600 dark:text-sage">até</span>
-                        <span className="font-black text-[15px] text-[var(--color-pine)] dark:text-[var(--color-celadon)]">
-                          R$ {fmtBRL(watchedPriceCents / 100)}
+              <p className="text-[12px] text-gray-400 dark:text-sage mt-1 leading-relaxed pr-14">
+                o kloop reduz o preço automaticamente conforme os dias passam sem venda.
+              </p>
+              {acceptsDiscount && (
+                <div className="mt-3 bg-[var(--color-teal)]/8 dark:bg-[var(--color-teal)]/10 border border-[var(--color-teal)]/20 rounded-xl p-3.5">
+                  <div className="grid grid-cols-3 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-sage/60 pb-2 border-b border-[var(--color-teal)]/15">
+                    <span>período</span>
+                    <span className="text-center">desconto</span>
+                    <span className="text-right">você recebe</span>
+                  </div>
+                  {([
+                    { days: '15 dias', pct: 15 },
+                    { days: '22 dias', pct: 25 },
+                    { days: '30 dias', pct: 32 },
+                    { days: '37 dias', pct: 40 },
+                  ] as const).map(({ days, pct }) => {
+                    const discountedVal = watchedPriceCents > 0 ? (watchedPriceCents / 100) * (1 - pct / 100) : null
+                    const sellerVal = discountedVal !== null ? Math.max(0, discountedVal * (1 - COMMISSION_RATE) - FIXED_FEE) : null
+                    return (
+                      <div key={days} className="grid grid-cols-3 py-2 border-b border-[var(--color-teal)]/10 last:border-0 items-center">
+                        <span className="text-[11px] text-gray-500 dark:text-sage">após {days}</span>
+                        <span className="text-[11px] font-black text-[var(--color-teal)] dark:text-[var(--color-celadon)] text-center">−{pct}%</span>
+                        <span className="text-[11px] font-bold text-[var(--foreground)] text-right">
+                          {sellerVal !== null ? `R$ ${fmtBRL(sellerVal)}` : '—'}
                         </span>
                       </div>
-                      <p className="text-[12px] text-gray-500 dark:text-sage leading-relaxed">
-                        ofertas dentro dessa faixa serão aceitas automaticamente. seu produto nunca será vendido por menos que R$ {fmtBRL(watchedPriceCents * 0.70 / 100)}.
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="text-[12px] text-gray-400 dark:text-sage">informe o preço para ver a faixa de preço ideal.</p>
-                  )}
+                    )
+                  })}
+                  <p className="text-[10px] text-gray-400 dark:text-sage/70 leading-relaxed mt-2.5">
+                    valores já com comissão (14%) e tarifa fixa (R$ 7,50) deduzidas.
+                  </p>
                 </div>
               )}
             </div>

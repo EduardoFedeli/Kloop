@@ -27,48 +27,69 @@ async function main() {
     console.log(`✅ Usuário: ${u.email}`)
   }
 
-  // 1. Garantir que os planos existam com as regras de negócio
+  // Criar usuário oficial da Kloop Shop (loja verificada da plataforma)
+  await prisma.user.upsert({
+    where: { email: 'shop@kloop.com' },
+    update: { isVerified: true, name: 'Kloop Shop' },
+    create: {
+      name: 'Kloop Shop',
+      email: 'shop@kloop.com',
+      password: await bcrypt.hash('kloopshop@2026', 10),
+      emailVerified: new Date(),
+      isVerified: true,
+      role: 'USER',
+    },
+  })
+  console.log('✅ Usuário oficial: shop@kloop.com')
+
+  // 1. Garantir que os planos existam (2 planos: Kloop e Kloop Pro)
   const planBasic = await prisma.subscriptionPlan.upsert({
     where: { slug: 'basic' },
-    update: { commissionRate: 0.10, features: { cashbackVendas: '3%', cashbackCompras: '2%' } },
+    update: {
+      name: 'Kloop',
+      commissionRate: 0.14,
+      maxActiveListings: 20,
+      megaphonesPerWeek: 5,
+      features: { lojaPersonalizavel: false },
+    },
     create: {
-      name: 'Kloop Basic',
+      name: 'Kloop',
       slug: 'basic',
       priceCents: 0,
       interval: 'MONTHLY',
       maxActiveListings: 20,
-      commissionRate: 0.10,
-      features: { cashbackVendas: '3%', cashbackCompras: '2%' },
+      megaphonesPerWeek: 5,
+      commissionRate: 0.14,
+      features: { lojaPersonalizavel: false },
       isActive: true,
     },
   })
 
-  const planPro = await prisma.subscriptionPlan.upsert({
+  // Desativar plano 'pro' legado (mantém no banco, não aparece na UI)
+  await prisma.subscriptionPlan.updateMany({
     where: { slug: 'pro' },
-    update: { commissionRate: 0.05, features: { cashbackVendas: '3%', cashbackCompras: '2%' } },
-    create: {
-      name: 'Kloop Pro',
-      slug: 'pro',
-      priceCents: 2990,
-      interval: 'MONTHLY',
-      maxActiveListings: 40,
-      commissionRate: 0.05,
-      features: { cashbackVendas: '3%', cashbackCompras: '2%' },
-      isActive: true,
-    },
+    data: { isActive: false },
   })
 
   const planPremium = await prisma.subscriptionPlan.upsert({
     where: { slug: 'premium' },
-    update: { commissionRate: 0.03, features: { cashbackVendas: '3%', cashbackCompras: '2%', megafone: 10 } },
+    update: {
+      name: 'Kloop Pro',
+      priceCents: 1499,
+      commissionRate: 0.12,
+      maxActiveListings: -1,
+      megaphonesPerWeek: 15,
+      features: { lojaPersonalizavel: true },
+    },
     create: {
-      name: 'Kloop Premium',
+      name: 'Kloop Pro',
       slug: 'premium',
-      priceCents: 5990,
+      priceCents: 1499,
       interval: 'MONTHLY',
-      maxActiveListings: 60,
-      commissionRate: 0.03,
-      features: { cashbackVendas: '3%', cashbackCompras: '2%', megafone: 10 },
+      maxActiveListings: -1,
+      megaphonesPerWeek: 15,
+      commissionRate: 0.12,
+      features: { lojaPersonalizavel: true },
       isActive: true,
     },
   })
@@ -77,8 +98,8 @@ async function main() {
   const userPlanMap = [
     { email: 'eduardo@kloop.com', planId: planPremium.id },
     { email: 'gabriel@kloop.com', planId: planPremium.id },
-    { email: 'otavio@kloop.com', planId: planPro.id },
-    { email: 'caique@kloop.com', planId: planPro.id },
+    { email: 'otavio@kloop.com', planId: planPremium.id },
+    { email: 'caique@kloop.com', planId: planBasic.id },
     { email: 'rodrigo@kloop.com', planId: planBasic.id },
     { email: 'visitante@kloop.com', planId: planBasic.id },
   ]

@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
   const shippingCents = shipping.priceCents
 
   const commissionRateNum = parseFloat(
-    (listing.seller.subscription?.plan?.commissionRate ?? '0.0800').toString(),
+    (listing.seller.subscription?.plan?.commissionRate ?? '0.1400').toString(),
   )
   const commissionCents = Math.round(listing.priceCents * commissionRateNum)
   const amountCents = listing.priceCents + shippingCents

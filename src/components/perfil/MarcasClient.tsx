@@ -16,13 +16,11 @@ type BrandFeed = {
 type Props = {
   followedBrands: string[]
   brandFeeds: BrandFeed[]
-  favoriteIds: string[]
 }
 
-export function MarcasClient({ followedBrands, brandFeeds, favoriteIds }: Props) {
+export function MarcasClient({ followedBrands, brandFeeds }: Props) {
   const [showFollowingList, setShowFollowingList] = useState(false)
   const [unfollowingBrand, setUnfollowingBrand] = useState<string | null>(null)
-  const favoriteSet = new Set(favoriteIds)
 
   const handleUnfollow = async (brand: string) => {
     setUnfollowingBrand(brand)
@@ -121,7 +119,6 @@ export function MarcasClient({ followedBrands, brandFeeds, favoriteIds }: Props)
                 <div key={listing.id} className="flex-shrink-0 w-[160px]">
                   <ListingCard
                     listing={listing}
-                    isFavorited={favoriteSet.has(listing.id)}
                     variant="search"
                     showSeller={false}
                   />

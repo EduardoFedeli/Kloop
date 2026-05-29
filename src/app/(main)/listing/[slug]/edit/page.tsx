@@ -30,7 +30,7 @@ export default async function EditListingPage({ params }: Props) {
         brandId: true,
         size: true,
         acceptsOffers: true,
-        smartPriceEnabled: true,
+        acceptsDiscount: true,
         isTurbinado: true,
         images: {
           orderBy: { displayOrder: "asc" },
@@ -64,7 +64,7 @@ export default async function EditListingPage({ params }: Props) {
     brandId: listing.brandId,
     size: listing.size,
     acceptsOffers: listing.acceptsOffers,
-    smartPriceEnabled: listing.smartPriceEnabled,
+    acceptsDiscount: listing.acceptsDiscount,
     isTurbinado: listing.isTurbinado,
     // Agora aceitamos as imagens mesmo se o publicId for nulo, usando a própria URL como ID temporário
     images: listing.images.map((img) => ({ url: img.url, publicId: img.publicId || img.url })),

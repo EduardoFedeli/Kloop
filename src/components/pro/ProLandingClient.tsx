@@ -153,7 +153,7 @@ export function ProLandingClient({ planSlug = "basic", hasActiveLot = false, add
           <div className="absolute right-[-40px] top-[-40px] w-56 h-56 bg-[var(--color-teal)]/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute left-[-20px] bottom-[-20px] w-40 h-40 bg-[var(--color-celadon)]/10 rounded-full blur-2xl pointer-events-none" />
           <div className="relative z-10">
-            <p className="text-[11px] font-black uppercase tracking-widest text-[var(--color-celadon)] mb-3">kloop pro</p>
+            <p className="text-[11px] font-black uppercase tracking-widest text-[var(--color-celadon)] mb-3">kloop shop</p>
             <h1 className="text-[28px] font-black text-white leading-tight mb-4">
               cuidamos de tudo pra você, da fotografia às vendas
             </h1>
@@ -165,7 +165,7 @@ export function ProLandingClient({ planSlug = "basic", hasActiveLot = false, add
               onClick={handleCTA}
               className="inline-flex items-center gap-2 px-6 py-3.5 bg-[var(--color-teal)] text-white rounded-full font-black text-[14px] hover:opacity-90 transition-opacity shadow-lg shadow-[var(--color-teal)]/30"
             >
-              vender no kloop pro
+              vender no kloop shop
               <ChevronRight size={16} />
             </button>
           </div>
@@ -212,7 +212,7 @@ export function ProLandingClient({ planSlug = "basic", hasActiveLot = false, add
                     <p className="text-[14px] font-black text-[var(--foreground)]">embale suas peças e envie tudo pra cá</p>
                   </div>
                   <p className="text-[12px] text-gray-500 dark:text-sage leading-relaxed mb-2">
-                    você pode usar uma caixa qualquer ou pedir a sacola do kloop pro. depois, envie pelos correios (grátis) ou peça coleta em casa (R$ 20).
+                    você pode usar uma caixa qualquer ou pedir a sacola do kloop shop. depois, envie pelos correios (grátis) ou peça coleta em casa (R$ 20).
                   </p>
                   <button onClick={() => setIsShippingModalOpen(true)} className="text-[11px] font-bold text-[var(--color-teal)] hover:underline flex items-center gap-1">
                     confira como enviar suas peças <ChevronRight size={12} />
@@ -336,7 +336,7 @@ export function ProLandingClient({ planSlug = "basic", hasActiveLot = false, add
           onClick={handleCTA}
           className="w-full px-6 py-4 rounded-full bg-[var(--color-teal)] text-white font-black text-[15px] shadow-lg shadow-[var(--color-teal)]/30 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
         >
-          vender no kloop pro
+          vender no kloop shop
           <ChevronRight size={18} />
         </button>
       </div>
@@ -359,7 +359,7 @@ export function ProLandingClient({ planSlug = "basic", hasActiveLot = false, add
             </div>
             <p className="text-[14px] text-gray-500 dark:text-sage text-center leading-relaxed mb-6">
               O envio de lotes está disponível para assinantes{" "}
-              <span className="font-bold text-[var(--foreground)]">Kloop Pro</span> e{" "}
+              <span className="font-bold text-[var(--foreground)]">kloop shop</span> e{" "}
               <span className="font-bold text-[var(--foreground)]">Kloop Premium</span>.
             </p>
             <Link
@@ -474,7 +474,7 @@ export function ProLandingClient({ planSlug = "basic", hasActiveLot = false, add
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-white/5 shrink-0">
               <div>
                 <p className="text-[11px] font-black uppercase tracking-widest text-[var(--color-teal)] mb-1">
-                  {shippingView === "list" ? "envio" : "sacola kloop pro"}
+                  {shippingView === "list" ? "envio" : "sacola kloop shop"}
                 </p>
                 <h3 className="text-[18px] font-black text-[var(--foreground)] leading-tight">
                   {shippingView === "list" ? "como enviar suas peças" : "confirmar endereço"}
@@ -533,12 +533,12 @@ export function ProLandingClient({ planSlug = "basic", hasActiveLot = false, add
                       <div className="w-8 h-8 rounded-xl bg-[var(--color-celadon)]/20 flex items-center justify-center flex-shrink-0">
                         <Mail size={15} className="text-[var(--color-teal)]" />
                       </div>
-                      <p className="text-[14px] font-black text-[var(--foreground)]">sacola kloop pro</p>
+                      <p className="text-[14px] font-black text-[var(--foreground)]">sacola kloop shop</p>
                     </div>
                     <span className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-[var(--foreground)] text-[11px] font-black flex-shrink-0">pedir agora</span>
                   </div>
                   <p className="text-[12px] text-gray-500 dark:text-sage leading-relaxed mb-3">
-                    não tem caixa? peça a sacola kloop pro com antecedência. a gente envia pelo correio e você devolve com suas peças dentro.
+                    não tem caixa? peça a sacola kloop shop com antecedência. a gente envia pelo correio e você devolve com suas peças dentro.
                   </p>
                   <p className="text-[12px] font-bold text-[var(--color-teal)] group-hover:underline">
                     verificar endereço →

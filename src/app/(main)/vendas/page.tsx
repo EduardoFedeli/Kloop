@@ -5,12 +5,13 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   Store, MessageCircle, ArchiveX, ShoppingBag, ChevronRight,
-  PackageOpen, HelpCircle, Info, Coins, Handshake, Star, TrendingUp,
+  PackageOpen, HelpCircle, Info, Coins, Handshake, Star, TrendingUp, Trophy,
 } from 'lucide-react'
 import { PlanBadge } from '@/components/ui/PlanBadge'
 import { formatPrice } from '@/lib/utils'
 import { CoverUploader } from '@/components/perfil/CoverUploader'
 import { getCashbackBalance } from '@/lib/cashback'
+import { getUserAchievementsData } from '@/lib/actions/achievements'
 
 export default async function VendasPage() {
   const session = await auth()
@@ -18,7 +19,7 @@ export default async function VendasPage() {
 
   const myId = session.user.id
 
-  const [userData, listings, completedTxs, pendingCount, activeOrdersCount, cashbackBalanceCents, pendingOffersCount] = await Promise.all([
+  const [userData, listings, completedTxs, pendingCount, activeOrdersCount, cashbackBalanceCents, pendingOffersCount, achievementsData] = await Promise.all([
     db.user.findUnique({
       where: { id: myId },
       select: { 
@@ -56,6 +57,7 @@ export default async function VendasPage() {
     db.offer.count({
       where: { sellerId: myId, status: 'PENDING_SELLER', expiresAt: { gt: new Date() } },
     }),
+    getUserAchievementsData(myId),
   ])
 
   const active = listings.filter((l) => l.status === 'ACTIVE').length
@@ -220,6 +222,39 @@ export default async function VendasPage() {
               </Link>
             </section>
 
+            {/* Missões */}
+            <section className="px-4 lg:px-0">
+              {(() => {
+                const completed = achievementsData.filter((a) => a.isEarned).length
+                const total = achievementsData.length
+                return (
+                  <Link
+                    href="/vendas/metas"
+                    className="group block rounded-2xl bg-amber-50 dark:bg-amber-500/8 border border-amber-300/60 dark:border-amber-500/15 p-5 relative overflow-hidden"
+                  >
+                    <div className="absolute right-[-16px] top-[-16px] w-24 h-24 bg-amber-400/20 dark:bg-amber-500/15 rounded-full blur-2xl pointer-events-none" />
+                    <div className="flex items-center justify-between relative z-10">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <Trophy size={14} className="text-amber-600 dark:text-amber-400" />
+                          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-amber-600 dark:text-amber-400">metas</p>
+                        </div>
+                        <p className="text-[28px] font-black text-[var(--foreground)] leading-none tracking-tight">
+                          {completed}<span className="text-[18px] text-gray-400 dark:text-sage font-bold">/{total}</span>
+                        </p>
+                        <p className="text-[12px] text-gray-400 dark:text-[var(--color-sage)] mt-1">
+                          {completed === total ? 'todas as metas concluídas 🎉' : 'metas concluídas'}
+                        </p>
+                      </div>
+                      <div className="w-9 h-9 rounded-full bg-amber-200/50 dark:bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-200 dark:group-hover:bg-amber-500/20 transition-colors">
+                        <ChevronRight size={17} className="text-amber-600 dark:text-amber-400" />
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })()}
+            </section>
+
             {/* Botão criar — tablet only */}
             <section className="px-4 md:px-0 lg:hidden">
               <Link
@@ -345,8 +380,8 @@ export default async function VendasPage() {
                       <PackageOpen size={18} className="text-violet-600 dark:text-violet-400" />
                     </div>
                     <div>
-                      <p className="text-[13px] font-bold text-[var(--foreground)]">painel kloop pro</p>
-                      <p className="text-[11px] text-gray-400 dark:text-[var(--color-sage)] mt-0.5">lotes e vendas pro</p>
+                      <p className="text-[13px] font-bold text-[var(--foreground)]">painel kloop shop</p>
+                      <p className="text-[11px] text-gray-400 dark:text-[var(--color-sage)] mt-0.5">lotes e vendas shop</p>
                     </div>
                   </div>
                   <ChevronRight size={16} className="text-gray-300 dark:text-white/20 group-hover:text-gray-400 transition-colors" />

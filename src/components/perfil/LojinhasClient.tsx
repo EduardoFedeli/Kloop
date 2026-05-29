@@ -11,12 +11,10 @@ type Seller = { id: string; name: string; avatarUrl: string | null }
 type Props = {
   followedSellers: Seller[]
   feedLojinhas: ListingWithDetails[]
-  favoriteIds: string[]
 }
 
-export function LojinhasClient({ followedSellers, feedLojinhas, favoriteIds }: Props) {
+export function LojinhasClient({ followedSellers, feedLojinhas }: Props) {
   const [showFollowingList, setShowFollowingList] = useState(false)
-  const favoriteSet = new Set(favoriteIds)
 
   return (
     <div className="space-y-4">
@@ -80,12 +78,11 @@ export function LojinhasClient({ followedSellers, feedLojinhas, favoriteIds }: P
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 gap-y-5">
           {feedLojinhas.map((listing) => (
-            <ListingCard 
-              key={listing.id} 
-              listing={listing} 
-              isFavorited={favoriteSet.has(listing.id)} 
-              variant="search" 
-              showSeller={true} 
+            <ListingCard
+              key={listing.id}
+              listing={listing}
+              variant="search"
+              showSeller={true}
             />
           ))}
         </div>

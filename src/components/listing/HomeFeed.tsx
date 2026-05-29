@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Tag, Zap, Megaphone, Building2 } from 'lucide-react'
+import { ArrowRight, Tag, Zap, Megaphone, Building2, Percent } from 'lucide-react'
 import type { ListingWithDetails } from '@/types/listing'
 import type { SellerPreview, CommunitySection, BentoCard } from '@/app/(main)/page'
 import { ListingCard } from './ListingCard'
@@ -9,15 +9,18 @@ import { ListingGrid } from './ListingGrid'
 
 type Props = {
   listings: ListingWithDetails[]
-  favoriteIds?: string[]
   sellers?: SellerPreview[]
   communitySection?: CommunitySection | null
   bentoCards?: BentoCard[]
+  promoListings?: ListingWithDetails[]
 }
 
-export function HomeFeed({ listings, favoriteIds, sellers = [], communitySection, bentoCards = [] }: Props) {
+export function HomeFeed({ listings, sellers = [], communitySection, bentoCards = [], promoListings = [] }: Props) {
+  const now = new Date()
   const turbinados = listings.filter((l) => l.isTurbinado === true).slice(0, 4)
-  const megafonados = listings.filter((l) => !l.isTurbinado).slice(0, 4)
+  const megafonados = listings.filter(
+    (l) => l.isMegafonado === true && l.megafonadoUntil != null && new Date(l.megafonadoUntil as string) > now
+  ).slice(0, 4)
 
   return (
     <div className="space-y-12 pb-8 overflow-hidden pt-4">
@@ -128,6 +131,38 @@ export function HomeFeed({ listings, favoriteIds, sellers = [], communitySection
         </section>
       )}
 
+      {/* ── Promoções ── */}
+      {promoListings.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2.5 mb-1">
+            <div className="w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center flex-shrink-0">
+              <Percent size={13} className="text-white" strokeWidth={2.5} />
+            </div>
+            <h2 className="text-[19px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>promoções</h2>
+          </div>
+          <p className="text-[12px] text-gray-400 dark:text-[var(--color-sage)] mb-5 pl-[34px]">
+            produtos com desconto automático aplicado
+          </p>
+          {/* Mobile: horizontal shelf */}
+          <div className="sm:hidden -mx-4 px-4 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-3">
+              {promoListings.map((listing) => (
+                <div key={listing.id} className="w-[155px] flex-shrink-0">
+                  <ListingCard
+                    listing={listing}
+                    minimal={true}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Desktop: grid */}
+          <div className="hidden sm:block">
+            <ListingGrid listings={promoListings} minimal={true} />
+          </div>
+        </section>
+      )}
+
       {/* ── Turbinados ── */}
       {turbinados.length > 0 && (
         <section>
@@ -148,7 +183,6 @@ export function HomeFeed({ listings, favoriteIds, sellers = [], communitySection
                   <div key={listing.id} className="w-[155px] flex-shrink-0">
                     <ListingCard
                       listing={listing}
-                      isFavorited={(favoriteIds ?? []).includes(listing.id)}
                       minimal={true}
                     />
                   </div>
@@ -157,7 +191,7 @@ export function HomeFeed({ listings, favoriteIds, sellers = [], communitySection
             </div>
             {/* Desktop: grid */}
             <div className="hidden sm:block">
-              <ListingGrid listings={turbinados} favoriteIds={favoriteIds} minimal={true} />
+              <ListingGrid listings={turbinados} minimal={true} />
             </div>
           </div>
         </section>
@@ -182,7 +216,6 @@ export function HomeFeed({ listings, favoriteIds, sellers = [], communitySection
                 <div key={listing.id} className="w-[155px] flex-shrink-0">
                   <ListingCard
                     listing={listing}
-                    isFavorited={(favoriteIds ?? []).includes(listing.id)}
                     minimal={true}
                   />
                 </div>
@@ -191,7 +224,7 @@ export function HomeFeed({ listings, favoriteIds, sellers = [], communitySection
           </div>
           {/* Desktop: grid */}
           <div className="hidden sm:block">
-            <ListingGrid listings={megafonados} favoriteIds={favoriteIds} minimal={true} />
+            <ListingGrid listings={megafonados} minimal={true} />
           </div>
         </section>
       )}
@@ -221,7 +254,6 @@ export function HomeFeed({ listings, favoriteIds, sellers = [], communitySection
                 <div key={listing.id} className="w-[155px] flex-shrink-0">
                   <ListingCard
                     listing={listing}
-                    isFavorited={(favoriteIds ?? []).includes(listing.id)}
                     minimal={true}
                   />
                 </div>

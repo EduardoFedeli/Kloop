@@ -12,7 +12,6 @@ import type { ListingWithDetails } from "@/types/listing"
 
 interface Props {
   listings: ListingWithDetails[]
-  favoriteIds: string[]
   breadcrumbs: { label: string; href: string }[]
   pills: { name: string; href: string }[]
   brands: string[]
@@ -21,15 +20,14 @@ interface Props {
   currentParams: Record<string, string | undefined>
 }
 
-export function SearchPageClient({ 
-  listings, 
-  favoriteIds, 
+export function SearchPageClient({
+  listings,
   breadcrumbs,
-  pills, 
-  brands, 
+  pills,
+  brands,
   availableConditions,
-  totalCount, 
-  currentParams 
+  totalCount,
+  currentParams
 }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -240,7 +238,7 @@ export function SearchPageClient({
             </p>
           </div>
         ) : (
-          <ListingGrid listings={listings} favoriteIds={favoriteIds} variant="search" />
+          <ListingGrid listings={listings} variant="search" />
         )}
       </div>
 

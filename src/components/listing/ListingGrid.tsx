@@ -4,21 +4,17 @@ import { ListingCard } from './ListingCard'
 
 type Props = {
   listings: ListingWithDetails[]
-  favoriteIds?: string[]
   compact?: boolean
   minimal?: boolean
   variant?: 'default' | 'search'
-  hideFavorite?: boolean
   showCommunityBadges?: boolean
 }
 
 export function ListingGrid({
   listings,
-  favoriteIds,
   compact,
   minimal = false,
   variant = 'default',
-  hideFavorite = false,
   showCommunityBadges = false,
 }: Props) {
   if (listings.length === 0) {
@@ -45,10 +41,8 @@ export function ListingGrid({
           <ListingCard
             key={listing.id}
             listing={listing}
-            isFavorited={(favoriteIds ?? []).includes(listing.id)}
             minimal={minimal}
             variant={variant}
-            hideFavorite={hideFavorite}
             communityBadge={hasCommunities ? { type: 'generic' } : undefined}
           />
         )

@@ -141,7 +141,7 @@ export async function createOffer(input: {
         const sellerZip = freshListing.seller.addresses[0]?.zipCode ?? ''
         const shipping = calculateShipping(sellerZip, buyerAddress.zipCode)
         const commissionRateNum = parseFloat(
-          (freshListing.seller.subscription?.plan?.commissionRate ?? '0.0800').toString(),
+          (freshListing.seller.subscription?.plan?.commissionRate ?? '0.1400').toString(),
         )
         const commissionCents = Math.round(priceCents * commissionRateNum)
         const amountCents = priceCents + shipping.priceCents
@@ -357,7 +357,7 @@ export async function respondOffer(input: {
         const shipping = calculateShipping(sellerZip, buyerAddress.zipCode)
 
         const commissionRateNum = parseFloat(
-          (freshListing.seller.subscription?.plan?.commissionRate ?? '0.0800').toString(),
+          (freshListing.seller.subscription?.plan?.commissionRate ?? '0.1400').toString(),
         )
         const commissionCents = Math.round(offer.currentPriceCents * commissionRateNum)
         const amountCents = offer.currentPriceCents + shipping.priceCents

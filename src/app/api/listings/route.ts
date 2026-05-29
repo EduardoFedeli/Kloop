@@ -5,6 +5,7 @@ import { createListingSchema } from "@/lib/validators/listing"
 import { generateUniqueSlug } from "@/lib/slug"
 import { revalidatePath } from "next/cache"
 import type { ListingCondition } from "@prisma/client"
+import { checkAndGrantAchievements } from "@/lib/actions/achievements"
 
 export async function GET() {
   return NextResponse.json({ listings: [] })
@@ -71,7 +72,7 @@ export async function POST(req: NextRequest) {
     size,
     images,
     acceptsOffers,
-    smartPriceEnabled,
+    acceptsDiscount,
     isTurbinado,
     communityIds = [],
   } = parsed.data
@@ -109,9 +110,6 @@ export async function POST(req: NextRequest) {
 
   const slug = await generateUniqueSlug(title)
 
-  const idealPriceMinCents = smartPriceEnabled ? Math.round(priceCents * 0.70) : null
-  const idealPriceMaxCents = smartPriceEnabled ? priceCents : null
-
   const listing = await db.$transaction(async (tx) => {
     const created = await tx.listing.create({
       data: {
@@ -122,14 +120,11 @@ export async function POST(req: NextRequest) {
         description,
         priceCents,
         condition: condition as ListingCondition,
-        // ATUALIZADO: Salvando a relação da marca
         brandId: (brandId && brandId.length > 0) ? brandId : null,
         size: size ?? null,
         status: "ACTIVE",
         acceptsOffers,
-        smartPriceEnabled,
-        idealPriceMinCents,
-        idealPriceMaxCents,
+        acceptsDiscount,
         isTurbinado,
       },
     })
@@ -154,6 +149,9 @@ export async function POST(req: NextRequest) {
       skipDuplicates: true,
     })
   }
+
+  // Fire-and-forget: não bloqueia a resposta ao usuário
+  checkAndGrantAchievements(userId).catch(() => undefined)
 
   revalidatePath("/")
   return NextResponse.json({ slug: listing.slug })

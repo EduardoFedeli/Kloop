@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 // Import Share2 -> Share, usei Share que parece mais nativo iOS/Android
-import { ChevronLeft, Share, Heart, LayoutGrid } from 'lucide-react'
+import { ChevronLeft, Share, LayoutGrid } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -20,29 +20,17 @@ type Props = {
   images: ImageData[]
   title: string
   listingId: string
-  initialFavorited: boolean
-  initialFavoritesCount: number
   categorySlug: string
-}
-
-interface FavoriteResponse {
-  favorited: boolean
-  count: number
 }
 
 export function ProductImageCarousel({
   images,
   title,
-  listingId,
-  initialFavorited,
-  initialFavoritesCount,
+  listingId: _listingId,
   categorySlug,
 }: Props) {
   const router = useRouter()
   const [current, setCurrent] = useState(0)
-  const [favorited, setFavorited] = useState(initialFavorited)
-  const [favCount, setFavCount] = useState(initialFavoritesCount)
-  const [favPending, setFavPending] = useState(false)
 
   // NOVO: Estado para controlar se a página foi scrollada
   const [scrolled, setScrolled] = useState(false)
@@ -51,43 +39,6 @@ export function ProductImageCarousel({
     images.length > 0
       ? images
       : [{ id: 'fallback', url: 'https://picsum.photos/seed/kloop/600/600', altText: title }]
-
-  // Lógica de Favoritar via API (não mudou, só organizei)
-  const handleFavorite = async () => {
-    if (favPending) return
-    const prevFavorited = favorited
-    const prevCount = favCount
-    const nextFavorited = !prevFavorited
-    setFavorited(nextFavorited)
-    setFavCount(nextFavorited ? prevCount + 1 : Math.max(0, prevCount - 1))
-    setFavPending(true)
-    try {
-      const res = await fetch(`/api/listings/${listingId}/favorite`, {
-        method: nextFavorited ? 'POST' : 'DELETE',
-      })
-      if (res.status === 401) {
-        setFavorited(prevFavorited)
-        setFavCount(prevCount)
-        router.push('/login')
-        return
-      }
-      if (!res.ok) {
-        setFavorited(prevFavorited)
-        setFavCount(prevCount)
-        toast.error('Erro ao favoritar.')
-        return
-      }
-      const data = await res.json() as FavoriteResponse
-      setFavorited(data.favorited)
-      setFavCount(data.count)
-    } catch {
-      setFavorited(prevFavorited)
-      setFavCount(prevCount)
-      toast.error('Erro ao favoritar.')
-    } finally {
-      setFavPending(false)
-    }
-  }
 
   // Lógica de Compartilhar (blindada e pronta pro MVP)
   const handleShare = async () => {
@@ -193,40 +144,6 @@ export function ProductImageCarousel({
               )}
             >
               <Share size={18} />
-            </button>
-
-            {/* Favorite Button */}
-            {/* Scrolled favorite is cleaner, just a button inside solid header. Not scrolled favorite has backdrop filter */}
-            <button
-              onClick={() => void handleFavorite()}
-              aria-label={favorited ? 'Remover dos favoritos' : 'Favoritar'}
-              disabled={favPending}
-              className={cn(
-                'flex items-center gap-1.5 px-3.5 transition-all',
-                // Default style when NOT scrolled (like it was)
-                !scrolled && 'h-10 rounded-full bg-white/80 hover:bg-white dark:bg-black/50 dark:hover:bg-black backdrop-blur-md shadow-sm pointer-events-auto',
-                // Scrolled state logic
-                scrolled && favorited && 'h-9 rounded-full bg-[var(--color-teal)]/90 hover:bg-[var(--color-teal)] dark:bg-[var(--color-emerald)]/90 dark:hover:bg-[var(--color-emerald)] shadow-sm pointer-events-auto',
-                scrolled && !favorited && 'h-9 rounded-full text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-white/5 pointer-events-auto',
-                favPending && 'opacity-60 cursor-not-allowed',
-              )}
-            >
-              <Heart
-                size={18}
-                className={cn(
-                  'transition-colors flex-shrink-0',
-                  // Red Heart when favorited, regardless of scrolled or not
-                  favorited ? 'fill-[var(--color-teal)] text-[var(--color-teal)] dark:fill-[var(--color-emerald)] dark:text-[var(--color-emerald)]' : '',
-                  // Override red heart color if NOT scrolled and NOT favorited
-                  !favorited && scrolled && 'text-gray-800 dark:text-white',
-                  !favorited && !scrolled && 'text-gray-800 dark:text-white'
-                )}
-              />
-              {favCount > 0 && (
-                <span className={cn('text-[12px] font-bold leading-none mt-[1px]', favorited ? 'text-[var(--color-teal)] dark:text-[var(--color-emerald)]' : 'text-gray-800 dark:text-white')}>
-                  {favCount}
-                </span>
-              )}
             </button>
           </div>
         </div>

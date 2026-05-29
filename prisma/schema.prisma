@@ -224,6 +224,9 @@ model User {
   // Totem
   totemTokens            TotemToken[]
 
+  // Conquistas
+  achievements           UserAchievement[]
+
   @@map("users")
 }
 
@@ -353,6 +356,7 @@ model Listing {
   smartPriceEnabled Boolean   @default(false) @map("smart_price_enabled")
   idealPriceMinCents Int?     @map("ideal_price_min_cents")
   idealPriceMaxCents Int?     @map("ideal_price_max_cents")
+  acceptsDiscount   Boolean   @default(false) @map("accepts_discount")
   // Funcionalidades de engajamento
   isTurbinado       Boolean   @default(false) @map("is_turbinado")
   isMegafonado      Boolean   @default(false) @map("is_megafonado")
@@ -959,6 +963,23 @@ model Notification {
 // ──────────────────────────────────────────
 // TOTEM: TOKENS DE LOGIN VIA QR CODE
 // ──────────────────────────────────────────
+
+// ──────────────────────────────────────────
+// CONQUISTAS / MISSÕES
+// ──────────────────────────────────────────
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  achievementId String   @map("achievement_id") // e.g. "first_5_listings"
+  earnedAt      DateTime @default(now()) @map("earned_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@map("user_achievements")
+}
 
 model TotemToken {
   id          String    @id @default(cuid())

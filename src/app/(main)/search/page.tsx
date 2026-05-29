@@ -257,7 +257,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
             },
           },
         },
-        _count: { select: { favorites: true } },
+        _count: { select: { listingCommunities: true } },
       },
       orderBy,
       take: 60,
@@ -269,12 +269,6 @@ export default async function SearchPage({ searchParams }: PageProps) {
     }),
   ])
 
-  const favoriteIds = selfId
-    ? await db.favorite
-        .findMany({ where: { userId: selfId }, select: { listingId: true } })
-        .then((favs) => favs.map((f) => f.listingId))
-    : []
-
   const listings: ListingWithDetails[] = rawListings as ListingWithDetails[]
   const availableConditions = conditionFacets.map((f) => f.condition)
 
@@ -282,7 +276,6 @@ export default async function SearchPage({ searchParams }: PageProps) {
     <div className="max-w-screen-xl mx-auto px-0 py-0">
       <SearchPageClient
         listings={listings}
-        favoriteIds={favoriteIds}
         breadcrumbs={breadcrumbs}
         pills={pills}
         brands={topBrands.map(b => b.name)}

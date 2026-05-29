@@ -48,7 +48,7 @@ export default async function MarcaStorePage({ params, searchParams }: MarcaPage
           addresses: { where: { isDefault: true }, select: { city: true, state: true }, take: 1 } 
         } 
       },
-      _count: { select: { favorites: true, listingCommunities: true } },
+      _count: { select: { listingCommunities: true } },
     },
     orderBy: { createdAt: 'desc' },
     take: 50

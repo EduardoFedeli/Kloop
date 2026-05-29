@@ -2,14 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Eye, Heart, Handshake, Store, Tag, User, type LucideIcon } from 'lucide-react'
+import { Eye, Handshake, Store, Tag, User, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type TabConfig = { label: string; href: string; Icon: LucideIcon }
 
 const TABS: TabConfig[] = [
   { label: 'histórico', href: '/perfil/historico', Icon: Eye },
-  { label: 'favoritos', href: '/perfil/favoritos', Icon: Heart },
   { label: 'ofertas',   href: '/perfil/ofertas',   Icon: Handshake },
   { label: 'lojinhas', href: '/perfil/lojinhas',  Icon: Store },
   { label: 'marcas',   href: '/perfil/marcas',    Icon: Tag },

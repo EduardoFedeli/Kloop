@@ -61,7 +61,7 @@ export default async function ProdutoPage({ params }: Props) {
       // ATUALIZADO: Incluímos a marca de verdade para ter acesso ao nome e slug
       brand: { select: { id: true, name: true, slug: true } },
       images: { orderBy: { displayOrder: 'asc' } },
-      _count: { select: { favorites: true } },
+      _count: { select: { listingCommunities: true } },
     },
   })
 
@@ -69,10 +69,7 @@ export default async function ProdutoPage({ params }: Props) {
 
   const isOwner = session?.user?.id === listing.sellerId
 
-  const [isFavoritedResult, buyerAddress, isFollowingResult, cashbackTxs, isBrandFollowedResult, rawQuestions] = await Promise.all([
-    session?.user?.id
-      ? db.favorite.findUnique({ where: { userId_listingId: { userId: session.user.id, listingId: listing.id } } })
-      : Promise.resolve(null),
+  const [buyerAddress, isFollowingResult, cashbackTxs, isBrandFollowedResult, rawQuestions] = await Promise.all([
     session?.user?.id
       ? db.address.findFirst({ where: { userId: session.user.id, isDefault: true }, select: { zipCode: true } })
       : Promise.resolve(null),
@@ -112,7 +109,6 @@ export default async function ProdutoPage({ params }: Props) {
     answer: q.answer ? { ...q.answer, createdAt: q.answer.createdAt.toISOString() } : null,
   }))
 
-  const isFavorited = isFavoritedResult !== null
   const isFollowing = isFollowingResult !== null
   const isBrandFollowed = isBrandFollowedResult !== null
 
@@ -142,13 +138,11 @@ export default async function ProdutoPage({ params }: Props) {
         
         <ViewTracker listingId={listing.id} />
         
-        <ProductImageCarousel 
-          images={listing.images} 
-          title={listing.title} 
-          listingId={listing.id} 
-          initialFavorited={isFavorited} 
-          initialFavoritesCount={listing._count.favorites} 
-          categorySlug={listing.category.slug} 
+        <ProductImageCarousel
+          images={listing.images}
+          title={listing.title}
+          listingId={listing.id}
+          categorySlug={listing.category.slug}
         />
         
         <div className="px-5 mt-5 space-y-8">

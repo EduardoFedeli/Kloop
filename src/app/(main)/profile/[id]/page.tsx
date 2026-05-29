@@ -111,7 +111,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
           brand: true,
           images: { orderBy: { displayOrder: "asc" }, take: 1, select: { url: true, altText: true } },
           seller: { select: { id: true, name: true, avatarUrl: true, addresses: { where: { isDefault: true }, select: { city: true, state: true }, take: 1 } } },
-          _count: { select: { favorites: true, listingCommunities: true } },
+          _count: { select: { listingCommunities: true } },
         },
         orderBy,
         take: 40,
