@@ -209,7 +209,7 @@ export function SearchPageClient({
           <p className="text-[13px] font-bold text-gray-500 dark:text-sage">
             {totalCount} {totalCount === 1 ? 'resultado' : 'resultados'}
           </p>
-          
+
           <div className="relative flex items-center gap-1">
             <span className="text-[13px] font-bold text-gray-500 dark:text-sage">ordenar por:</span>
             <div className="relative flex items-center">
@@ -227,15 +227,92 @@ export function SearchPageClient({
             </div>
           </div>
         </div>
+
+        {/* Filtro de novidades — chips visíveis direto na tela */}
+        <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 pt-0.5 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
+          {[
+            { val: '1', label: '⚡ últimas 24h' },
+            { val: '7', label: '🆕 esta semana' },
+            { val: '14', label: '📅 14 dias' },
+            { val: '30', label: '🗓 30 dias' },
+          ].map((opt) => {
+            const isActive = currentParams.newness === opt.val
+            const p = new URLSearchParams(searchParams.toString())
+            if (isActive) { p.delete('newness') } else { p.set('newness', opt.val) }
+            return (
+              <Link
+                key={opt.val}
+                href={`/search?${p.toString()}`}
+                className={cn(
+                  "flex-shrink-0 px-3 py-1.5 rounded-full text-[12px] font-bold border transition-colors whitespace-nowrap",
+                  isActive
+                    ? "bg-[var(--color-teal)] border-[var(--color-teal)] text-white"
+                    : "bg-transparent border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/60 hover:border-[var(--color-teal)]/40"
+                )}
+              >
+                {opt.label}
+              </Link>
+            )
+          })}
+        </div>
       </div>
 
       {/* Container de Resultados ou Estado Vazio */}
       <div className="px-4 mt-4 min-h-[50vh] flex flex-col">
         {totalCount === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center pt-24 pb-12">
-            <p className="text-[16px] font-medium text-[var(--color-teal)] dark:text-[var(--color-celadon)]">
-              Nenhum anúncio encontrado.
+          <div className="flex-1 flex flex-col items-center pt-12 pb-12">
+            {/* Mensagem principal */}
+            <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center mb-4">
+              <span className="text-2xl">🔍</span>
+            </div>
+            <p className="text-[18px] font-black text-[var(--foreground)] mb-1 text-center">
+              Nenhum resultado encontrado
             </p>
+            <p className="text-[13px] text-gray-500 dark:text-sage text-center mb-6 max-w-xs">
+              Tente termos mais gerais ou explore outras categorias
+            </p>
+
+            {/* Ações sugeridas */}
+            <div className="w-full max-w-xs space-y-2">
+              {activeFiltersCount > 0 && (
+                <button
+                  onClick={clearAllFilters}
+                  className="w-full py-3 rounded-xl bg-[var(--color-teal)] text-white font-bold text-[14px] hover:opacity-90 transition-opacity"
+                >
+                  Limpar todos os filtros
+                </button>
+              )}
+              <Link
+                href="/search"
+                className="block w-full py-3 rounded-xl bg-gray-100 dark:bg-white/5 text-[var(--foreground)] font-bold text-[14px] text-center hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+              >
+                Explorar o catálogo
+              </Link>
+            </div>
+
+            {/* Sugestões de categorias */}
+            <div className="mt-8 w-full max-w-xs">
+              <p className="text-[12px] font-black uppercase tracking-widest text-gray-400 dark:text-white/30 mb-3 text-center">
+                quem sabe aqui tem
+              </p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {[
+                  { label: 'moda feminina', href: '/search?dept=mocas' },
+                  { label: 'moda masculina', href: '/search?dept=rapazes' },
+                  { label: 'eletrônicos', href: '/search?dept=eletronicos' },
+                  { label: 'crianças', href: '/search?dept=criancas' },
+                  { label: 'casa & decor', href: '/search?dept=casa-e-decoracao' },
+                ].map((s) => (
+                  <Link
+                    key={s.label}
+                    href={s.href}
+                    className="px-3 py-1.5 bg-white dark:bg-[var(--color-pine)] border border-gray-100 dark:border-white/5 rounded-full text-[12px] font-bold text-[var(--foreground)] hover:border-[var(--color-teal)]/40 transition-colors"
+                  >
+                    {s.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           <ListingGrid listings={listings} variant="search" />

@@ -13,14 +13,14 @@ interface PlanBadgeProps {
 
 const variantStyles: Record<PlanVariant, string> = {
   basic: "bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-white/40",
-  pro: "bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-white/40",
-  premium: "bg-amber-100 dark:bg-amber-400/10 text-amber-600 dark:text-amber-400",
+  pro: "bg-amber-100 dark:bg-amber-400/10 text-amber-600 dark:text-amber-300 border border-amber-300/30 dark:border-amber-400/20",
+  premium: "bg-amber-100 dark:bg-amber-400/10 text-amber-600 dark:text-amber-300 border border-amber-300/30 dark:border-amber-400/20",
   enterprise: "bg-violet-100 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400",
 }
 
 const planLabels: Record<PlanVariant, string> = {
   basic: "Kloop",
-  pro: "Kloop",
+  pro: "Kloop Pro",
   premium: "Kloop Pro",
   enterprise: "Enterprise",
 }
@@ -35,7 +35,7 @@ export function PlanBadge({ plan, className }: PlanBadgeProps) {
           className
         )}
       >
-        {plan === "premium" && <Crown size={10} />}
+        {(plan === "pro" || plan === "premium") && <Crown size={9} />}
         {planLabels[plan]}
       </span>
     </Link>

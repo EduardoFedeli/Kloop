@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect, useTransition } from "react"
+import { useState, useTransition } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowLeft, Megaphone, PlusCircle, Edit3, PauseCircle, Trash2, CalendarDays, Star, Package, Settings, Tag, SlidersHorizontal, ChevronDown, X, UserPlus, MessageSquare, MapPin, Search, Zap, Play } from "lucide-react"
+import { ArrowLeft, Megaphone, PlusCircle, Edit3, PauseCircle, Trash2, CalendarDays, Star, Package, Settings, Tag, SlidersHorizontal, ChevronDown, X, UserPlus, MessageSquare, MapPin, Search, Zap, Play, Share2, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { ListingGrid } from "@/components/listing/ListingGrid"
 import { ConfirmModal } from "@/components/ui/ConfirmModal"
@@ -13,6 +13,7 @@ import { PlanBadge } from "@/components/ui/PlanBadge"
 import { toggleFollow } from "@/app/actions/interacoes"
 import { deleteListingAction, toggleListingStatusAction } from "@/lib/actions/listing"
 import { updateAvatarAction, updateCoverAction } from "@/lib/actions/profile"
+import { applyMegafoneAction } from "@/lib/actions/megafone"
 
 type UserProfile = { id: string; name: string; bio: string | null; avatarUrl: string | null; coverUrl: string | null; createdAt: Date }
 type ReviewData = { id: string; rating: number; comment: string | null; tags: string[]; createdAt: Date; reviewer: { name: string } }
@@ -36,8 +37,21 @@ type Props = {
   userLocation?: { city: string; state: string } | null
   initialIsFollowing?: boolean
   followersCount?: number
-  // ADICIONADO: Nova prop para esconder lógica de usuário em páginas de Marca
   isBrandStore?: boolean
+}
+
+function getMegafoneTimeRemaining(until: Date | string | null | undefined) {
+  if (!until) return null
+  const end = new Date(until)
+  const now = new Date()
+  const diff = end.getTime() - now.getTime()
+  if (diff <= 0) return null
+  const totalMs = 7 * 24 * 60 * 60 * 1000
+  const pct = Math.max(0, Math.min(100, (diff / totalMs) * 100))
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  const label = days > 0 ? `${days}d ${hours}h restantes` : `${hours}h restantes`
+  return { label, pct }
 }
 
 export function ProfileStoreClient({
@@ -52,8 +66,16 @@ export function ProfileStoreClient({
   const [backofficeSearch, setBackofficeSearch] = useState("")
   const [backofficeSort, setBackofficeSort] = useState<"recent" | "price_asc" | "price_desc">("recent")
   const [showOnlyTurbinados, setShowOnlyTurbinados] = useState(false)
+  const [showOnlyMegafonados, setShowOnlyMegafonados] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+  const [pauseTarget, setPauseTarget] = useState<string | null>(null)
   const [isActionPending, startActionTransition] = useTransition()
+  const [megafoneTarget, setMegafoneTarget] = useState<string | null>(null)
+  const [isMegafonePending, startMegafoneTransition] = useTransition()
+
+  // ── ESTADOS DA VITRINE PÚBLICA ──
+  const [filterTurbinados, setFilterTurbinados] = useState(false)
+  const [filterMegafonados, setFilterMegafonados] = useState(false)
 
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -63,7 +85,6 @@ export function ProfileStoreClient({
     setIsFollowing(prev => !prev)
     startFollowTransition(async () => {
       try {
-        // ADICIONADO: Se for loja de marca, passa TARGET = BRAND. Se for usuário, TARGET = USER.
         await toggleFollow(user.id, isBrandStore ? "BRAND" : "USER")
       } catch {
         setIsFollowing(prev => !prev)
@@ -80,12 +101,53 @@ export function ProfileStoreClient({
     })
   }
 
+  const handleConfirmPause = () => {
+    if (!pauseTarget) return
+    handleToggleStatus(pauseTarget)
+    setPauseTarget(null)
+  }
+
   const handleDelete = async () => {
     if (!deleteTarget) return
     const result = await deleteListingAction(deleteTarget)
     if (result.success) toast.success("Anúncio excluído!")
     else toast.error(result.error ?? "Erro ao excluir")
     setDeleteTarget(null)
+  }
+
+  const handleMegafone = (listingId: string) => {
+    setMegafoneTarget(listingId)
+    startMegafoneTransition(async () => {
+      const result = await applyMegafoneAction(listingId)
+      setMegafoneTarget(null)
+      if (result.success) {
+        toast.success("Produto megafonado! 📣")
+      } else if (!result.success && result.discountRequired) {
+        toast.error("Este produto precisa de desconto para ser megafonado.", {
+          action: { label: "Abrir Megafone", onClick: () => router.push("/vendas/megafone") }
+        })
+      } else {
+        toast.error(result.error ?? "Erro ao megafonar")
+      }
+    })
+  }
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/profile/${user.id}`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `Vitrine de ${user.name} no Kloop`, url })
+      } catch {
+        // user dismissed share dialog
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url)
+        toast.success("Link da vitrine copiado!")
+      } catch {
+        toast.error("Não foi possível copiar o link")
+      }
+    }
   }
 
   const [isUploading, setIsUploading] = useState(false)
@@ -112,11 +174,16 @@ export function ProfileStoreClient({
   const backofficeListing = listings
     .filter(l => !backofficeSearch || l.title.toLowerCase().includes(backofficeSearch.toLowerCase()))
     .filter(l => !showOnlyTurbinados || l.isTurbinado)
+    .filter(l => !showOnlyMegafonados || l.isMegafonado)
     .sort((a, b) => {
       if (backofficeSort === "price_asc") return a.priceCents - b.priceCents
       if (backofficeSort === "price_desc") return b.priceCents - a.priceCents
       return 0
     })
+
+  const visibleListings = listings
+    .filter(l => !filterTurbinados || l.isTurbinado)
+    .filter(l => !filterMegafonados || l.isMegafonado)
 
   // ── ESTADOS DO FILTRO ──
   const [isFilterOpen, setIsFilterOpen] = useState(false)
@@ -126,15 +193,6 @@ export function ProfileStoreClient({
   const [localCondition, setLocalCondition] = useState(currentParams.condition || "")
   const [localSize, setLocalSize] = useState(currentParams.size || "")
   const [localCategory, setLocalCategory] = useState(currentParams.category || "")
-
-  useEffect(() => {
-    setLocalBrand(currentParams.brand || "")
-    setLocalMinPrice(currentParams.minPrice || "")
-    setLocalMaxPrice(currentParams.maxPrice || "")
-    setLocalCondition(currentParams.condition || "")
-    setLocalSize(currentParams.size || "")
-    setLocalCategory(currentParams.category || "")
-  }, [currentParams])
 
   const toggleBrand = (b: string) => setLocalBrand(prev => prev === b ? "" : b)
   const toggleCondition = (c: string) => setLocalCondition(prev => prev === c ? "" : c)
@@ -150,7 +208,6 @@ export function ProfileStoreClient({
     if (localSize) params.set('size', localSize); else params.delete('size')
     if (localCategory) params.set('category', localCategory); else params.delete('category')
     setIsFilterOpen(false)
-    // Redireciona mantendo o contexto de usuário ou de marca
     const basePath = isBrandStore ? `/marca` : `/profile`
     router.push(`${basePath}/${user.id}?${params.toString()}`)
   }
@@ -184,11 +241,15 @@ export function ProfileStoreClient({
   const defaultCover = "linear-gradient(135deg, #a8ff78 0%, #78ffd6 100%)"
   const backgroundStyle = user.coverUrl ? `url(${user.coverUrl})` : defaultCover
 
-  // ── LÓGICA DAS BARRAS DE AVALIAÇÃO ──
   const ratingCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
   reviews.forEach(r => { if (r.rating >= 1 && r.rating <= 5) ratingCounts[r.rating as keyof typeof ratingCounts]++ })
 
-  // ── MODAL DE AVALIAÇÕES (FULLSCREEN TIPO ENJOEI) ──
+  const pauseTargetListing = listings.find(l => l.id === pauseTarget)
+  const pauseIsActive = pauseTargetListing?.status === "ACTIVE"
+  const hasTurbinados = listings.some(l => l.isTurbinado)
+  const hasMegafonados = listings.some(l => l.isMegafonado)
+
+  // ── MODAL DE AVALIAÇÕES ──
   if (isReviewsModalOpen) {
     return (
       <div className="fixed inset-0 z-50 bg-[var(--color-forest)] flex flex-col animate-in fade-in zoom-in-95 duration-200 overflow-y-auto">
@@ -210,16 +271,14 @@ export function ProfileStoreClient({
             </div>
           ) : (
             <>
-              {/* Card Resumo */}
               <div className="bg-[#1b3a2a] border border-[#234d38] rounded-2xl p-6 shadow-lg flex gap-6">
                 <div className="flex flex-col items-center justify-center">
                   <span className="text-[48px] font-black text-white leading-none">{avgRating}</span>
                   <div className="flex mt-1">
-                     {[1,2,3,4,5].map(s => <Star key={s} size={14} className={s <= Number(avgRating) ? "fill-[#f5d547] text-[#f5d547]" : "text-white/20"} />)}
+                    {[1,2,3,4,5].map(s => <Star key={s} size={14} className={s <= Number(avgRating) ? "fill-[#f5d547] text-[#f5d547]" : "text-white/20"} />)}
                   </div>
                   <span className="text-[12px] font-medium text-white/60 mt-1">{totalRatings} avaliação{totalRatings !== 1 && 'ões'}</span>
                 </div>
-                
                 <div className="flex-1 space-y-1.5 flex flex-col justify-center">
                   {[5,4,3,2,1].map((star) => {
                     const count = ratingCounts[star as keyof typeof ratingCounts]
@@ -238,21 +297,19 @@ export function ProfileStoreClient({
                 </div>
               </div>
 
-              {/* Lista de Avaliações */}
               <div className="space-y-4">
                 {reviews.map(review => (
                   <div key={review.id} className="bg-[#1b3a2a] border border-[#234d38] rounded-2xl p-5 shadow-sm">
                     <div className="flex justify-between items-start mb-2">
-                       <div>
-                         <p className="text-[12px] font-medium text-[var(--color-sage)]">
-                           <span className="font-bold text-white/80">{review.reviewer.name.toLowerCase()}</span> • {formatDate(review.createdAt)}
-                         </p>
-                       </div>
-                       <div className="flex">
-                         {[1,2,3,4,5].map(s => <Star key={s} size={12} className={s <= review.rating ? "fill-[#f5d547] text-[#f5d547]" : "text-white/10"} />)}
-                       </div>
+                      <div>
+                        <p className="text-[12px] font-medium text-[var(--color-sage)]">
+                          <span className="font-bold text-white/80">{review.reviewer.name.toLowerCase()}</span> • {formatDate(review.createdAt)}
+                        </p>
+                      </div>
+                      <div className="flex">
+                        {[1,2,3,4,5].map(s => <Star key={s} size={12} className={s <= review.rating ? "fill-[#f5d547] text-[#f5d547]" : "text-white/10"} />)}
+                      </div>
                     </div>
-                    
                     {review.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-3 mt-3">
                         {review.tags.map(tag => (
@@ -262,7 +319,6 @@ export function ProfileStoreClient({
                         ))}
                       </div>
                     )}
-
                     {review.comment && (
                       <p className="text-[14px] text-white mt-2 leading-relaxed">&ldquo;{review.comment}&rdquo;</p>
                     )}
@@ -282,7 +338,9 @@ export function ProfileStoreClient({
       <div className="min-h-screen bg-[var(--color-forest)] text-white flex flex-col">
         <div className="sticky top-0 z-30 bg-[var(--color-forest)]/95 backdrop-blur-md pt-4 pb-4 px-4 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
-            <button onClick={() => setIsEditing(false)} className="p-1 hover:opacity-70 transition-opacity"><ArrowLeft size={24} className="text-white" /></button>
+            <button onClick={() => setIsEditing(false)} className="p-1 hover:opacity-70 transition-opacity">
+              <ArrowLeft size={24} className="text-white" />
+            </button>
             <span className="font-bold text-[15px]">voltar para a vitrine</span>
           </div>
 
@@ -298,18 +356,24 @@ export function ProfileStoreClient({
         </div>
 
         <div className="px-4 pb-24 flex-1">
+          {/* Card de megafones disponíveis */}
           <Link href="/vendas/megafone" className="bg-[#1b1b11] border border-[#3b3b22] rounded-2xl p-4 mb-4 flex items-center justify-between shadow-sm mt-4 hover:border-[#f5d547]/40 transition-colors block">
             <div className="flex items-center gap-3">
-              <Megaphone size={24} className="text-[#f5d547]" />
+              <div className="w-10 h-10 rounded-xl bg-[#f5d547]/10 flex items-center justify-center flex-shrink-0">
+                <Megaphone size={20} className="text-[#f5d547]" />
+              </div>
               <div>
-                <h3 className="text-[15px] font-black text-[#f5d547] leading-tight">megafone</h3>
-                <p className="text-[11px] font-medium text-[var(--color-sage)]">{megaphonesAvailable} disponíveis esta semana</p>
+                <h3 className="text-[14px] font-black text-[#f5d547] leading-tight">megafones disponíveis</h3>
+                <p className="text-[11px] font-medium text-[var(--color-sage)]">toque para gerenciar megafones</p>
               </div>
             </div>
-            <span className="text-3xl font-black text-[#f5d547]">{megaphonesAvailable}</span>
+            <div className="text-right">
+              <span className="text-3xl font-black text-[#f5d547]">{megaphonesAvailable}</span>
+              <p className="text-[10px] text-[#f5d547]/50 font-medium">esta semana</p>
+            </div>
           </Link>
 
-          {/* ── Ferramentas do Backoffice ── */}
+          {/* Ferramentas do Backoffice */}
           <div className="space-y-3 mb-4">
             <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
@@ -322,12 +386,21 @@ export function ProfileStoreClient({
               />
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => setShowOnlyTurbinados(prev => !prev)}
-                className={cn("flex items-center gap-1.5 text-[12px] font-bold px-3 py-1.5 rounded-full border transition-colors", showOnlyTurbinados ? "bg-[var(--color-teal)] border-[var(--color-teal)] text-white" : "bg-white/5 border-white/10 text-white/70")}
+                className={cn("flex items-center gap-1.5 text-[12px] font-bold px-3 py-1.5 rounded-full border transition-colors",
+                  showOnlyTurbinados ? "bg-[var(--color-teal)] border-[var(--color-teal)] text-white" : "bg-white/5 border-white/10 text-white/70")}
               >
                 <Zap size={12} fill={showOnlyTurbinados ? "currentColor" : "none"} /> só turbinados
+              </button>
+
+              <button
+                onClick={() => setShowOnlyMegafonados(prev => !prev)}
+                className={cn("flex items-center gap-1.5 text-[12px] font-bold px-3 py-1.5 rounded-full border transition-colors",
+                  showOnlyMegafonados ? "bg-[#1c1c0e] border-[#f5d547] text-[#f5d547]" : "bg-white/5 border-white/10 text-white/70")}
+              >
+                <Megaphone size={12} /> só megafonados
               </button>
 
               <select
@@ -342,35 +415,106 @@ export function ProfileStoreClient({
             </div>
           </div>
 
+          {/* Grid de cards de anúncios */}
           {backofficeListing.length > 0 ? (
-            <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
               {backofficeListing.map(listing => {
                 const isActive = listing.status === "ACTIVE"
                 const isPaused = listing.status === "PAUSED"
+                const megafoneRemaining = getMegafoneTimeRemaining(listing.megafonadoUntil)
+                const isMegafonedNow = listing.isMegafonado && megafoneRemaining !== null
+                const isThisMegafonePending = isMegafonePending && megafoneTarget === listing.id
+
                 return (
-                  <div key={listing.id} className="bg-white rounded-2xl p-3 flex gap-4 items-center">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
-                      {listing.images[0] ? <img src={listing.images[0].url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xl">📦</div>}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-[13px] font-bold text-[var(--color-pine)] truncate">{listing.title}</h4>
-                      <p className="text-[14px] font-black text-[var(--color-teal)] mt-0.5">{formatPrice(listing.priceCents)}</p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full", isActive ? "bg-[var(--color-celadon)]/30 text-[var(--color-teal)]" : isPaused ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-500")}>
-                          {isActive ? "Ativo" : isPaused ? "Pausado" : listing.status}
-                        </span>
-                        <span className="text-[10px] font-medium text-[var(--color-sage)] flex items-center gap-0.5">👁 {listing.viewsCount ?? 0}</span>
-                        {listing.isTurbinado && <span className="text-[10px] font-bold text-[var(--color-teal)] flex items-center gap-0.5"><Zap size={9} fill="currentColor" /> turbinado</span>}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2.5 pr-1">
-                      <Link href={`/listing/${listing.slug}/edit`} className="text-[var(--color-teal)] hover:opacity-70"><Edit3 size={17} /></Link>
-                      {(isActive || isPaused) && (
-                        <button onClick={() => handleToggleStatus(listing.id)} disabled={isActionPending} className="text-[var(--color-teal)] hover:opacity-70 disabled:opacity-40">
-                          {isActive ? <PauseCircle size={17} /> : <Play size={17} />}
-                        </button>
+                  <div key={listing.id} className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                    {/* Imagem com overlay de edição */}
+                    <div className="relative aspect-square">
+                      {listing.images[0] ? (
+                        <img src={listing.images[0].url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 flex items-center justify-center text-3xl">📦</div>
                       )}
-                      <button onClick={() => setDeleteTarget(listing.id)} className="text-red-500 hover:opacity-70"><Trash2 size={17} /></button>
+                      <Link
+                        href={`/listing/${listing.slug}/edit`}
+                        className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/40 transition-all group"
+                      >
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full p-2.5 shadow-lg">
+                          <Edit3 size={16} className="text-[var(--color-pine)]" />
+                        </div>
+                      </Link>
+                      {/* Status chip */}
+                      <div className={cn(
+                        "absolute top-2 left-2 text-[9px] font-black px-2 py-0.5 rounded-full",
+                        isActive ? "bg-[var(--color-celadon)] text-[var(--color-pine)]" : "bg-yellow-100 text-yellow-700"
+                      )}>
+                        {isActive ? "ATIVO" : "PAUSADO"}
+                      </div>
+                      {/* Turbinado badge */}
+                      {listing.isTurbinado && (
+                        <div className="absolute top-2 right-2 bg-[var(--color-teal)] text-white text-[8px] font-black px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                          <Zap size={7} fill="currentColor" /> turbo
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="p-2.5">
+                      <p className="text-[12px] font-bold text-[var(--color-pine)] truncate">{listing.title}</p>
+                      <p className="text-[13px] font-black text-[var(--color-teal)]">{formatPrice(listing.priceCents)}</p>
+
+                      {/* Megafone: countdown bar ou botão MEGAFONAR */}
+                      {isMegafonedNow ? (
+                        <div className="mt-2">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="flex items-center gap-0.5 text-[9px] font-black text-[#c5a820]">
+                              <Megaphone size={8} /> MEGAFONADO
+                            </span>
+                            <span className="text-[9px] text-gray-400">{megafoneRemaining!.label}</span>
+                          </div>
+                          <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-[#f5d547] rounded-full transition-all"
+                              style={{ width: `${megafoneRemaining!.pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      ) : isActive ? (
+                        <button
+                          onClick={() => handleMegafone(listing.id)}
+                          disabled={megaphonesAvailable === 0 || isMegafonePending}
+                          className="mt-2 w-full text-[10px] font-black text-[#c5a820] bg-[#1c1c0e] border border-[#f5d547]/30 rounded-lg py-1.5 hover:border-[#f5d547]/70 transition-colors disabled:opacity-40 flex items-center justify-center gap-1"
+                        >
+                          {isThisMegafonePending ? (
+                            <Loader2 size={10} className="animate-spin" />
+                          ) : megaphonesAvailable === 0 ? (
+                            "sem megafones"
+                          ) : (
+                            <><Megaphone size={10} /> MEGAFONAR</>
+                          )}
+                        </button>
+                      ) : null}
+
+                      {/* Linha de ações */}
+                      <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-gray-50">
+                        <span className="text-[10px] text-gray-400 flex items-center gap-0.5 mr-auto">
+                          👁 {listing.viewsCount ?? 0}
+                        </span>
+                        {(isActive || isPaused) && (
+                          <button
+                            onClick={() => setPauseTarget(listing.id)}
+                            disabled={isActionPending}
+                            className="text-gray-400 hover:text-amber-500 transition-colors disabled:opacity-40"
+                          >
+                            {isActive ? <PauseCircle size={15} /> : <Play size={15} />}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setDeleteTarget(listing.id)}
+                          className="text-gray-300 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )
@@ -381,7 +525,9 @@ export function ProfileStoreClient({
               {listings.length === 0 ? (
                 <>
                   <p className="text-[14px] text-[var(--color-teal)] font-medium mb-4">Você ainda não tem anúncios.</p>
-                  <Link href="/create" className="inline-block bg-[var(--color-teal)] text-white font-bold text-[14px] px-6 py-3 rounded-full hover:opacity-90">Criar meu primeiro anúncio</Link>
+                  <Link href="/create" className="inline-block bg-[var(--color-teal)] text-white font-bold text-[14px] px-6 py-3 rounded-full hover:opacity-90">
+                    Criar meu primeiro anúncio
+                  </Link>
                 </>
               ) : (
                 <p className="text-[14px] text-[var(--color-teal)] font-medium">Nenhum anúncio encontrado com esse filtro.</p>
@@ -389,6 +535,17 @@ export function ProfileStoreClient({
             </div>
           )}
         </div>
+
+        <ConfirmModal
+          isOpen={pauseTarget !== null}
+          title={pauseIsActive ? "Pausar anúncio" : "Reativar anúncio"}
+          description={pauseIsActive
+            ? "O anúncio ficará oculto para compradores. Você pode reativar quando quiser."
+            : "O anúncio voltará a aparecer para os compradores."}
+          confirmLabel={pauseIsActive ? "Pausar" : "Reativar"}
+          onConfirm={handleConfirmPause}
+          onClose={() => setPauseTarget(null)}
+        />
 
         <ConfirmModal
           isOpen={deleteTarget !== null}
@@ -401,12 +558,12 @@ export function ProfileStoreClient({
       </div>
     )
   }
-  
+
   // ── VISÃO PÚBLICA (VITRINE) ──
   return (
     <div className="min-h-screen bg-[var(--background)] pb-24">
       <div className="relative z-30 bg-[#163322] dark:bg-[var(--color-pine)] rounded-b-[32px] shadow-sm mb-6 pb-6">
-        
+
         <div className="relative h-[110px] w-full rounded-t-none bg-cover bg-center" style={{ backgroundImage: backgroundStyle }}>
           <div className="absolute inset-0 bg-black/20 z-0"></div>
 
@@ -424,11 +581,24 @@ export function ProfileStoreClient({
               <ArrowLeft size={20} />
             </button>
 
-            {isOwn && (
-              <button onClick={() => setIsEditing(true)} className="bg-black/30 hover:bg-black/50 text-white text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors backdrop-blur-md border border-white/10 shadow-sm">
-                <Settings size={14} /> gerenciar loja
+            <div className="flex items-center gap-2">
+              {/* Botão compartilhar — visível para todos */}
+              <button
+                onClick={handleShare}
+                className="bg-black/30 hover:bg-black/50 text-white text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors backdrop-blur-md border border-white/10 shadow-sm"
+              >
+                <Share2 size={14} /> compartilhar
               </button>
-            )}
+
+              {isOwn && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="bg-black/30 hover:bg-black/50 text-white text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors backdrop-blur-md border border-white/10 shadow-sm"
+                >
+                  <Settings size={14} /> gerenciar loja
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -444,11 +614,11 @@ export function ProfileStoreClient({
           </div>
 
           {!isOwn && (
-             <div className="absolute top-3 right-5">
-               <button onClick={handleFollowToggle} disabled={isFollowPending} className={cn("text-[12px] font-bold px-4 py-1.5 rounded-full flex items-center gap-1.5 transition-colors border disabled:opacity-60", isFollowing ? "bg-transparent text-white border-white/40 hover:bg-white/10" : "bg-white text-[var(--color-pine)] border-white shadow-sm")}>
-                 {!isFollowing && <UserPlus size={14} />} {isFollowing ? "seguindo" : "seguir"}
-               </button>
-             </div>
+            <div className="absolute top-3 right-5">
+              <button onClick={handleFollowToggle} disabled={isFollowPending} className={cn("text-[12px] font-bold px-4 py-1.5 rounded-full flex items-center gap-1.5 transition-colors border disabled:opacity-60", isFollowing ? "bg-transparent text-white border-white/40 hover:bg-white/10" : "bg-white text-[var(--color-pine)] border-white shadow-sm")}>
+                {!isFollowing && <UserPlus size={14} />} {isFollowing ? "seguindo" : "seguir"}
+              </button>
+            </div>
           )}
 
           <div className="h-12 w-full"></div>
@@ -458,7 +628,6 @@ export function ProfileStoreClient({
             {planVariant !== 'basic' && <PlanBadge plan={planVariant} />}
           </div>
 
-          {/* ADICIONADO: Condicional para não renderizar as estrelinhas se for loja de marca */}
           {!isBrandStore && (
             <button onClick={() => setIsReviewsModalOpen(true)} className="inline-flex items-center gap-1.5 mt-1.5 hover:opacity-80 transition-opacity group">
               <div className="flex">
@@ -476,7 +645,7 @@ export function ProfileStoreClient({
               <span className="flex items-center gap-1.5 bg-black/20 px-2.5 py-1.5 rounded-full border border-white/5"><Tag size={12} className="opacity-80" /> {itemsSold} vendidos</span>
             )}
             {!isBrandStore && (
-               <span className="flex items-center gap-1.5 bg-black/20 px-2.5 py-1.5 rounded-full border border-white/5 opacity-80"><CalendarDays size={12} className="opacity-80" /> kloop desde {new Date(user.createdAt).getFullYear()}</span>
+              <span className="flex items-center gap-1.5 bg-black/20 px-2.5 py-1.5 rounded-full border border-white/5 opacity-80"><CalendarDays size={12} className="opacity-80" /> kloop desde {new Date(user.createdAt).getFullYear()}</span>
             )}
             {!isBrandStore && userLocation && (
               <span className="flex items-center gap-1.5 bg-black/20 px-2.5 py-1.5 rounded-full border border-white/5 opacity-80"><MapPin size={12} className="opacity-80" /> {userLocation.city}, {userLocation.state}</span>
@@ -502,6 +671,38 @@ export function ProfileStoreClient({
           </div>
         </div>
 
+        {/* Quick filters: turbinados / megafonados */}
+        {(hasTurbinados || hasMegafonados) && (
+          <div className="flex gap-2 mb-3">
+            {hasTurbinados && (
+              <button
+                onClick={() => setFilterTurbinados(prev => !prev)}
+                className={cn(
+                  "flex items-center gap-1.5 text-[12px] font-bold px-3 py-1.5 rounded-full border transition-colors",
+                  filterTurbinados
+                    ? "bg-[var(--color-teal)] border-[var(--color-teal)] text-white"
+                    : "bg-transparent border-gray-200 dark:border-white/10 text-[var(--foreground)]"
+                )}
+              >
+                <Zap size={12} fill={filterTurbinados ? "currentColor" : "none"} /> turbinados
+              </button>
+            )}
+            {hasMegafonados && (
+              <button
+                onClick={() => setFilterMegafonados(prev => !prev)}
+                className={cn(
+                  "flex items-center gap-1.5 text-[12px] font-bold px-3 py-1.5 rounded-full border transition-colors",
+                  filterMegafonados
+                    ? "bg-[#1c1c0e] border-[#f5d547] text-[#f5d547]"
+                    : "bg-transparent border-gray-200 dark:border-white/10 text-[var(--foreground)]"
+                )}
+              >
+                <Megaphone size={12} /> megafonados
+              </button>
+            )}
+          </div>
+        )}
+
         {activeFilterTags.length > 0 && (
           <div className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
             {activeFilterTags.map((af) => <Link key={af.label} href={af.removeUrl} className="flex-shrink-0 px-3 py-1.5 bg-[var(--color-teal)]/10 text-[var(--color-teal)] dark:bg-[var(--color-celadon)]/10 dark:text-[var(--color-celadon)] border border-[var(--color-teal)]/20 rounded-full text-[12px] font-bold flex items-center gap-1.5 hover:brightness-95 transition-all">{af.label} <X size={12} strokeWidth={3} /></Link>)}
@@ -510,11 +711,13 @@ export function ProfileStoreClient({
       </div>
 
       <div className="px-4">
-        {listings.length > 0 ? (
-          <ListingGrid listings={listings} variant="search" />
+        {visibleListings.length > 0 ? (
+          <ListingGrid listings={visibleListings} variant="search" />
         ) : (
           <div className="text-center py-16 text-gray-500 dark:text-sage">
-            <p className="text-[15px] font-medium">Esta loja ainda não tem anúncios.</p>
+            <p className="text-[15px] font-medium">
+              {listings.length === 0 ? "Esta loja ainda não tem anúncios." : "Nenhum anúncio com esse filtro."}
+            </p>
           </div>
         )}
       </div>
@@ -525,7 +728,7 @@ export function ProfileStoreClient({
         {activeFilterTags.length > 0 && <span className="w-5 h-5 bg-white dark:bg-[var(--color-pine)] text-[var(--color-pine)] dark:text-white rounded-full flex items-center justify-center text-[10px] font-black">{activeFilterTags.length}</span>}
       </button>
 
-      {/* ── MODAL DE FILTROS ── */}
+      {/* Modal de Filtros */}
       {isFilterOpen && (
         <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white dark:bg-[var(--color-pine)] w-full h-[90%] sm:max-w-lg sm:h-auto sm:rounded-3xl rounded-t-[32px] flex flex-col overflow-hidden animate-in slide-in-from-bottom-full duration-300">

@@ -77,13 +77,32 @@ export async function applyMegafoneAction(
     }
   }
 
-  // Load subscription quota
-  const sub = await db.userSubscription.findUnique({
+  // Load subscription quota — auto-create with basic plan if not found
+  let sub = await db.userSubscription.findUnique({
     where: { userId },
     include: { plan: { select: { megaphonesPerWeek: true } } },
   })
 
-  if (!sub) return { success: false, error: "Assinatura não encontrada" }
+  if (!sub) {
+    const basicPlan = await db.subscriptionPlan.findFirst({
+      where: { slug: "basic" },
+      select: { id: true, megaphonesPerWeek: true },
+    })
+    if (!basicPlan) return { success: false, error: "Configuração de plano não encontrada. Contate o suporte." }
+
+    sub = await db.userSubscription.upsert({
+      where: { userId },
+      update: {},
+      create: {
+        userId,
+        planId: basicPlan.id,
+        status: "ACTIVE",
+        currentPeriodStart: now,
+        currentPeriodEnd: sevenDaysFromNow(now),
+      },
+      include: { plan: { select: { megaphonesPerWeek: true } } },
+    })
+  }
 
   const megaphonesPerWeek = sub.plan?.megaphonesPerWeek ?? 5
   const extraBalance = sub.extraMegaphonesBalance
@@ -147,6 +166,7 @@ export async function applyMegafoneAction(
   })
 
   revalidatePath(`/listing/${listing.slug}`)
+  revalidatePath(`/profile/${userId}`)
   revalidatePath('/profile', 'layout')
   revalidatePath("/vendas/megafone")
   return { success: true }

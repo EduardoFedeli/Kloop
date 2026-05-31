@@ -24,7 +24,9 @@
       "Bash(Write-Host \"Done\")",
       "Bash(powershell -Command \"\\(Get-Content 'src\\\\components\\\\pro\\\\ProSucessoClient.tsx'\\) -replace 'kloop pro','kloop shop' | Set-Content 'src\\\\components\\\\pro\\\\ProSucessoClient.tsx'\")",
       "Bash(powershell -Command \"\\(Get-Content 'src\\\\components\\\\pro\\\\ProLandingClient.tsx'\\) -replace 'kloop pro','kloop shop' -replace 'sacola kloop shop','sacola kloop shop' | Set-Content 'src\\\\components\\\\pro\\\\ProLandingClient.tsx'\")",
-      "Bash(powershell -Command \"\\(Get-Content 'src\\\\components\\\\listing\\\\CreateListingForm.tsx'\\) -replace 'kloop pro','kloop shop' | Set-Content 'src\\\\components\\\\listing\\\\CreateListingForm.tsx'\")"
+      "Bash(powershell -Command \"\\(Get-Content 'src\\\\components\\\\listing\\\\CreateListingForm.tsx'\\) -replace 'kloop pro','kloop shop' | Set-Content 'src\\\\components\\\\listing\\\\CreateListingForm.tsx'\")",
+      "Bash(dir)",
+      "Bash(curl -s \"http://localhost:5555/api/findMany\" -X POST -H \"Content-Type: application/json\" -d '{\"model\":\"Category\",\"args\":{\"where\":{\"parentId\":null},\"select\":{\"name\":true,\"slug\":true}}}')"
     ],
     "additionalDirectories": [
       "d:\\Eduardo Fedeli\\Projetos\\Faculdade\\TCC FIAP STARTUP ONE\\Kloop\\Code\\kloop\\src\\app\\(main)\\marca\\[slug]"

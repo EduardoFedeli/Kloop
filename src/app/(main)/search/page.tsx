@@ -163,15 +163,15 @@ export default async function SearchPage({ searchParams }: PageProps) {
   
   const brandsData = await db.brand.findMany({
     where: { id: { in: validBrandIds } },
-    select: { id: true, name: true, slug: true }
+    select: { id: true, name: true, slug: true, logoUrl: true }
   })
 
   const topBrands = brandGroups
     .map(g => {
       const match = brandsData.find(b => b.id === g.brandId)
-      return match ? { name: match.name, slug: match.slug } : null
+      return match ? { name: match.name, slug: match.slug, logoUrl: match.logoUrl } : null
     })
-    .filter((b): b is { name: string; slug: string } => b !== null)
+    .filter((b): b is { name: string; slug: string; logoUrl: string | null } => b !== null)
 
 
   if (isSearchEmpty) {

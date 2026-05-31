@@ -95,6 +95,19 @@ export async function updateBrandName(id: string, name: string) {
   }
 }
 
+export async function updateBrandLogo(id: string, logoUrl: string | null) {
+  try {
+    await db.brand.update({ where: { id }, data: { logoUrl } })
+    revalidatePath("/admin/marcas")
+    revalidatePath("/search")
+    revalidatePath("/marcas")
+    return { success: true }
+  } catch (error) {
+    console.error("Erro ao atualizar logo da marca:", error)
+    return { error: "Erro ao atualizar a logo da marca." }
+  }
+}
+
 export async function deleteBrand(id: string) {
   try {
     const listings = await db.listing.findMany({

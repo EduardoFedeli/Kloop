@@ -38,7 +38,11 @@ export default async function CommunityFeedPage({ params }: Props) {
     )
   }
 
-  const communityListings = await getCommunityListings(community.id)
+  const rawListings = await getCommunityListings(community.id)
+  // Esconde os próprios anúncios do usuário logado dentro da vitrine da comunidade
+  const communityListings = session?.user?.id
+    ? rawListings.filter((l) => l.seller.id !== session.user.id)
+    : rawListings
 
   const listings: ListingWithDetails[] = communityListings.map((l) => ({
     id: l.id,

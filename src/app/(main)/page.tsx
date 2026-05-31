@@ -11,6 +11,7 @@ export type SellerPreview = {
   name: string | null
   avatarUrl: string | null
   listingCount: number
+  isPro?: boolean
 }
 
 export type CommunitySection = {
@@ -73,6 +74,9 @@ export default async function FeedPage() {
         name: true,
         avatarUrl: true,
         _count: { select: { listings: { where: { status: 'ACTIVE' } } } },
+        subscription: {
+          select: { status: true, plan: { select: { slug: true } } },
+        },
       },
       take: 20,
     }),
@@ -88,6 +92,7 @@ export default async function FeedPage() {
     name: s.name,
     avatarUrl: s.avatarUrl,
     listingCount: s._count.listings,
+    isPro: s.subscription?.status === 'ACTIVE' && s.subscription?.plan?.slug !== 'basic',
   }))
 
   let communitySection: CommunitySection | null = null

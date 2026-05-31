@@ -124,15 +124,21 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
   const totalRatings = user.reviewsReceived.length
   const avgRating = totalRatings > 0 ? (user.reviewsReceived.reduce((sum, r) => sum + r.rating, 0) / totalRatings).toFixed(1) : null
   const activeSubscription = user.subscription?.status === 'ACTIVE' ? user.subscription : null
-  const planName = activeSubscription?.plan?.name || "Kloop Basic"
-  
+  const planName = activeSubscription?.plan?.name || "Kloop"
+
   let planVariant: "basic" | "pro" | "premium" | "enterprise" = "basic"
   if (planName.toLowerCase().includes("pro")) planVariant = "pro"
   if (planName.toLowerCase().includes("premium")) planVariant = "premium"
-  
-  let maxMegaphones = 5 
-  if (planVariant === "pro") maxMegaphones = 10
-  if (planVariant === "premium") maxMegaphones = 25
+
+  // Calcula megafones disponíveis corretamente a partir dos dados reais da assinatura
+  const now = new Date()
+  const subData = user.subscription
+  const megaphonesPerWeek = subData?.plan?.megaphonesPerWeek ?? 5
+  const extraBalance = subData?.extraMegaphonesBalance ?? 0
+  const needsWeekReset = !subData?.megaphonesWeekResetAt || subData.megaphonesWeekResetAt <= now
+  const usedThisWeek = needsWeekReset ? 0 : (subData?.megaphonesUsedThisWeek ?? 0)
+  const planAvailable = Math.max(0, megaphonesPerWeek - usedThisWeek)
+  const megaphonesAvailable = planAvailable + extraBalance
 
   const userLocation = user.addresses[0] ?? null
 
@@ -151,7 +157,8 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
          id: l.id, title: l.title, slug: l.slug, priceCents: l.priceCents,
          condition: l.condition, status: l.status,
          brand: l.brand ? { id: l.brand.id, name: l.brand.name, slug: l.brand.slug } : null,
-         size: l.size, isTurbinado: l.isTurbinado, viewsCount: l.viewsCount,
+         size: l.size, isTurbinado: l.isTurbinado, isMegafonado: l.isMegafonado,
+         megafonadoUntil: l.megafonadoUntil, viewsCount: l.viewsCount,
          _count: l._count, category: l.category, images: l.images,
          seller: l.seller as ListingWithDetails['seller'],
        }))}
@@ -160,7 +167,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
        totalRatings={totalRatings}
        planName={planName}
        planVariant={planVariant}
-       megaphonesAvailable={Math.max(0, maxMegaphones - 0)}
+       megaphonesAvailable={megaphonesAvailable}
        itemsSold={user._count.listings}
        followersCount={user._count.followers}
        initialIsFollowing={initialIsFollowing}

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Tag, Zap, Megaphone, Building2, Percent } from 'lucide-react'
+import { ArrowRight, Tag, Zap, Megaphone, Building2, Percent, Crown } from 'lucide-react'
 import type { ListingWithDetails } from '@/types/listing'
 import type { SellerPreview, CommunitySection, BentoCard } from '@/app/(main)/page'
 import { ListingCard } from './ListingCard'
@@ -123,6 +123,13 @@ export function HomeFeed({ listings, sellers = [], communitySection, bentoCards 
                     <div className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center">
                       <span className="text-[11px] font-black text-white">{initial}</span>
                     </div>
+
+                    {/* Kloop Pro badge */}
+                    {seller.isPro && (
+                      <div className="absolute top-3 left-3 z-10 flex items-center gap-0.5 bg-amber-400/20 backdrop-blur-sm border border-amber-400/40 text-amber-300 text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                        <Crown size={8} /> PRO
+                      </div>
+                    )}
                   </Link>
                 )
               })}

@@ -3,7 +3,7 @@
 import { useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Check, Crown, Zap, Rocket, Loader2 } from "lucide-react"
+import { ArrowLeft, Check, Zap, Rocket, Loader2, Megaphone, TrendingUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { subscribeToPlan } from "@/lib/actions/subscription"
 import { toast } from "sonner"
@@ -19,7 +19,6 @@ interface Plan {
   priceLabel: string
   priceSuffix: string
   description: string
-  badge?: string
   isDark: boolean
   features: PlanFeature[]
   ctaText: string
@@ -52,14 +51,12 @@ const plans: Plan[] = [
       { text: "Anúncios ilimitados", highlight: true },
       { text: "15 megafones por semana", highlight: true },
       { text: "Taxa reduzida de 12%", highlight: true },
-      { text: "Loja personalizável (Banner, Cores)", highlight: true },
     ],
   },
 ]
 
-function PlanIcon({ id, isDark }: { id: string; isDark: boolean }) {
+function PlanIcon({ id }: { id: string }) {
   const base = "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-
   if (id === "basic") return (
     <div className={cn(base, "bg-gray-100 dark:bg-white/10")}>
       <Zap size={18} className="text-gray-500 dark:text-white/60" />
@@ -98,10 +95,10 @@ function PlanCard({
   const checkColor = isPremium ? "text-amber-400" : "text-[var(--color-teal)]"
 
   const ctaClasses = cn(
-    "w-full py-3 rounded-2xl text-[14px] font-black transition-all flex items-center justify-center gap-2",
+    "w-full py-3.5 rounded-2xl text-[14px] font-black transition-all flex items-center justify-center gap-2",
     isCurrent && "border border-gray-200 dark:border-white/10 text-gray-400 dark:text-white/30 cursor-default",
     !isCurrent && isBasic && "bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-white hover:bg-gray-200 dark:hover:bg-white/15",
-    !isCurrent && isPremium && "bg-gradient-to-r from-amber-400 to-amber-500 text-[var(--color-pine)] hover:opacity-90",
+    !isCurrent && isPremium && "bg-gradient-to-r from-amber-400 to-amber-500 text-[var(--color-pine)] hover:opacity-90 shadow-lg shadow-amber-400/20",
     isPending && "opacity-70 cursor-not-allowed"
   )
 
@@ -111,36 +108,31 @@ function PlanCard({
         <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-pine)] via-[var(--color-forest)] to-[#0c2218] -z-0" />
       )}
       {isPremium && (
-        <div className="absolute right-[-30px] top-[-30px] w-40 h-40 rounded-full blur-3xl pointer-events-none bg-amber-400/10" />
+        <>
+          <div className="absolute right-[-30px] top-[-30px] w-40 h-40 rounded-full blur-3xl pointer-events-none bg-amber-400/10" />
+          <div className="absolute left-[-20px] bottom-[-20px] w-32 h-32 rounded-full blur-3xl pointer-events-none bg-amber-400/5" />
+        </>
       )}
 
       <div className="relative z-10 flex flex-col h-full">
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start justify-between mb-5">
           <div className="flex items-center gap-3">
-            <PlanIcon id={plan.id} isDark={plan.isDark} />
+            <PlanIcon id={plan.id} />
             <div>
-              <p className={cn("text-[15px] font-black leading-tight", textColor)}>{plan.name}</p>
+              <p className={cn("text-[16px] font-black leading-tight", textColor)}>{plan.name}</p>
               <p className={cn("text-[12px] mt-0.5", subtextColor)}>{plan.description}</p>
             </div>
           </div>
-
-          <div className="flex flex-col items-end gap-1">
-            {plan.badge && (
-              <span className="px-2 py-0.5 rounded-full bg-[var(--color-celadon)]/20 text-[var(--color-celadon)] text-[10px] font-black tracking-wide whitespace-nowrap">
-                {plan.badge}
-              </span>
-            )}
-            {isCurrent && (
-              <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-white/40 text-[10px] font-black tracking-wide">
-                ATUAL
-              </span>
-            )}
-          </div>
+          {isCurrent && (
+            <span className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-white/40 text-[10px] font-black tracking-wide whitespace-nowrap">
+              ATUAL
+            </span>
+          )}
         </div>
 
-        <div className="mb-5">
+        <div className="mb-6">
           <div className="flex items-baseline gap-1">
-            <span className={cn("text-[32px] font-black leading-none tracking-tight", textColor)}>
+            <span className={cn("text-[36px] font-black leading-none tracking-tight", textColor)}>
               {plan.priceLabel}
             </span>
             {plan.priceSuffix && (
@@ -149,7 +141,7 @@ function PlanCard({
           </div>
         </div>
 
-        <ul className="space-y-2.5 mb-8 flex-1">
+        <ul className="space-y-3 mb-8 flex-1">
           {plan.features.map((feature, i) => (
             <li key={i} className="flex items-start gap-2.5">
               <Check size={14} className={cn("mt-0.5 flex-shrink-0", checkColor)} strokeWidth={2.5} />
@@ -197,6 +189,7 @@ export function AssinaturaClient({ currentPlanSlug }: { currentPlanSlug: string 
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
+      {/* Header */}
       <div className="sticky top-0 z-20 bg-[var(--background)]/90 backdrop-blur-md border-b border-gray-100 dark:border-white/5">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
           <button
@@ -216,8 +209,32 @@ export function AssinaturaClient({ currentPlanSlug }: { currentPlanSlug: string 
       </div>
 
       <div className="max-w-4xl mx-auto px-4 pb-24">
-        {/* Destaque da feature Turbinar — gratuita para todos */}
-        {/* Scroll Horizontal no Mobile, Grid no Desktop */}
+        {/* Hero */}
+        <div className="py-8 text-center">
+          <h2 className="text-[26px] font-black text-[var(--foreground)] leading-tight">
+            Venda mais,{" "}
+            <span className="text-[var(--color-teal)]">ganhe mais</span>
+          </h2>
+          <p className="text-[14px] text-gray-500 dark:text-sage mt-2 max-w-xs mx-auto">
+            Escolha o plano que combina com seu ritmo de vendas
+          </p>
+        </div>
+
+        {/* Benefícios rápidos */}
+        <div className="grid grid-cols-3 gap-3 mb-8">
+          {[
+            { icon: <Megaphone size={16} />, label: "Megafone semanal", colorClass: "text-[#c5a820] bg-[#1c1c0e]" },
+            { icon: <Zap size={16} />, label: "Turbinar produtos", colorClass: "text-[var(--color-teal)] bg-[var(--color-celadon)]/15 dark:bg-[var(--color-teal)]/10" },
+            { icon: <TrendingUp size={16} />, label: "Taxa reduzida", colorClass: "text-[var(--color-teal)] bg-[var(--color-celadon)]/15 dark:bg-[var(--color-teal)]/10" },
+          ].map((item, i) => (
+            <div key={i} className={cn("rounded-2xl p-3 flex flex-col items-center gap-1.5 text-center", item.colorClass)}>
+              <span>{item.icon}</span>
+              <span className="text-[10px] font-bold leading-tight">{item.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Cards de plano */}
         <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 px-4 -mx-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 md:max-w-2xl md:mx-auto md:gap-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {plans.map((plan) => (
             <PlanCard
@@ -230,7 +247,7 @@ export function AssinaturaClient({ currentPlanSlug }: { currentPlanSlug: string 
           ))}
         </div>
 
-        <p className="text-center text-[11px] text-gray-400 dark:text-white/25 mt-4 leading-relaxed">
+        <p className="text-center text-[11px] text-gray-400 dark:text-white/25 mt-2 leading-relaxed">
           Cancele quando quiser. Cobrado mensalmente.{" "}
           <Link href="/ajuda" className="underline hover:text-gray-600 dark:hover:text-white/40 transition-colors">
             Central de ajuda
