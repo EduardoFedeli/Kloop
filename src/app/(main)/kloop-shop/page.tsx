@@ -1,44 +1,61 @@
 import { db } from '@/lib/db'
-import { ListingStatus } from '@prisma/client'
 import Link from 'next/link'
 import { ArrowLeft, CheckCircle2, ShoppingBag } from 'lucide-react'
-import { ListingGrid } from '@/components/listing/ListingGrid'
-import type { ListingWithDetails } from '@/types/listing'
+import { formatPrice } from '@/lib/utils'
+import { KloopShopFilters } from '@/components/kloop-shop/KloopShopFilters'
 
 export const dynamic = 'force-dynamic'
 
-export default async function KloopShopPage() {
-  const shopUser = await db.user.findUnique({
-    where: { email: 'shop@kloop.com' },
+type SortOption = 'newest' | 'price_asc' | 'price_desc'
+type ConditionFilter = 'ALL' | 'NEW' | 'LIKE_NEW' | 'GOOD' | 'FAIR'
+
+interface Props {
+  searchParams: Promise<{ sort?: string; condition?: string }>
+}
+
+const CONDITION_LABEL: Record<string, string> = {
+  NEW: "Novo",
+  LIKE_NEW: "Seminovo",
+  GOOD: "Bom",
+  FAIR: "Regular",
+}
+
+const CONDITION_COLOR: Record<string, string> = {
+  NEW: "bg-green-100 text-green-700",
+  LIKE_NEW: "bg-emerald-100 text-emerald-700",
+  GOOD: "bg-blue-100 text-blue-700",
+  FAIR: "bg-amber-100 text-amber-700",
+}
+
+const SORT_MAP: Record<SortOption, object> = {
+  newest: { createdAt: 'desc' as const },
+  price_asc: { priceCents: 'asc' as const },
+  price_desc: { priceCents: 'desc' as const },
+}
+
+export default async function KloopShopPage({ searchParams }: Props) {
+  const params = await searchParams
+  const sort = (params.sort as SortOption) ?? 'newest'
+  const condition = (params.condition as ConditionFilter) ?? 'ALL'
+
+  const orderBy = SORT_MAP[sort] ?? SORT_MAP.newest
+
+  const products = await db.kloopShopProduct.findMany({
+    where: {
+      isActive: true,
+      ...(condition !== 'ALL' ? { condition: condition as never } : {}),
+    },
+    orderBy,
     select: {
       id: true,
       name: true,
-      avatarUrl: true,
-      _count: { select: { listings: { where: { status: ListingStatus.ACTIVE } } } },
+      description: true,
+      priceCents: true,
+      condition: true,
     },
   })
 
-  const listings = shopUser
-    ? await db.listing.findMany({
-        where: { sellerId: shopUser.id, status: ListingStatus.ACTIVE },
-        include: {
-          category: { select: { id: true, name: true, slug: true } },
-          images: { orderBy: { displayOrder: 'asc' }, take: 1, select: { url: true, altText: true } },
-          seller: {
-            select: {
-              id: true,
-              name: true,
-              avatarUrl: true,
-              addresses: { where: { isDefault: true }, select: { city: true, state: true }, take: 1 },
-            },
-          },
-          brand: { select: { id: true, name: true, slug: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-      })
-    : []
-
-  const activeCount = shopUser?._count.listings ?? 0
+  const totalCount = await db.kloopShopProduct.count({ where: { isActive: true } })
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
@@ -76,7 +93,7 @@ export default async function KloopShopPage() {
                 </span>
               </div>
               <p className="text-[13px] text-white/60 mt-1">
-                {activeCount} {activeCount === 1 ? 'produto disponível' : 'produtos disponíveis'}
+                {totalCount} {totalCount === 1 ? 'produto disponível' : 'produtos disponíveis'}
               </p>
             </div>
           </div>
@@ -87,27 +104,66 @@ export default async function KloopShopPage() {
       <div className="max-w-2xl mx-auto px-4 py-5">
         <div className="bg-[var(--color-frosted)] dark:bg-white/4 border border-gray-100 dark:border-white/5 rounded-2xl p-4">
           <p className="text-[13px] text-gray-600 dark:text-sage leading-relaxed">
-            A Kloop Shop é a loja oficial do Kloop. Aqui você encontra peças curadas e selecionadas pela nossa equipe — com garantia de qualidade e entrega confiável.
+            A Kloop Shop é a loja oficial do Kloop. Aqui você encontra peças curadas e selecionadas pela nossa equipe, com garantia de qualidade e entrega confiável.
           </p>
         </div>
       </div>
 
-      {/* Listings */}
+      {/* Filters */}
+      <div className="max-w-2xl mx-auto px-4 pb-3">
+        <KloopShopFilters currentSort={sort} currentCondition={condition} />
+      </div>
+
+      {/* Products */}
       <div className="max-w-2xl mx-auto px-4 pb-20">
-        {listings.length === 0 ? (
+        {products.length === 0 ? (
           <div className="text-center py-20">
             <ShoppingBag size={40} className="text-gray-300 dark:text-white/15 mx-auto mb-4" strokeWidth={1.5} />
-            <p className="text-[16px] font-black text-[var(--foreground)]">em breve</p>
+            <p className="text-[16px] font-black text-[var(--foreground)]">
+              {totalCount === 0 ? 'em breve' : 'nenhum resultado'}
+            </p>
             <p className="text-[13px] text-gray-400 dark:text-sage mt-1">
-              estamos preparando os melhores produtos para você.
+              {totalCount === 0
+                ? 'estamos preparando os melhores produtos para você.'
+                : 'tente outros filtros.'}
             </p>
           </div>
         ) : (
           <>
-            <h2 className="text-[15px] font-black text-[var(--foreground)] mb-4">
-              produtos disponíveis
-            </h2>
-            <ListingGrid listings={listings as ListingWithDetails[]} />
+            <p className="text-[12px] text-gray-400 dark:text-sage mb-3">
+              {products.length} {products.length === 1 ? 'produto' : 'produtos'} encontrado{products.length > 1 ? 's' : ''}
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {products.map((product) => (
+                <div
+                  key={product.id}
+                  className="bg-white dark:bg-[var(--color-pine)] rounded-2xl border border-gray-100 dark:border-white/5 overflow-hidden"
+                >
+                  <div className="aspect-square bg-gradient-to-br from-[var(--color-frosted)] to-[var(--color-celadon)]/20 dark:from-[var(--color-forest)] dark:to-[var(--color-pine)] flex items-center justify-center">
+                    <ShoppingBag size={32} className="text-[var(--color-teal)]/40" strokeWidth={1.5} />
+                  </div>
+
+                  <div className="p-3">
+                    <p className="text-[13px] font-black text-[var(--foreground)] leading-tight line-clamp-2 mb-1">
+                      {product.name}
+                    </p>
+                    {product.description && (
+                      <p className="text-[11px] text-gray-400 dark:text-sage line-clamp-1 mb-2">
+                        {product.description}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[14px] font-black text-[var(--color-teal)]">
+                        {formatPrice(product.priceCents)}
+                      </span>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${CONDITION_COLOR[product.condition] ?? "bg-gray-100 text-gray-500"}`}>
+                        {CONDITION_LABEL[product.condition] ?? product.condition}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </>
         )}
       </div>

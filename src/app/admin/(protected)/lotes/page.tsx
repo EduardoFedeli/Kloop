@@ -1,6 +1,7 @@
 import { db } from "@/lib/db"
 import { formatDate } from "@/lib/utils"
-import { Package, Truck } from "lucide-react"
+import { Package, Truck, ChevronRight } from "lucide-react"
+import Link from "next/link"
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: "Aguardando envio",
@@ -25,6 +26,7 @@ export default async function AdminLotesPage() {
     orderBy: { createdAt: "desc" },
     include: {
       user: { select: { name: true, email: true } },
+      _count: { select: { items: true } },
     },
   })
 
@@ -50,8 +52,10 @@ export default async function AdminLotesPage() {
                 <th className="text-left px-5 py-3.5 font-bold text-gray-500 uppercase text-[11px] tracking-wide">Código</th>
                 <th className="text-left px-5 py-3.5 font-bold text-gray-500 uppercase text-[11px] tracking-wide">Usuário</th>
                 <th className="text-left px-5 py-3.5 font-bold text-gray-500 uppercase text-[11px] tracking-wide">Envio</th>
+                <th className="text-left px-5 py-3.5 font-bold text-gray-500 uppercase text-[11px] tracking-wide">Peças</th>
                 <th className="text-left px-5 py-3.5 font-bold text-gray-500 uppercase text-[11px] tracking-wide">Status</th>
                 <th className="text-left px-5 py-3.5 font-bold text-gray-500 uppercase text-[11px] tracking-wide">Data</th>
+                <th className="px-5 py-3.5" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -79,12 +83,23 @@ export default async function AdminLotesPage() {
                     </div>
                   </td>
                   <td className="px-5 py-4">
+                    <span className="font-bold text-gray-700">{lot._count.items}</span>
+                  </td>
+                  <td className="px-5 py-4">
                     <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${STATUS_COLOR[lot.status] ?? "bg-gray-100 text-gray-500"}`}>
                       {STATUS_LABEL[lot.status] ?? lot.status}
                     </span>
                   </td>
                   <td className="px-5 py-4 text-gray-500">
                     {formatDate(lot.createdAt)}
+                  </td>
+                  <td className="px-5 py-4">
+                    <Link
+                      href={`/admin/lotes/${lot.id}`}
+                      className="flex items-center gap-1 text-[12px] font-bold text-[var(--color-teal)] hover:opacity-70 transition-opacity whitespace-nowrap"
+                    >
+                      Avaliar <ChevronRight size={14} />
+                    </Link>
                   </td>
                 </tr>
               ))}

@@ -18,15 +18,50 @@ export default async function ProDashboardPage() {
         status: { in: ["PENDING", "RECEIVED", "ANALYZING", "ACTIVE"] },
       },
       orderBy: { createdAt: "desc" },
-      select: { code: true, status: true, shippingMethod: true, createdAt: true },
+      include: {
+        items: {
+          select: {
+            id: true,
+            name: true,
+            condition: true,
+            status: true,
+            suggestedPriceCents: true,
+            adminNote: true,
+            userDecision: true,
+            shopProduct: { select: { id: true } },
+          },
+        },
+      },
     })
 
     if (found) {
+      const approvedPending = found.items.filter(
+        (i) => i.status === "APPROVED" && !i.shopProduct && !i.userDecision
+      )
+      const published = found.items.filter((i) => i.status === "APPROVED" && i.shopProduct)
+      const rejected = found.items.filter((i) => i.status === "REJECTED")
+
       lot = {
         code: found.code,
         status: found.status,
         shippingMethod: found.shippingMethod,
         createdAt: found.createdAt.toISOString(),
+        itemsTotal: found.items.length,
+        itemsApproved: found.items.filter((i) => i.status === "APPROVED").length,
+        itemsPublished: published.length,
+        itemsRejected: rejected.length,
+        approvedItems: approvedPending.map((i) => ({
+          id: i.id,
+          name: i.name,
+          condition: i.condition,
+          suggestedPriceCents: i.suggestedPriceCents,
+        })),
+        rejectedItems: rejected.map((i) => ({
+          id: i.id,
+          name: i.name,
+          adminNote: i.adminNote,
+          userDecision: i.userDecision,
+        })),
       }
     }
   }

@@ -102,6 +102,17 @@ enum ProLotStatus {
   DONE
 }
 
+enum ProLotItemStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum ProLotItemDecision {
+  DONATE
+  RETURN
+}
+
 enum ProShippingMethod {
   CORREIOS
   COLETA
@@ -740,10 +751,48 @@ model ProLot {
   createdAt      DateTime          @default(now()) @map("created_at")
   updatedAt      DateTime          @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items ProLotItem[]
 
   @@index([userId])
   @@map("pro_lots")
+}
+
+model ProLotItem {
+  id                  String              @id @default(cuid())
+  lotId               String              @map("lot_id")
+  name                String
+  description         String?
+  condition           ListingCondition    @default(GOOD)
+  status              ProLotItemStatus    @default(PENDING_REVIEW)
+  suggestedPriceCents Int?                @map("suggested_price_cents")
+  adminNote           String?             @map("admin_note")
+  userDecision        ProLotItemDecision? @map("user_decision")
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+
+  lot         ProLot            @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  shopProduct KloopShopProduct?
+
+  @@index([lotId])
+  @@map("pro_lot_items")
+}
+
+model KloopShopProduct {
+  id          String           @id @default(cuid())
+  lotItemId   String           @unique @map("lot_item_id")
+  name        String
+  description String?
+  priceCents  Int              @map("price_cents")
+  condition   ListingCondition @default(GOOD)
+  isActive    Boolean          @default(true) @map("is_active")
+  soldAt      DateTime?        @map("sold_at")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  lotItem ProLotItem @relation(fields: [lotItemId], references: [id], onDelete: Cascade)
+
+  @@map("kloop_shop_products")
 }
 
 // ──────────────────────────────────────────

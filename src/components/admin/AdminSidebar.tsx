@@ -3,13 +3,14 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { logoutAdmin } from "@/lib/actions/admin"
-import { ShieldCheck, Package, ShieldAlert, LogOut, Tags, Users, TrendingUp, Calculator } from "lucide-react"
+import { ShieldCheck, Package, ShieldAlert, LogOut, Tags, Users, TrendingUp, Calculator, Store } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const NAV_ITEMS = [
   { href: "/admin/vendas", label: "Vendas", icon: TrendingUp },
   { href: "/admin/simulador", label: "Simulador", icon: Calculator },
   { href: "/admin/lotes", label: "Lotes", icon: Package },
+  { href: "/admin/kloop-shop", label: "Kloop Shop", icon: Store },
   { href: "/admin/denuncias", label: "Denúncias", icon: ShieldAlert },
   { href: "/admin/marcas", label: "Marcas", icon: Tags },
   { href: "/admin/usuarios", label: "Usuários", icon: Users },

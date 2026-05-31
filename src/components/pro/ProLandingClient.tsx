@@ -90,19 +90,12 @@ const BRANDS = [
 
 export function ProLandingClient({ planSlug = "basic", hasActiveLot = false, address }: Props) {
   const router = useRouter()
-  const [showUpgrade, setShowUpgrade] = useState(false)
   const [isAcceptedItemsModalOpen, setIsAcceptedItemsModalOpen] = useState(false)
   const [isShippingModalOpen, setIsShippingModalOpen] = useState(false)
   const [shippingView, setShippingView] = useState<"list" | "bag_confirm">("list")
   const [isFeesModalOpen, setIsFeesModalOpen] = useState(false)
   
-  const canSend = planSlug === "pro" || planSlug === "premium"
-
   function handleCTA() {
-    if (!canSend) {
-      setShowUpgrade(true)
-      return
-    }
     router.push("/pro/anuncio")
   }
 
@@ -340,38 +333,6 @@ export function ProLandingClient({ planSlug = "basic", hasActiveLot = false, add
           <ChevronRight size={18} />
         </button>
       </div>
-
-      {/* Modal Upgrade */}
-      {showUpgrade && (
-        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowUpgrade(false)} />
-          <div className="relative z-10 w-full max-w-sm mx-4 bg-white dark:bg-[var(--color-pine)] rounded-t-[32px] sm:rounded-3xl shadow-2xl p-6 pb-8">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-[16px] font-black text-[var(--foreground)]">recurso exclusivo</h3>
-              <button onClick={() => setShowUpgrade(false)} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center">
-                <X size={16} className="text-[var(--foreground)]" />
-              </button>
-            </div>
-            <div className="flex justify-center mb-4">
-              <div className="w-14 h-14 rounded-2xl bg-[var(--color-teal)]/10 flex items-center justify-center">
-                <Crown size={28} className="text-[var(--color-teal)]" />
-              </div>
-            </div>
-            <p className="text-[14px] text-gray-500 dark:text-sage text-center leading-relaxed mb-6">
-              O envio de lotes está disponível para assinantes{" "}
-              <span className="font-bold text-[var(--foreground)]">kloop shop</span> e{" "}
-              <span className="font-bold text-[var(--foreground)]">Kloop Premium</span>.
-            </p>
-            <Link
-              href="/assinatura"
-              className="w-full py-4 bg-[var(--color-teal)] text-white rounded-2xl font-black text-[14px] hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-lg shadow-[var(--color-teal)]/20 text-center"
-            >
-              <Crown size={16} />
-              ver planos de assinatura
-            </Link>
-          </div>
-        </div>
-      )}
 
       {/* Modal Itens Aceitos */}
       {isAcceptedItemsModalOpen && (

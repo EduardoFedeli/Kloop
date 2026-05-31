@@ -6,6 +6,7 @@ import Image from 'next/image'
 import {
   Store, MessageCircle, ArchiveX, ShoppingBag, ChevronRight,
   PackageOpen, HelpCircle, Info, Coins, Handshake, Star, TrendingUp, Trophy,
+  Bell, Sparkles, Clock,
 } from 'lucide-react'
 import { PlanBadge } from '@/components/ui/PlanBadge'
 import { formatPrice } from '@/lib/utils'
@@ -19,7 +20,7 @@ export default async function VendasPage() {
 
   const myId = session.user.id
 
-  const [userData, listings, completedTxs, pendingCount, activeOrdersCount, cashbackBalanceCents, pendingOffersCount, achievementsData] = await Promise.all([
+  const [userData, listings, completedTxs, pendingCount, activeOrdersCount, cashbackBalanceCents, pendingOffersCount, achievementsData, activeLot, shopProductCount] = await Promise.all([
     db.user.findUnique({
       where: { id: myId },
       select: { 
@@ -58,12 +59,36 @@ export default async function VendasPage() {
       where: { sellerId: myId, status: 'PENDING_SELLER', expiresAt: { gt: new Date() } },
     }),
     getUserAchievementsData(myId),
+    db.proLot.findFirst({
+      where: { userId: myId, status: { in: ['ANALYZING', 'ACTIVE'] } },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        status: true,
+        items: {
+          select: {
+            status: true,
+            userDecision: true,
+            shopProduct: { select: { id: true } },
+          },
+        },
+      },
+    }),
+    db.kloopShopProduct.count({
+      where: {
+        isActive: true,
+        lotItem: { lot: { userId: myId } },
+      },
+    }),
   ])
 
   const active = listings.filter((l) => l.status === 'ACTIVE').length
   const sold = listings.filter((l) => l.status === 'SOLD').length
   const inactive = listings.filter((l) => ['DRAFT', 'PAUSED', 'EXPIRED'].includes(l.status)).length
   const revenue = completedTxs.reduce((sum, t) => sum + t.amountCents - t.commissionCents, 0)
+
+  const needsUserApproval = activeLot?.status === 'ACTIVE' &&
+    activeLot.items.some((i) => i.status === 'APPROVED' && !i.shopProduct)
+  const isAnalyzing = activeLot?.status === 'ANALYZING'
 
   const totalRatings = userData?.reviewsReceived.length ?? 0
   const avgRating = totalRatings > 0
@@ -322,6 +347,69 @@ export default async function VendasPage() {
 
               </div>
             </section>
+
+            {/* Card Kloop Shop */}
+            {(needsUserApproval || isAnalyzing || shopProductCount > 0) && (
+              <section className="px-4 lg:px-0">
+                <Link href="/pro/dashboard">
+                  {needsUserApproval ? (
+                    <div className="relative rounded-2xl overflow-hidden p-5 shadow-lg"
+                      style={{ background: 'linear-gradient(135deg, var(--color-pine) 0%, var(--color-emerald) 60%, var(--color-teal) 100%)' }}>
+                      <div className="absolute -right-6 -top-6 w-28 h-28 bg-white/5 rounded-full blur-2xl pointer-events-none" />
+                      <div className="absolute right-4 top-4 opacity-20">
+                        <Bell size={36} className="text-white" />
+                      </div>
+                      <div className="relative z-10">
+                        <span className="inline-flex items-center gap-1 bg-[var(--color-celadon)] text-[var(--color-pine)] text-[10px] font-black px-2 py-0.5 rounded-full mb-3">
+                          <Bell size={9} /> ação necessária
+                        </span>
+                        <p className="text-[18px] font-black text-white leading-tight mb-1">
+                          terminamos as avaliações
+                        </p>
+                        <p className="text-[13px] text-white/70 leading-relaxed mb-4">
+                          agora precisamos da sua aprovação para publicar na Kloop Shop.
+                        </p>
+                        <div className="flex items-center gap-2 text-white font-black text-[13px]">
+                          ver minhas peças <ChevronRight size={16} />
+                        </div>
+                      </div>
+                    </div>
+                  ) : isAnalyzing ? (
+                    <div className="relative rounded-2xl overflow-hidden p-5 bg-white dark:bg-[var(--color-pine)] border border-gray-100 dark:border-white/5 shadow-sm">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+                          <Clock size={22} className="text-violet-500 dark:text-violet-400" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[14px] font-black text-[var(--foreground)]">kloop shop em análise</p>
+                          <p className="text-[11px] text-gray-400 dark:text-[var(--color-sage)] mt-0.5">
+                            nossa equipe está avaliando suas peças
+                          </p>
+                        </div>
+                        <ChevronRight size={16} className="text-gray-300 dark:text-white/20 flex-shrink-0" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative rounded-2xl overflow-hidden p-5"
+                      style={{ background: 'linear-gradient(135deg, var(--color-pine) 0%, var(--color-emerald) 60%, var(--color-teal) 100%)' }}>
+                      <div className="absolute right-4 top-4 opacity-15">
+                        <Sparkles size={36} className="text-white" />
+                      </div>
+                      <div className="relative z-10">
+                        <p className="text-[11px] font-bold uppercase tracking-widest text-[var(--color-celadon)] mb-2">kloop shop</p>
+                        <p className="text-[26px] font-black text-white leading-none mb-1">{shopProductCount}</p>
+                        <p className="text-[13px] text-white/70 mb-3">
+                          {shopProductCount === 1 ? 'produto à venda' : 'produtos à venda'} na Kloop Shop
+                        </p>
+                        <div className="flex items-center gap-2 text-white font-black text-[13px]">
+                          ver painel <ChevronRight size={16} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </Link>
+              </section>
+            )}
 
             {/* Ações agrupadas */}
             <section className="px-4 lg:px-0">
