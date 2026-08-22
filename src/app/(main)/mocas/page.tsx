@@ -1,6 +1,9 @@
 import Link from 'next/link'
+import type { ComponentType } from 'react'
+import { VestidoIcon, CalcaIcon, BlusaIcon, CasacoIcon, SaiaIcon, ShortsIcon, PerfumeIcon, TenisIcon, BolsaIcon, OculosIcon } from '@/components/icons/CustomIcons'
 
-type SubCard = { emoji: string; label: string; href: string }
+type IconComponent = ComponentType<{ size?: number; className?: string }>
+type SubCard = { emoji: string; icon?: IconComponent; label: string; href: string }
 type Section = { title: string; subtitle: string; href: string; cards: SubCard[] }
 
 const SECTIONS: Section[] = [
@@ -9,12 +12,12 @@ const SECTIONS: Section[] = [
     subtitle: 'do básico ao fashion',
     href: '/search?dept=mocas&cat=roupas',
     cards: [
-      { emoji: '👗', label: 'vestidos', href: '/search?dept=mocas&cat=roupas&sub=vestidos' },
-      { emoji: '👖', label: 'calças', href: '/search?dept=mocas&cat=roupas&sub=calcas' },
-      { emoji: '👚', label: 'blusas', href: '/search?dept=mocas&cat=roupas&sub=blusas' },
-      { emoji: '🧥', label: 'casacos', href: '/search?dept=mocas&cat=roupas&sub=casacos-e-jaquetas' },
-      { emoji: '🩱', label: 'saias', href: '/search?dept=mocas&cat=roupas&sub=saias' },
-      { emoji: '🩲', label: 'shorts', href: '/search?dept=mocas&cat=roupas&sub=shorts' },
+      { emoji: '👗', icon: VestidoIcon, label: 'vestidos', href: '/search?dept=mocas&cat=roupas&sub=vestidos' },
+      { emoji: '👖', icon: CalcaIcon, label: 'calças', href: '/search?dept=mocas&cat=roupas&sub=calcas' },
+      { emoji: '👚', icon: BlusaIcon, label: 'blusas', href: '/search?dept=mocas&cat=roupas&sub=blusas' },
+      { emoji: '🧥', icon: CasacoIcon, label: 'casacos', href: '/search?dept=mocas&cat=roupas&sub=casacos-e-jaquetas' },
+      { emoji: '🩱', icon: SaiaIcon, label: 'saias', href: '/search?dept=mocas&cat=roupas&sub=saias' },
+      { emoji: '🩲', icon: ShortsIcon, label: 'shorts', href: '/search?dept=mocas&cat=roupas&sub=shorts' },
     ],
   },
   {
@@ -24,7 +27,7 @@ const SECTIONS: Section[] = [
     cards: [
       { emoji: '💄', label: 'maquiagens', href: '/search?dept=mocas&cat=beleza&sub=maquiagens' },
       { emoji: '🧴', label: 'skincare', href: '/search?dept=mocas&cat=beleza&sub=skincare' },
-      { emoji: '🌸', label: 'perfumes', href: '/search?dept=mocas&cat=beleza&sub=perfumes' },
+      { emoji: '🌸', icon: PerfumeIcon, label: 'perfumes', href: '/search?dept=mocas&cat=beleza&sub=perfumes' },
       { emoji: '💇‍♀️', label: 'cabelos', href: '/search?dept=mocas&cat=beleza&sub=cabelos' },
       { emoji: '💅', label: 'unhas', href: '/search?dept=mocas&cat=beleza&sub=unhas' },
     ],
@@ -34,7 +37,7 @@ const SECTIONS: Section[] = [
     subtitle: 'para carregar com estilo',
     href: '/search?dept=mocas&cat=bolsas',
     cards: [
-      { emoji: '👜', label: 'de ombro', href: '/search?dept=mocas&cat=bolsas&sub=ombro' },
+      { emoji: '👜', icon: BolsaIcon, label: 'de ombro', href: '/search?dept=mocas&cat=bolsas&sub=ombro' },
       { emoji: '🎒', label: 'mochilas', href: '/search?dept=mocas&cat=bolsas&sub=mochilas' },
       { emoji: '👛', label: 'clutch', href: '/search?dept=mocas&cat=bolsas&sub=clutch' },
       { emoji: '🛍️', label: 'tote', href: '/search?dept=mocas&cat=bolsas&sub=tote' },
@@ -46,7 +49,7 @@ const SECTIONS: Section[] = [
     subtitle: 'da sapatilha ao salto',
     href: '/search?dept=mocas&cat=calcados',
     cards: [
-      { emoji: '👟', label: 'tênis', href: '/search?dept=mocas&cat=calcados&sub=tenis' },
+      { emoji: '👟', icon: TenisIcon, label: 'tênis', href: '/search?dept=mocas&cat=calcados&sub=tenis' },
       { emoji: '👢', label: 'botas', href: '/search?dept=mocas&cat=calcados&sub=botas' },
       { emoji: '👡', label: 'sandálias', href: '/search?dept=mocas&cat=calcados&sub=sandalias' },
       { emoji: '👠', label: 'sapatos', href: '/search?dept=mocas&cat=calcados&sub=sapatos' },
@@ -58,7 +61,7 @@ const SECTIONS: Section[] = [
     subtitle: 'detalhes que fazem diferença',
     href: '/search?dept=mocas&cat=acessorios',
     cards: [
-      { emoji: '👓', label: 'óculos', href: '/search?dept=mocas&cat=acessorios&sub=oculos' },
+      { emoji: '👓', icon: OculosIcon, label: 'óculos', href: '/search?dept=mocas&cat=acessorios&sub=oculos' },
       { emoji: '⌚', label: 'relógios', href: '/search?dept=mocas&cat=acessorios&sub=relogios' },
       { emoji: '💍', label: 'jóias', href: '/search?dept=mocas&cat=acessorios&sub=joias-e-bijuterias' },
       { emoji: '🧣', label: 'cachecóis', href: '/search?dept=mocas&cat=acessorios&sub=cachacois' },
@@ -98,7 +101,11 @@ export default function MocasPage() {
                   href={card.href}
                   className="flex-shrink-0 flex flex-col items-center justify-center gap-2 w-[88px] h-[88px] bg-white dark:bg-[var(--color-pine)] border border-gray-100 dark:border-white/5 rounded-2xl shadow-sm hover:scale-[1.04] active:scale-[0.97] transition-transform"
                 >
-                  <span className="text-[28px] leading-none">{card.emoji}</span>
+                  {card.icon ? (
+                    <card.icon size={26} className="text-[var(--color-teal)] dark:text-[var(--color-celadon)]" />
+                  ) : (
+                    <span className="text-[28px] leading-none">{card.emoji}</span>
+                  )}
                   <span className="text-[11px] font-bold text-[var(--foreground)] text-center leading-tight px-1">
                     {card.label}
                   </span>

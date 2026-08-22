@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { Package } from 'lucide-react'
 import { cn, formatPrice, formatDate } from '@/lib/utils'
 import type { TransactionStatus } from '@prisma/client'
 
@@ -92,7 +93,7 @@ export function TransactionCard({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-2xl">📦</span>
+            <Package size={22} className="text-gray-300 dark:text-white/20" />
           </div>
         )}
       </div>

@@ -1,6 +1,9 @@
 import Link from 'next/link'
+import type { ComponentType } from 'react'
+import { CalcaIcon, BlusaIcon, CasacoIcon, ShortsIcon, TernoIcon, PerfumeIcon, TenisIcon, OculosIcon } from '@/components/icons/CustomIcons'
 
-type SubCard = { emoji: string; label: string; href: string }
+type IconComponent = ComponentType<{ size?: number; className?: string }>
+type SubCard = { emoji: string; icon?: IconComponent; label: string; href: string }
 type Section = { title: string; subtitle: string; href: string; cards: SubCard[] }
 
 const SECTIONS: Section[] = [
@@ -10,11 +13,11 @@ const SECTIONS: Section[] = [
     href: '/search?dept=rapazes&cat=roupas',
     cards: [
       { emoji: '👔', label: 'camisas', href: '/search?dept=rapazes&cat=roupas&sub=camisas' },
-      { emoji: '👕', label: 'blusas', href: '/search?dept=rapazes&cat=roupas&sub=blusas' },
-      { emoji: '👖', label: 'calças', href: '/search?dept=rapazes&cat=roupas&sub=calcas' },
-      { emoji: '🩳', label: 'shorts', href: '/search?dept=rapazes&cat=roupas&sub=shorts' },
-      { emoji: '🧥', label: 'casacos', href: '/search?dept=rapazes&cat=roupas&sub=casacos' },
-      { emoji: '🤵', label: 'ternos', href: '/search?dept=rapazes&cat=roupas&sub=ternos' },
+      { emoji: '👕', icon: BlusaIcon, label: 'blusas', href: '/search?dept=rapazes&cat=roupas&sub=blusas' },
+      { emoji: '👖', icon: CalcaIcon, label: 'calças', href: '/search?dept=rapazes&cat=roupas&sub=calcas' },
+      { emoji: '🩳', icon: ShortsIcon, label: 'shorts', href: '/search?dept=rapazes&cat=roupas&sub=shorts' },
+      { emoji: '🧥', icon: CasacoIcon, label: 'casacos', href: '/search?dept=rapazes&cat=roupas&sub=casacos' },
+      { emoji: '🤵', icon: TernoIcon, label: 'ternos', href: '/search?dept=rapazes&cat=roupas&sub=ternos' },
     ],
   },
   {
@@ -22,7 +25,7 @@ const SECTIONS: Section[] = [
     subtitle: 'para andar com estilo',
     href: '/search?dept=rapazes&cat=calcados',
     cards: [
-      { emoji: '👟', label: 'tênis', href: '/search?dept=rapazes&cat=calcados&sub=tenis' },
+      { emoji: '👟', icon: TenisIcon, label: 'tênis', href: '/search?dept=rapazes&cat=calcados&sub=tenis' },
       { emoji: '👢', label: 'botas', href: '/search?dept=rapazes&cat=calcados&sub=botas' },
       { emoji: '🥾', label: 'sapatos', href: '/search?dept=rapazes&cat=calcados&sub=sapatos' },
       { emoji: '🩴', label: 'sandálias', href: '/search?dept=rapazes&cat=calcados&sub=sandalias' },
@@ -35,7 +38,7 @@ const SECTIONS: Section[] = [
     href: '/search?dept=rapazes&cat=acessorios',
     cards: [
       { emoji: '⌚', label: 'relógios', href: '/search?dept=rapazes&cat=acessorios&sub=relogios' },
-      { emoji: '👓', label: 'óculos', href: '/search?dept=rapazes&cat=acessorios&sub=oculos' },
+      { emoji: '👓', icon: OculosIcon, label: 'óculos', href: '/search?dept=rapazes&cat=acessorios&sub=oculos' },
       { emoji: '👛', label: 'carteiras', href: '/search?dept=rapazes&cat=acessorios&sub=carteiras' },
       { emoji: '🎩', label: 'chapéus', href: '/search?dept=rapazes&cat=acessorios&sub=chapeus' },
       { emoji: '💍', label: 'jóias', href: '/search?dept=rapazes&cat=acessorios&sub=joias-e-bijuterias' },
@@ -46,7 +49,7 @@ const SECTIONS: Section[] = [
     subtitle: 'cuidados que valem',
     href: '/search?dept=rapazes&cat=beleza',
     cards: [
-      { emoji: '🌸', label: 'perfumes', href: '/search?dept=rapazes&cat=beleza&sub=perfumes' },
+      { emoji: '🌸', icon: PerfumeIcon, label: 'perfumes', href: '/search?dept=rapazes&cat=beleza&sub=perfumes' },
       { emoji: '🧴', label: 'skincare', href: '/search?dept=rapazes&cat=beleza&sub=skincare' },
       { emoji: '💇', label: 'cabelos', href: '/search?dept=rapazes&cat=beleza&sub=cabelos' },
     ],
@@ -94,7 +97,11 @@ export default function RapazesPage() {
                   href={card.href}
                   className="flex-shrink-0 flex flex-col items-center justify-center gap-2 w-[88px] h-[88px] bg-white dark:bg-[var(--color-pine)] border border-gray-100 dark:border-white/5 rounded-2xl shadow-sm hover:scale-[1.04] active:scale-[0.97] transition-transform"
                 >
-                  <span className="text-[28px] leading-none">{card.emoji}</span>
+                  {card.icon ? (
+                    <card.icon size={26} className="text-[var(--color-teal)] dark:text-[var(--color-celadon)]" />
+                  ) : (
+                    <span className="text-[28px] leading-none">{card.emoji}</span>
+                  )}
                   <span className="text-[11px] font-bold text-[var(--foreground)] text-center leading-tight px-1">
                     {card.label}
                   </span>

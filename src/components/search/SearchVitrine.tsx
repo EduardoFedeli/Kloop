@@ -1,8 +1,10 @@
 "use client"
 
 import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Venus, Mars, Baby, Sofa, Smartphone, Plug, BookOpen, Archive, PawPrint, Sparkles, Flame, Search } from 'lucide-react'
 import { GlobalSearchBar } from './GlobalSearchBar'
+import { useDragScroll } from '@/lib/hooks/useDragScroll'
+import { cn } from '@/lib/utils'
 
 const FALLBACK_BRANDS = [
   { name: 'ZARA', slug: 'zara', logoUrl: null },
@@ -13,16 +15,16 @@ const FALLBACK_BRANDS = [
 ]
 
 const DEPARTAMENTOS = [
-  { name: 'moças', icon: '👗', slug: 'mocas' },
-  { name: 'rapazes', icon: '👕', slug: 'rapazes' },
-  { name: 'crianças', icon: '🧸', slug: 'criancas' },
-  { name: 'casa & decor', icon: '🛋️', slug: 'casa-e-decoracao' },
-  { name: 'eletrônicos', icon: '📱', slug: 'eletronicos' },
-  { name: 'eletrodom...', icon: '🍳', slug: 'eletrodomesticos' },
-  { name: 'livros & p...', icon: '📚', slug: 'livros-e-papelarias' },
-  { name: 'antiguida...', icon: '🏺', slug: 'antiguidades' },
-  { name: 'pets', icon: '🐶', slug: 'pets' },
-  { name: 'etc & tal', icon: '✨', slug: 'etc-e-tal' },
+  { name: 'moças', icon: Venus, slug: 'mocas' },
+  { name: 'rapazes', icon: Mars, slug: 'rapazes' },
+  { name: 'crianças', icon: Baby, slug: 'criancas' },
+  { name: 'casa & decor', icon: Sofa, slug: 'casa-e-decoracao' },
+  { name: 'eletrônicos', icon: Smartphone, slug: 'eletronicos' },
+  { name: 'eletrodom...', icon: Plug, slug: 'eletrodomesticos' },
+  { name: 'livros & p...', icon: BookOpen, slug: 'livros-e-papelarias' },
+  { name: 'antiguida...', icon: Archive, slug: 'antiguidades' },
+  { name: 'pets', icon: PawPrint, slug: 'pets' },
+  { name: 'etc & tal', icon: Sparkles, slug: 'etc-e-tal' },
 ]
 
 const DESTAQUES_PILLS = [
@@ -53,6 +55,8 @@ interface Props {
 
 export function SearchVitrine({ topBrands = [] }: Props) {
   const displayBrands = topBrands.length > 0 ? topBrands.slice(0, 8) : FALLBACK_BRANDS
+  const catDrag = useDragScroll<HTMLDivElement>()
+  const brandsDrag = useDragScroll<HTMLDivElement>()
 
   return (
     <div className="min-h-screen bg-[var(--background)] pb-24">
@@ -70,11 +74,20 @@ export function SearchVitrine({ topBrands = [] }: Props) {
         {/* Seção Categorias */}
         <section>
           <h2 className="text-[17px] font-black text-[var(--foreground)] mb-5 tracking-tight">categorias</h2>
-          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
+          <div
+            ref={catDrag.ref}
+            onMouseDown={catDrag.onMouseDown}
+            onMouseUp={catDrag.onMouseUp}
+            onMouseLeave={catDrag.onMouseLeave}
+            onMouseMove={catDrag.onMouseMove}
+            onClickCapture={catDrag.onClickCapture}
+            className={cn("flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 [&::-webkit-scrollbar]:hidden", catDrag.className)}
+            style={{ scrollbarWidth: 'none' }}
+          >
             {DEPARTAMENTOS.map((cat) => (
               <Link key={cat.slug} href={`/search?dept=${cat.slug}`} className="flex flex-col items-center gap-2 group flex-shrink-0">
-                <div className="w-[72px] h-[72px] bg-white dark:bg-[var(--color-pine)] rounded-3xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center justify-center text-3xl group-hover:scale-105 transition-transform">
-                  {cat.icon}
+                <div className="w-[72px] h-[72px] bg-white dark:bg-[var(--color-pine)] rounded-3xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <cat.icon size={28} strokeWidth={1.75} className="text-[var(--color-teal)] dark:text-[var(--color-celadon)]" />
                 </div>
                 <span className="text-[12px] font-bold text-[var(--foreground)] text-center leading-tight truncate w-full max-w-[72px]">
                   {cat.name}
@@ -92,7 +105,16 @@ export function SearchVitrine({ topBrands = [] }: Props) {
               <ChevronRight size={20} strokeWidth={3} />
             </Link>
           </div>
-          <div className="flex gap-5 overflow-x-auto pb-4 -mx-4 px-4 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
+          <div
+            ref={brandsDrag.ref}
+            onMouseDown={brandsDrag.onMouseDown}
+            onMouseUp={brandsDrag.onMouseUp}
+            onMouseLeave={brandsDrag.onMouseLeave}
+            onMouseMove={brandsDrag.onMouseMove}
+            onClickCapture={brandsDrag.onClickCapture}
+            className={cn("flex gap-5 overflow-x-auto pb-4 -mx-4 px-4 [&::-webkit-scrollbar]:hidden", brandsDrag.className)}
+            style={{ scrollbarWidth: 'none' }}
+          >
             {displayBrands.map((brand) => (
               <Link
                 key={brand.slug}
@@ -121,8 +143,9 @@ export function SearchVitrine({ topBrands = [] }: Props) {
         <section>
           <div className="flex items-center gap-2 mb-5">
             <h2 className="text-[17px] font-black text-[var(--foreground)] tracking-tight">tendências da semana</h2>
-            <span className="bg-[var(--color-teal)]/15 text-[var(--color-teal)] dark:bg-[var(--color-celadon)]/15 dark:text-[var(--color-celadon)] text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wide">
-              🔥 em alta
+            <span className="flex items-center gap-1 bg-[var(--color-teal)]/15 text-[var(--color-teal)] dark:bg-[var(--color-celadon)]/15 dark:text-[var(--color-celadon)] text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+              <Flame size={10} />
+              em alta
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -132,7 +155,7 @@ export function SearchVitrine({ topBrands = [] }: Props) {
                 href={t.href}
                 className="flex items-center gap-1.5 bg-white dark:bg-[var(--color-pine)] border border-gray-100 dark:border-white/5 text-[var(--foreground)] font-bold text-[13px] px-3.5 py-2 rounded-full hover:border-[var(--color-teal)]/40 hover:text-[var(--color-teal)] transition-all"
               >
-                <span className="text-[11px]">🔍</span>
+                <Search size={12} className="text-gray-300 dark:text-white/20" />
                 {t.label}
               </Link>
             ))}

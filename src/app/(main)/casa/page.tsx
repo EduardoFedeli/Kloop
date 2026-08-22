@@ -1,6 +1,9 @@
 import Link from 'next/link'
+import type { ComponentType } from 'react'
+import { SofaIcon } from '@/components/icons/CustomIcons'
 
-type SubCard = { emoji: string; label: string; href: string }
+type IconComponent = ComponentType<{ size?: number; className?: string }>
+type SubCard = { emoji: string; icon?: IconComponent; label: string; href: string }
 type Section = { title: string; subtitle: string; href: string; cards: SubCard[] }
 
 const SECTIONS: Section[] = [
@@ -9,7 +12,7 @@ const SECTIONS: Section[] = [
     subtitle: 'transforme seu espaço',
     href: '/search?dept=casa-e-decor&cat=moveis',
     cards: [
-      { emoji: '🛋️', label: 'sala de estar', href: '/search?dept=casa-e-decor&cat=moveis&sub=sala-de-tv-e-estar' },
+      { emoji: '🛋️', icon: SofaIcon, label: 'sala de estar', href: '/search?dept=casa-e-decor&cat=moveis&sub=sala-de-tv-e-estar' },
       { emoji: '🛏️', label: 'quartos', href: '/search?dept=casa-e-decor&cat=moveis&sub=quartos' },
       { emoji: '🍽️', label: 'sala de jantar', href: '/search?dept=casa-e-decor&cat=moveis&sub=sala-de-jantar' },
       { emoji: '🖥️', label: 'escritório', href: '/search?dept=casa-e-decor&cat=moveis&sub=escritorio' },
@@ -97,7 +100,11 @@ export default function CasaPage() {
                   href={card.href}
                   className="flex-shrink-0 flex flex-col items-center justify-center gap-2 w-[88px] h-[88px] bg-white dark:bg-[var(--color-pine)] border border-gray-100 dark:border-white/5 rounded-2xl shadow-sm hover:scale-[1.04] active:scale-[0.97] transition-transform"
                 >
-                  <span className="text-[28px] leading-none">{card.emoji}</span>
+                  {card.icon ? (
+                    <card.icon size={26} className="text-[var(--color-teal)] dark:text-[var(--color-celadon)]" />
+                  ) : (
+                    <span className="text-[28px] leading-none">{card.emoji}</span>
+                  )}
                   <span className="text-[11px] font-bold text-[var(--foreground)] text-center leading-tight px-1">
                     {card.label}
                   </span>
