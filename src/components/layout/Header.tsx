@@ -3,6 +3,7 @@ import { db } from "@/lib/db"
 import { ListingStatus } from "@prisma/client"
 import { MegaNav } from "@/components/layout/MegaNav"
 import { getUserCommunitiesCount } from "@/lib/data/communities"
+import { getUnreadCount } from "@/lib/actions/notifications"
 
 async function getBrandsForDepts(deptNames: string[], limit = 7): Promise<string[]> {
   const depts = await db.category.findMany({
@@ -55,12 +56,13 @@ export async function Header() {
 
   const userId = session?.user?.id
 
-  const [mocasBrands, rapazesBrands, criancasBrands, outrosBrands, communitiesCount] = await Promise.all([
+  const [mocasBrands, rapazesBrands, criancasBrands, outrosBrands, communitiesCount, unreadCount] = await Promise.all([
     getBrandsForDepts(["moças"]),
     getBrandsForDepts(["rapazes"]),
     getBrandsForDepts(["crianças"]),
     getBrandsForDepts(["casa e decor", "eletrônicos", "eletrodomésticos", "livros e papelarias", "pets", "etc e tal", "antiguidades"]),
     userId ? getUserCommunitiesCount(userId) : Promise.resolve(0),
+    userId ? getUnreadCount() : Promise.resolve(0),
   ])
 
   return (
@@ -74,6 +76,7 @@ export async function Header() {
         }}
         user={session?.user ?? undefined}
         communitiesCount={communitiesCount}
+        unreadCount={unreadCount}
       />
     </header>
   )

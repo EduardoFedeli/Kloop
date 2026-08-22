@@ -10,6 +10,7 @@ export type SellerPreview = {
   id: string
   name: string | null
   avatarUrl: string | null
+  productImageUrl: string | null
   listingCount: number
   isPro?: boolean
 }
@@ -77,6 +78,18 @@ export default async function FeedPage() {
         subscription: {
           select: { status: true, plan: { select: { slug: true } } },
         },
+        listings: {
+          where: { status: 'ACTIVE' },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: {
+            images: {
+              orderBy: { displayOrder: 'asc' },
+              take: 1,
+              select: { url: true },
+            },
+          },
+        },
       },
       take: 20,
     }),
@@ -91,6 +104,7 @@ export default async function FeedPage() {
     id: s.id,
     name: s.name,
     avatarUrl: s.avatarUrl,
+    productImageUrl: s.listings[0]?.images[0]?.url ?? null,
     listingCount: s._count.listings,
     isPro: s.subscription?.status === 'ACTIVE' && s.subscription?.plan?.slug !== 'basic',
   }))

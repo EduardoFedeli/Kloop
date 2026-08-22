@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft, ShoppingBag } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShoppingBag, Handshake } from 'lucide-react'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { TransactionCard } from '@/components/transaction/TransactionCard'
+import { formatPrice } from '@/lib/utils'
 import type { TransactionStatus } from '@prisma/client'
 
 const STATUS_GROUPS: { status: TransactionStatus; title: string }[] = [
@@ -19,15 +20,36 @@ export default async function ComprasPage() {
   const session = await auth()
   if (!session?.user?.id) redirect('/login?redirectTo=/compras')
 
-  const transactions = await db.transaction.findMany({
-    where: { buyerId: session.user.id },
-    include: {
-      listing: {
-        include: { images: { orderBy: { displayOrder: 'asc' }, take: 1 } },
+  const [transactions, pendingOffersCount, recentOffer] = await Promise.all([
+    db.transaction.findMany({
+      where: { buyerId: session.user.id },
+      include: {
+        listing: {
+          include: { images: { orderBy: { displayOrder: 'asc' }, take: 1 } },
+        },
       },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+      orderBy: { createdAt: 'desc' },
+    }),
+    db.offer.count({
+      where: {
+        buyerId: session.user.id,
+        status: { in: ['PENDING_SELLER', 'PENDING_BUYER'] },
+        expiresAt: { gt: new Date() },
+      },
+    }),
+    db.offer.findFirst({
+      where: {
+        buyerId: session.user.id,
+        status: { in: ['PENDING_SELLER', 'PENDING_BUYER'] },
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { updatedAt: 'desc' },
+      select: {
+        currentPriceCents: true,
+        listing: { select: { title: true } },
+      },
+    }),
+  ])
 
   const grouped = STATUS_GROUPS.map((group) => ({
     ...group,
@@ -44,6 +66,33 @@ export default async function ComprasPage() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 pt-6 space-y-8">
+        {pendingOffersCount > 0 && (
+          <Link
+            href="/compras/ofertas"
+            className="flex items-center justify-between px-4 py-3.5 rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-[var(--color-pine)] shadow-sm hover:border-orange-200 dark:hover:border-orange-500/20 transition-colors group"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+                <Handshake size={18} className="text-orange-500 dark:text-orange-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[13px] font-bold text-[var(--foreground)]">minhas ofertas</p>
+                <p className="text-[11px] text-gray-400 dark:text-[var(--color-sage)] mt-0.5 truncate">
+                  {recentOffer
+                    ? `${recentOffer.listing.title.toLowerCase()} · ${formatPrice(recentOffer.currentPriceCents)}`
+                    : `${pendingOffersCount} em andamento`}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-orange-500 text-white text-[10px] font-black flex items-center justify-center">
+                {pendingOffersCount}
+              </span>
+              <ChevronRight size={16} className="text-gray-300 dark:text-white/20 group-hover:text-gray-400 transition-colors" />
+            </div>
+          </Link>
+        )}
+
         {grouped.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
             <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center">

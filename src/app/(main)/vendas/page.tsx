@@ -20,7 +20,7 @@ export default async function VendasPage() {
 
   const myId = session.user.id
 
-  const [userData, listings, completedTxs, pendingCount, activeOrdersCount, cashbackBalanceCents, pendingOffersCount, achievementsData, activeLot, shopProductCount] = await Promise.all([
+  const [userData, listings, completedTxs, pendingCount, activeOrdersCount, cashbackBalanceCents, pendingOffersCount, recentOffer, achievementsData, activeLot, shopProductCount] = await Promise.all([
     db.user.findUnique({
       where: { id: myId },
       select: { 
@@ -57,6 +57,14 @@ export default async function VendasPage() {
     getCashbackBalance(myId),
     db.offer.count({
       where: { sellerId: myId, status: 'PENDING_SELLER', expiresAt: { gt: new Date() } },
+    }),
+    db.offer.findFirst({
+      where: { sellerId: myId, status: 'PENDING_SELLER', expiresAt: { gt: new Date() } },
+      orderBy: { updatedAt: 'desc' },
+      select: {
+        currentPriceCents: true,
+        listing: { select: { title: true } },
+      },
     }),
     getUserAchievementsData(myId),
     db.proLot.findFirst({
@@ -417,20 +425,22 @@ export default async function VendasPage() {
 
                 {/* Ofertas */}
                 <Link href="/vendas/ofertas" className="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-white/3 transition-colors group">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
                     <div className="w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center flex-shrink-0">
                       <Handshake size={18} className="text-orange-500 dark:text-orange-400" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-[13px] font-bold text-[var(--foreground)]">ofertas recebidas</p>
-                      <p className="text-[11px] text-gray-400 dark:text-[var(--color-sage)] mt-0.5">
-                        {pendingOffersCount > 0
-                          ? `${pendingOffersCount} aguardando resposta`
-                          : 'nenhuma pendente'}
+                      <p className="text-[11px] text-gray-400 dark:text-[var(--color-sage)] mt-0.5 truncate">
+                        {recentOffer
+                          ? `${recentOffer.listing.title.toLowerCase()} · ${formatPrice(recentOffer.currentPriceCents)}`
+                          : pendingOffersCount > 0
+                            ? `${pendingOffersCount} aguardando resposta`
+                            : 'nenhuma pendente'}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     {pendingOffersCount > 0 && (
                       <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-orange-500 text-white text-[10px] font-black flex items-center justify-center">
                         {pendingOffersCount}

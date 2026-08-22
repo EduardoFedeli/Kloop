@@ -37,6 +37,12 @@ export default async function ComunidadesPage() {
           <p className="text-sm text-gray-500 dark:text-sage leading-relaxed max-w-sm mx-auto">
             Comunidades Kloop são exclusivas para condomínios e clubes parceiros. Entre em contato com seu síndico ou responsável para solicitar acesso.
           </p>
+          <Link
+            href="/comunidades/sobre"
+            className="inline-flex items-center gap-1.5 mt-5 text-[13px] font-bold text-[var(--color-teal)] dark:text-[var(--color-celadon)] hover:opacity-70 transition-opacity"
+          >
+            saiba mais sobre as comunidades
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

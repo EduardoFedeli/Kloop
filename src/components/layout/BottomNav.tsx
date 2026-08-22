@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Search, Bell, User, PlusCircle, LucideIcon } from "lucide-react"
+import { Home, Search, Building2, User, PlusCircle, LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { AuthModal } from "@/components/auth/AuthModal"
 
@@ -20,7 +20,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/",          label: "home",         icon: Home },
   { href: "/search",        label: "buscar",       icon: Search },
   { href: "/vendas",        label: "vender",       icon: PlusCircle, requiresAuth: true, isAction: true },
-  { href: "/notificacoes",  label: "notificações", icon: Bell, hasBadge: true, requiresAuth: true },
+  { href: "/comunidades",   label: "comunidades",  icon: Building2, requiresAuth: true },
   { href: "/perfil",        label: "meu kloop",    icon: User, requiresAuth: true },
 ] as const
 

@@ -118,7 +118,8 @@ Ao compactar, SEMPRE preservar: lista de arquivos modificados, comandos de teste
 - Rotas: `/comunidades` (lista das comunidades do usuário), `/comunidades/[slug]` (feed da comunidade).
 - Badge `communityBadge` no `ListingCard`: `{ type: 'generic' }` no feed público, `{ type: 'named', name }` dentro da comunidade.
 - Contagem de comunidades no header: `getUserCommunitiesCount(userId)` chamado em `Header.tsx` e passado ao `MegaNav` via prop `communitiesCount`. Ícone `Building2` visível apenas quando `communitiesCount > 0`.
-- Fora do escopo: criação/edição de comunidades no app, aprovação de membros, painel de condomínio, fluxo de portaria, split de pagamento.
+- Fora do escopo: criação/edição de comunidades **no app** (fluxo do usuário final), aprovação de membros, painel de condomínio, fluxo de portaria, split de pagamento.
+- Exceção: criação de comunidade é permitida como ferramenta interna em `/admin/comunidades` (`ComunidadesClient.tsx` + actions em `lib/actions/admin.ts`) — hoje só o tipo "Condomínio" está disponível; "Academia" e "Empresa" aparecem como cards desabilitados ("em breve").
 
 ## Leitura adicional
 
