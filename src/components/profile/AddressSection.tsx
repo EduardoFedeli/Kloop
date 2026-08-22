@@ -58,12 +58,12 @@ export function AddressSection({ addresses }: Props) {
   }
 
   const inputCls =
-    "mt-1 w-full px-3 py-2 rounded-lg border border-teal-muted/40 text-sm focus:outline-none focus:border-teal bg-white"
+    "mt-1 w-full px-3 py-2 rounded-lg border border-teal-muted/40 dark:border-white/10 text-sm text-[var(--foreground)] placeholder:text-gray-400 dark:placeholder:text-sage focus:outline-none focus:border-teal bg-white dark:bg-[var(--color-forest)]"
 
   return (
     <div className="space-y-3">
       {addresses.length === 0 && (
-        <p className="text-sm text-teal-muted">Nenhum endereço cadastrado.</p>
+        <p className="text-sm text-teal-muted dark:text-sage">Nenhum endereço cadastrado.</p>
       )}
 
       {addresses.map((addr) => (
@@ -72,25 +72,25 @@ export function AddressSection({ addresses }: Props) {
           className={cn(
             "flex items-start gap-3 p-4 rounded-xl border",
             addr.isDefault
-              ? "border-teal bg-celadon/10"
-              : "border-teal-muted/30 bg-white"
+              ? "border-teal bg-celadon/10 dark:bg-[var(--color-teal)]/10"
+              : "border-teal-muted/30 dark:border-white/10 bg-white dark:bg-[var(--color-forest)]"
           )}
         >
           <MapPin size={18} className="mt-0.5 text-teal shrink-0" />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-airforce">{addr.label}</span>
+              <span className="text-sm font-semibold text-airforce dark:text-[var(--foreground)]">{addr.label}</span>
               {addr.isDefault && (
                 <span className="text-[10px] bg-teal text-white px-2 py-0.5 rounded-full font-semibold">
                   padrão
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-600 mt-0.5">
+            <p className="text-xs text-gray-600 dark:text-sage mt-0.5">
               {addr.street}, {addr.number}
               {addr.complement ? `, ${addr.complement}` : ""}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-sage/70">
               {addr.neighborhood} — {addr.city}/{addr.state} — CEP {addr.zipCode}
             </p>
           </div>
@@ -119,7 +119,7 @@ export function AddressSection({ addresses }: Props) {
       {!showForm && addresses.length === 0 && (
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 text-sm font-medium text-teal hover:text-airforce transition-colors"
+          className="flex items-center gap-2 text-sm font-medium text-teal hover:text-airforce dark:hover:text-[var(--foreground)] transition-colors"
         >
           <Plus size={16} />
           Adicionar endereço
@@ -129,48 +129,48 @@ export function AddressSection({ addresses }: Props) {
       {showForm && addresses.length === 0 && (
         <form
           onSubmit={handleCreate}
-          className="space-y-3 p-4 rounded-xl border border-teal-muted/30 bg-linen"
+          className="space-y-3 p-4 rounded-xl border border-teal-muted/30 dark:border-white/10 bg-linen dark:bg-[var(--color-forest)]"
         >
-          <h3 className="text-sm font-bold text-airforce">Novo endereço</h3>
+          <h3 className="text-sm font-bold text-airforce dark:text-[var(--foreground)]">Novo endereço</h3>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium text-airforce">Rótulo</label>
+              <label className="text-xs font-medium text-airforce dark:text-sage">Rótulo</label>
               <input name="label" defaultValue="Casa" required maxLength={30} className={inputCls} />
             </div>
             <div>
-              <label className="text-xs font-medium text-airforce">CEP</label>
+              <label className="text-xs font-medium text-airforce dark:text-sage">CEP</label>
               <input name="zipCode" required placeholder="00000-000" className={inputCls} />
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-2">
-              <label className="text-xs font-medium text-airforce">Rua</label>
+              <label className="text-xs font-medium text-airforce dark:text-sage">Rua</label>
               <input name="street" required className={inputCls} />
             </div>
             <div>
-              <label className="text-xs font-medium text-airforce">Número</label>
+              <label className="text-xs font-medium text-airforce dark:text-sage">Número</label>
               <input name="number" required className={inputCls} />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-medium text-airforce">Complemento</label>
+            <label className="text-xs font-medium text-airforce dark:text-sage">Complemento</label>
             <input name="complement" placeholder="Apto, Bloco..." className={inputCls} />
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-xs font-medium text-airforce">Bairro</label>
+              <label className="text-xs font-medium text-airforce dark:text-sage">Bairro</label>
               <input name="neighborhood" required className={inputCls} />
             </div>
             <div>
-              <label className="text-xs font-medium text-airforce">Cidade</label>
+              <label className="text-xs font-medium text-airforce dark:text-sage">Cidade</label>
               <input name="city" required className={inputCls} />
             </div>
             <div>
-              <label className="text-xs font-medium text-airforce">UF</label>
+              <label className="text-xs font-medium text-airforce dark:text-sage">UF</label>
               <input
                 name="state"
                 required
@@ -185,7 +185,7 @@ export function AddressSection({ addresses }: Props) {
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="flex-1 py-2 text-sm text-airforce border border-teal-muted/40 rounded-lg hover:bg-white transition-colors"
+              className="flex-1 py-2 text-sm text-airforce dark:text-[var(--foreground)] border border-teal-muted/40 dark:border-white/10 rounded-lg hover:bg-white dark:hover:bg-white/10 transition-colors"
             >
               Cancelar
             </button>

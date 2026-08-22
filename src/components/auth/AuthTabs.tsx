@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { signIn } from "next-auth/react"
+import { Eye, EyeOff } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   registerSchema,
@@ -50,6 +51,7 @@ function LoginForm({ onLoginSuccess }: { onLoginSuccess?: () => void }) {
   const searchParams = useSearchParams()
   const [serverError, setServerError] = useState<"credentials" | "not_verified" | null>(null)
   const [resendEmail, setResendEmail] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
@@ -146,18 +148,28 @@ function LoginForm({ onLoginSuccess }: { onLoginSuccess?: () => void }) {
             Esqueci a senha
           </button>
         </div>
-        <input
-          id="login-password"
-          type="password"
-          placeholder="Sua senha"
-          {...register("password")}
-          className={cn(
-            "rounded-lg border bg-linen p-3 text-sm text-airforce placeholder:text-gray-400 outline-none transition-colors focus:ring-1",
-            errors.password
-              ? "border-red-400 focus:border-red-400 focus:ring-red-400"
-              : "border-teal-muted/40 focus:border-teal focus:ring-teal"
-          )}
-        />
+        <div className="relative">
+          <input
+            id="login-password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Sua senha"
+            {...register("password")}
+            className={cn(
+              "w-full rounded-lg border bg-linen p-3 pr-10 text-sm text-airforce placeholder:text-gray-400 outline-none transition-colors focus:ring-1",
+              errors.password
+                ? "border-red-400 focus:border-red-400 focus:ring-red-400"
+                : "border-teal-muted/40 focus:border-teal focus:ring-teal"
+            )}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-airforce transition-colors"
+          >
+            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        </div>
         {errors.password && (
           <p className="text-xs text-red-500">{errors.password.message}</p>
         )}
