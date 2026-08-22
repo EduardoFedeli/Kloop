@@ -22,6 +22,18 @@
   --foreground: #D8F3DC;
 }
 
+/* Usado no /admin — mantém o painel interno sempre no tema claro original,
+   independente do .dark global aplicado no <html> pelo app do usuário final.
+   Redeclara color/background (não só as custom properties) porque `color` herda
+   como valor já computado a partir do <body>, então só resetar --foreground
+   não bastaria para os descendentes. */
+.theme-light {
+  --background: #F8FAF8;
+  --foreground: #1B4332;
+  background: var(--background);
+  color: var(--foreground);
+}
+
 @theme {
   /* Off-white */
   --color-linen: #F8FAF8;

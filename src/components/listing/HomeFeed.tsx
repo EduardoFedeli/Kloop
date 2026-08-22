@@ -6,6 +6,8 @@ import type { ListingWithDetails } from '@/types/listing'
 import type { SellerPreview, CommunitySection, BentoCard } from '@/app/(main)/page'
 import { ListingCard } from './ListingCard'
 import { ListingGrid } from './ListingGrid'
+import { useDragScroll } from '@/lib/hooks/useDragScroll'
+import { cn } from '@/lib/utils'
 
 type Props = {
   listings: ListingWithDetails[]
@@ -22,12 +24,18 @@ export function HomeFeed({ listings, sellers = [], communitySection, bentoCards 
     (l) => l.isMegafonado === true && l.megafonadoUntil != null && new Date(l.megafonadoUntil as string) > now
   ).slice(0, 4)
 
+  const sellersDrag = useDragScroll<HTMLDivElement>()
+  const promoDrag = useDragScroll<HTMLDivElement>()
+  const turbinadosDrag = useDragScroll<HTMLDivElement>()
+  const megafonadosDrag = useDragScroll<HTMLDivElement>()
+  const communityDrag = useDragScroll<HTMLDivElement>()
+
   return (
     <div className="space-y-12 pb-8 overflow-hidden pt-4">
 
       {/* ── Hero banner ── */}
       <section
-        className="-mx-4 md:mx-0 relative overflow-hidden md:rounded-2xl text-white"
+        className="relative overflow-hidden rounded-2xl text-white"
         style={{ background: 'linear-gradient(135deg, var(--color-pine) 0%, var(--color-emerald) 60%, var(--color-teal) 100%)' }}
       >
         {/* Atmospheric layers */}
@@ -75,13 +83,22 @@ export function HomeFeed({ listings, sellers = [], communitySection, bentoCards 
       {sellers.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[19px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>lojinhas que amamos</h2>
+            <h2 className="text-[19px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>vitrines em destaque</h2>
             <Link href="/search" className="text-[12px] font-bold text-[var(--color-teal)] dark:text-[var(--color-celadon)] hover:opacity-70 flex items-center gap-1 transition-opacity">
               ver todas <ArrowRight size={13} />
             </Link>
           </div>
 
-          <div className="-mx-4 px-4 overflow-x-auto pb-3 pt-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div
+            ref={sellersDrag.ref}
+            onMouseDown={sellersDrag.onMouseDown}
+            onMouseUp={sellersDrag.onMouseUp}
+            onMouseLeave={sellersDrag.onMouseLeave}
+            onMouseMove={sellersDrag.onMouseMove}
+            onClickCapture={sellersDrag.onClickCapture}
+            className={cn("-mx-4 px-4 overflow-x-auto pb-3 pt-1", sellersDrag.className)}
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
             <div className="flex gap-3 sm:grid sm:grid-cols-4 [&::-webkit-scrollbar]:hidden">
               {sellers.map((seller) => {
                 const firstName = seller.name?.split(' ')[0] ?? 'vendedor'
@@ -94,10 +111,10 @@ export function HomeFeed({ listings, sellers = [], communitySection, bentoCards 
                     className="relative w-[130px] h-[170px] sm:w-full sm:h-[200px] rounded-2xl overflow-hidden group flex-shrink-0 flex items-end"
                   >
                     {/* Background */}
-                    {seller.avatarUrl ? (
+                    {seller.productImageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={seller.avatarUrl}
+                        src={seller.productImageUrl}
                         alt=""
                         className="absolute inset-0 w-full h-full object-cover scale-110 group-hover:scale-105 transition-transform duration-500"
                       />
@@ -119,9 +136,14 @@ export function HomeFeed({ listings, sellers = [], communitySection, bentoCards 
                       </p>
                     </div>
 
-                    {/* Initial badge */}
-                    <div className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center">
-                      <span className="text-[11px] font-black text-white">{initial}</span>
+                    {/* Avatar badge */}
+                    <div className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center overflow-hidden">
+                      {seller.avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={seller.avatarUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-[11px] font-black text-white">{initial}</span>
+                      )}
                     </div>
 
                     {/* Kloop Pro badge */}
@@ -151,7 +173,15 @@ export function HomeFeed({ listings, sellers = [], communitySection, bentoCards 
             produtos com desconto automático aplicado
           </p>
           {/* Mobile: horizontal shelf */}
-          <div className="sm:hidden -mx-4 px-4 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div
+            ref={promoDrag.ref}
+            onMouseDown={promoDrag.onMouseDown}
+            onMouseUp={promoDrag.onMouseUp}
+            onMouseLeave={promoDrag.onMouseLeave}
+            onMouseMove={promoDrag.onMouseMove}
+            onClickCapture={promoDrag.onClickCapture}
+            className={cn("sm:hidden -mx-4 px-4 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden", promoDrag.className)}
+          >
             <div className="flex gap-3">
               {promoListings.map((listing) => (
                 <div key={listing.id} className="w-[155px] flex-shrink-0">
@@ -184,7 +214,15 @@ export function HomeFeed({ listings, sellers = [], communitySection, bentoCards 
           </p>
           <div className="bg-[var(--color-teal)]/4 dark:bg-[var(--color-celadon)]/4 -mx-4 px-4 py-6 rounded-3xl border border-[var(--color-teal)]/8 dark:border-[var(--color-celadon)]/8">
             {/* Mobile: horizontal shelf */}
-            <div className="sm:hidden -mx-4 px-4 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div
+              ref={turbinadosDrag.ref}
+              onMouseDown={turbinadosDrag.onMouseDown}
+              onMouseUp={turbinadosDrag.onMouseUp}
+              onMouseLeave={turbinadosDrag.onMouseLeave}
+              onMouseMove={turbinadosDrag.onMouseMove}
+              onClickCapture={turbinadosDrag.onClickCapture}
+              className={cn("sm:hidden -mx-4 px-4 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden", turbinadosDrag.className)}
+            >
               <div className="flex gap-3">
                 {turbinados.map((listing) => (
                   <div key={listing.id} className="w-[155px] flex-shrink-0">
@@ -217,7 +255,15 @@ export function HomeFeed({ listings, sellers = [], communitySection, bentoCards 
             acabaram de gritar por aqui
           </p>
           {/* Mobile: horizontal shelf */}
-          <div className="sm:hidden -mx-4 px-4 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div
+            ref={megafonadosDrag.ref}
+            onMouseDown={megafonadosDrag.onMouseDown}
+            onMouseUp={megafonadosDrag.onMouseUp}
+            onMouseLeave={megafonadosDrag.onMouseLeave}
+            onMouseMove={megafonadosDrag.onMouseMove}
+            onClickCapture={megafonadosDrag.onClickCapture}
+            className={cn("sm:hidden -mx-4 px-4 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden", megafonadosDrag.className)}
+          >
             <div className="flex gap-3">
               {megafonados.map((listing) => (
                 <div key={listing.id} className="w-[155px] flex-shrink-0">
@@ -255,7 +301,15 @@ export function HomeFeed({ listings, sellers = [], communitySection, bentoCards 
               ver tudo <ArrowRight size={13} />
             </Link>
           </div>
-          <div className="-mx-4 px-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div
+            ref={communityDrag.ref}
+            onMouseDown={communityDrag.onMouseDown}
+            onMouseUp={communityDrag.onMouseUp}
+            onMouseLeave={communityDrag.onMouseLeave}
+            onMouseMove={communityDrag.onMouseMove}
+            onClickCapture={communityDrag.onClickCapture}
+            className={cn("-mx-4 px-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden", communityDrag.className)}
+          >
             <div className="flex gap-3">
               {communitySection.listings.map((listing) => (
                 <div key={listing.id} className="w-[155px] flex-shrink-0">

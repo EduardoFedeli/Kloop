@@ -2,14 +2,15 @@
 
 import { useState, useRef } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Search, Bell, HelpCircle, ShoppingBag, Building2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { HeaderAuth } from "./HeaderAuth"
-import { ThemeToggle } from "./ThemeToggle"
 import { usePathname } from "next/navigation"
 import { GlobalSearchBar } from "../search/GlobalSearchBar"
 import { AuthModal } from "@/components/auth/AuthModal"
 import { useCartStore } from "@/store/cart"
+import { useDragScroll } from "@/lib/hooks/useDragScroll"
 
 // ── Static nav structure ───────────────────────────────────────────────────
 
@@ -68,11 +69,12 @@ interface MegaNavProps {
   brands: { mocas: string[]; rapazes: string[]; criancas: string[]; outros: string[] }
   user?: { name?: string | null; email?: string | null; image?: string | null }
   communitiesCount?: number
+  unreadCount?: number
 }
 
 // ── MegaNav ────────────────────────────────────────────────────────────────
 
-export function MegaNav({ brands, user, communitiesCount = 0 }: MegaNavProps) {
+export function MegaNav({ brands, user, communitiesCount = 0, unreadCount = 0 }: MegaNavProps) {
   const pathname = usePathname()
   const cartCount = useCartStore((s) => s.items.length)
   const isHome = pathname === '/'
@@ -81,6 +83,7 @@ export function MegaNav({ brands, user, communitiesCount = 0 }: MegaNavProps) {
   const [activeKey, setActiveKey] = useState<string | null>(null)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const catsDrag = useDragScroll<HTMLDivElement>()
 
   function open(key: string) {
     if (timer.current) clearTimeout(timer.current)
@@ -115,7 +118,7 @@ export function MegaNav({ brands, user, communitiesCount = 0 }: MegaNavProps) {
 
           {/* Logo */}
           <Link href="/" className="shrink-0 flex items-center">
-            <span className="text-2xl font-semibold text-[var(--color-teal)] dark:text-[var(--color-celadon)] tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>Kloop</span>
+            <Image src="/logo-extensa.png" alt="Kloop" width={790} height={316} priority className="h-7 w-auto" />
           </Link>
 
          {/* Search — desktop */}
@@ -177,9 +180,14 @@ export function MegaNav({ brands, user, communitiesCount = 0 }: MegaNavProps) {
               <Link href="/ajuda" aria-label="Ajuda" className={iconCls}>
                 <HelpCircle size={20} />
               </Link>
-              <button type="button" aria-label="Notificações" className={iconCls}>
+              <Link href="/notificacoes" aria-label="Notificações" className={cn(iconCls, "relative")}>
                 <Bell size={20} />
-              </button>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center leading-none">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Link>
               <Link href="/sacola" aria-label="Sacola" className={cn(iconCls, "relative")}>
                 <ShoppingBag size={20} />
                 {cartCount > 0 && (
@@ -188,7 +196,6 @@ export function MegaNav({ brands, user, communitiesCount = 0 }: MegaNavProps) {
                   </span>
                 )}
               </Link>
-              <ThemeToggle />
             </div>
 
             {/* Divider */}
@@ -199,12 +206,17 @@ export function MegaNav({ brands, user, communitiesCount = 0 }: MegaNavProps) {
           </div>
 
           {/* ── Mobile: right side ───────────────────────────────────────── */}
-          <div className="md:hidden ml-auto flex items-center gap-1">
+          <div className="md:hidden ml-auto flex items-center gap-2">
             <Link href="/search" aria-label="Buscar" className={iconCls}>
               <Search size={22} />
             </Link>
-            <Link href="/comunidades" aria-label="Minhas comunidades" className={iconCls}>
-              <Building2 size={22} />
+            <Link href="/notificacoes" aria-label="Notificações" className={cn(iconCls, "relative")}>
+              <Bell size={22} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center leading-none">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </Link>
             <Link href="/sacola" aria-label="Sacola" className={cn(iconCls, "relative")}>
               <ShoppingBag size={22} />
@@ -214,13 +226,21 @@ export function MegaNav({ brands, user, communitiesCount = 0 }: MegaNavProps) {
                 </span>
               )}
             </Link>
-            <ThemeToggle />
             <HeaderAuth user={user} />
           </div>
         </div>
 
         {/* ── Mobile: Scrollable Categories Row ──────────────────────────── */}
-        <div className="md:hidden overflow-x-auto border-t border-gray-100 dark:border-white/5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div
+          ref={catsDrag.ref}
+          onMouseDown={catsDrag.onMouseDown}
+          onMouseUp={catsDrag.onMouseUp}
+          onMouseLeave={catsDrag.onMouseLeave}
+          onMouseMove={catsDrag.onMouseMove}
+          onClickCapture={catsDrag.onClickCapture}
+          className={cn("md:hidden overflow-x-auto border-t border-gray-100 dark:border-white/5", catsDrag.className)}
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           <ul className="flex items-center px-4 [&::-webkit-scrollbar]:hidden">
             {[
               { label: "pra você", href: "/", active: pathname === '/' },

@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { Toaster } from "sonner"
+import { BackgroundPattern } from "@/components/layout/BackgroundPattern"
 import "./globals.css";// <-- Import alterado usando o alias do Next.js
 
 const inter = Inter({
@@ -15,15 +16,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})();`,
-          }}
-        />
-      </head>
+    <html lang="pt-BR" className={`${inter.variable} h-full antialiased dark`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col">
+        <BackgroundPattern />
         {children}
         <Toaster position="bottom-center" richColors />
       </body>
