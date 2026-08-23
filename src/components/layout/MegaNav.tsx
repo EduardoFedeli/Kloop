@@ -172,11 +172,25 @@ export function MegaNav({ brands, user, communitiesCount = 0, unreadCount = 0 }:
 
             {/* Icons */}
             <div className="flex items-center">
-              {communitiesCount > 0 && (
-                <Link href="/comunidades" aria-label="Minhas comunidades" className={iconCls}>
-                  <Building2 size={20} />
-                </Link>
-              )}
+              {communitiesCount > 0 && (() => {
+                const isComunidades = pathname.startsWith("/comunidades")
+                return (
+                  <Link
+                    href="/comunidades"
+                    aria-label="Minhas comunidades"
+                    className={isComunidades
+                      ? "p-2 rounded-full transition-colors text-[var(--color-neon-lift)]"
+                      : iconCls
+                    }
+                    style={isComunidades ? {
+                      background: "rgba(9,86,255,0.16)",
+                      border: "1px solid rgba(76,126,255,0.4)",
+                    } : undefined}
+                  >
+                    <Building2 size={20} />
+                  </Link>
+                )
+              })()}
               <Link href="/ajuda" aria-label="Ajuda" className={iconCls}>
                 <HelpCircle size={20} />
               </Link>
