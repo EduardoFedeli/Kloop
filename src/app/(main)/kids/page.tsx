@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ComponentType } from 'react'
-import { MamadeiraIcon, VestidoIcon, CalcaIcon, CasacoIcon, TenisIcon } from '@/components/icons/CustomIcons'
+import { MamadeiraIcon, VestidoIcon, CalcaIcon, CasacoIcon, TenisIcon, PijamaIcon, BodyBebeIcon, SandaliaIcon, BolsaMaternidadeIcon } from '@/components/icons/CustomIcons'
 
 type IconComponent = ComponentType<{ size?: number; className?: string }>
 type SubCard = { emoji: string; icon?: IconComponent; label: string; href: string }
@@ -16,8 +16,8 @@ const SECTIONS: Section[] = [
       { emoji: '👗', icon: VestidoIcon, label: 'vestidos', href: '/search?dept=criancas&cat=roupas&sub=vestidos' },
       { emoji: '👖', icon: CalcaIcon, label: 'calças', href: '/search?dept=criancas&cat=roupas&sub=calcas' },
       { emoji: '🧥', icon: CasacoIcon, label: 'casacos', href: '/search?dept=criancas&cat=roupas&sub=casacos' },
-      { emoji: '🩱', label: 'conjuntos', href: '/search?dept=criancas&cat=roupas&sub=conjuntos' },
-      { emoji: '🛌', label: 'pijamas', href: '/search?dept=criancas&cat=roupas&sub=pijamas' },
+      { emoji: '🩱', icon: BodyBebeIcon, label: 'conjuntos', href: '/search?dept=criancas&cat=roupas&sub=conjuntos' },
+      { emoji: '🛌', icon: PijamaIcon, label: 'pijamas', href: '/search?dept=criancas&cat=roupas&sub=pijamas' },
     ],
   },
   {
@@ -38,7 +38,7 @@ const SECTIONS: Section[] = [
     href: '/search?dept=criancas&cat=calcados',
     cards: [
       { emoji: '👟', icon: TenisIcon, label: 'tênis', href: '/search?dept=criancas&cat=calcados&sub=tenis' },
-      { emoji: '👡', label: 'sandálias', href: '/search?dept=criancas&cat=calcados&sub=sandalias' },
+      { emoji: '👡', icon: SandaliaIcon, label: 'sandálias', href: '/search?dept=criancas&cat=calcados&sub=sandalias' },
       { emoji: '👢', label: 'botas', href: '/search?dept=criancas&cat=calcados&sub=botas' },
       { emoji: '🥿', label: 'sapatilhas', href: '/search?dept=criancas&cat=calcados&sub=sapatilhas' },
       { emoji: '🥾', label: 'sapatos', href: '/search?dept=criancas&cat=calcados&sub=sapatos' },
@@ -51,7 +51,7 @@ const SECTIONS: Section[] = [
     cards: [
       { emoji: '🛏️', label: 'cama/berço', href: '/search?dept=criancas&cat=acessorios-e-enxoval&sub=cama-berco-banho' },
       { emoji: '🤱', label: 'maternidade', href: '/search?dept=criancas&cat=acessorios-e-enxoval&sub=maternidade' },
-      { emoji: '👜', label: 'bolsas', href: '/search?dept=criancas&cat=acessorios-e-enxoval&sub=bolsas' },
+      { emoji: '👜', icon: BolsaMaternidadeIcon, label: 'bolsas', href: '/search?dept=criancas&cat=acessorios-e-enxoval&sub=bolsas' },
       { emoji: '💺', label: 'cadeirinhas', href: '/search?dept=criancas&cat=acessorios-e-enxoval&sub=cadeirinhas' },
     ],
   },

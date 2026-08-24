@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ComponentType } from 'react'
-import { CalcaIcon, BlusaIcon, CasacoIcon, ShortsIcon, TernoIcon, PerfumeIcon, TenisIcon, OculosIcon } from '@/components/icons/CustomIcons'
+import { CalcaIcon, BlusaIcon, CasacoIcon, ShortsIcon, TernoIcon, PerfumeIcon, TenisIcon, OculosIcon, CamisaSocialIcon, SkincareIcon, CabeloIcon, MochilaIcon, MaletaIcon, RelogioIcon } from '@/components/icons/CustomIcons'
 
 type IconComponent = ComponentType<{ size?: number; className?: string }>
 type SubCard = { emoji: string; icon?: IconComponent; label: string; href: string }
@@ -12,7 +12,7 @@ const SECTIONS: Section[] = [
     subtitle: 'do básico ao estiloso',
     href: '/search?dept=rapazes&cat=roupas',
     cards: [
-      { emoji: '👔', label: 'camisas', href: '/search?dept=rapazes&cat=roupas&sub=camisas' },
+      { emoji: '👔', icon: CamisaSocialIcon, label: 'camisas', href: '/search?dept=rapazes&cat=roupas&sub=camisas' },
       { emoji: '👕', icon: BlusaIcon, label: 'blusas', href: '/search?dept=rapazes&cat=roupas&sub=blusas' },
       { emoji: '👖', icon: CalcaIcon, label: 'calças', href: '/search?dept=rapazes&cat=roupas&sub=calcas' },
       { emoji: '🩳', icon: ShortsIcon, label: 'shorts', href: '/search?dept=rapazes&cat=roupas&sub=shorts' },
@@ -37,7 +37,7 @@ const SECTIONS: Section[] = [
     subtitle: 'finalizando o look',
     href: '/search?dept=rapazes&cat=acessorios',
     cards: [
-      { emoji: '⌚', label: 'relógios', href: '/search?dept=rapazes&cat=acessorios&sub=relogios' },
+      { emoji: '⌚', icon: RelogioIcon, label: 'relógios', href: '/search?dept=rapazes&cat=acessorios&sub=relogios' },
       { emoji: '👓', icon: OculosIcon, label: 'óculos', href: '/search?dept=rapazes&cat=acessorios&sub=oculos' },
       { emoji: '👛', label: 'carteiras', href: '/search?dept=rapazes&cat=acessorios&sub=carteiras' },
       { emoji: '🎩', label: 'chapéus', href: '/search?dept=rapazes&cat=acessorios&sub=chapeus' },
@@ -50,8 +50,8 @@ const SECTIONS: Section[] = [
     href: '/search?dept=rapazes&cat=beleza',
     cards: [
       { emoji: '🌸', icon: PerfumeIcon, label: 'perfumes', href: '/search?dept=rapazes&cat=beleza&sub=perfumes' },
-      { emoji: '🧴', label: 'skincare', href: '/search?dept=rapazes&cat=beleza&sub=skincare' },
-      { emoji: '💇', label: 'cabelos', href: '/search?dept=rapazes&cat=beleza&sub=cabelos' },
+      { emoji: '🧴', icon: SkincareIcon, label: 'skincare', href: '/search?dept=rapazes&cat=beleza&sub=skincare' },
+      { emoji: '💇', icon: CabeloIcon, label: 'cabelos', href: '/search?dept=rapazes&cat=beleza&sub=cabelos' },
     ],
   },
   {
@@ -59,8 +59,8 @@ const SECTIONS: Section[] = [
     subtitle: 'para levar no dia a dia',
     href: '/search?dept=rapazes&cat=bolsas',
     cards: [
-      { emoji: '🎒', label: 'mochilas', href: '/search?dept=rapazes&cat=bolsas&sub=mochilas' },
-      { emoji: '💼', label: 'maleta', href: '/search?dept=rapazes&cat=bolsas&sub=maleta' },
+      { emoji: '🎒', icon: MochilaIcon, label: 'mochilas', href: '/search?dept=rapazes&cat=bolsas&sub=mochilas' },
+      { emoji: '💼', icon: MaletaIcon, label: 'maleta', href: '/search?dept=rapazes&cat=bolsas&sub=maleta' },
       { emoji: '🛍️', label: 'pochete', href: '/search?dept=rapazes&cat=bolsas&sub=pochete' },
     ],
   },
