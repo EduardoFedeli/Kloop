@@ -39,7 +39,7 @@ export async function applyMegafoneAction(
   if (!listing) return { success: false, error: "Anúncio não encontrado" }
   if (listing.sellerId !== userId) return { success: false, error: "Sem permissão" }
   if (listing.status !== "ACTIVE")
-    return { success: false, error: "Apenas anúncios ativos podem ser megafonados" }
+    return { success: false, error: "Apenas anúncios ativos podem ser impulsionados" }
 
   // Mandatory discount rules based on listing age
   const now = new Date()
@@ -69,7 +69,7 @@ export async function applyMegafoneAction(
     if (newPriceCents > maxAllowedPriceCents) {
       return {
         success: false,
-        error: `O preço deve ser no máximo R$ ${(maxAllowedPriceCents / 100).toFixed(2).replace(".", ",")} para megafonar este anúncio`,
+        error: `O preço deve ser no máximo R$ ${(maxAllowedPriceCents / 100).toFixed(2).replace(".", ",")} para impulsionar este anúncio`,
         discountRequired: true,
         requiredPriceCents: maxAllowedPriceCents,
         originalPriceCents: listing.priceCents,
@@ -115,7 +115,7 @@ export async function applyMegafoneAction(
   if (totalAvailable <= 0) {
     return {
       success: false,
-      error: "Você não tem megafones disponíveis. Compre mais ou aguarde o reset semanal.",
+      error: "Você não tem impulsos disponíveis. Compre mais ou aguarde o reset semanal.",
     }
   }
 

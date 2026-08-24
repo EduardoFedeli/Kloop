@@ -71,7 +71,7 @@ export function MegafoneClient({ listings, quota, planName }: Props) {
         overridePriceCents ?? undefined
       )
       if (result.success) {
-        toast.success('Megafone aplicado! Anúncio em destaque por 7 dias. 📣')
+        toast.success('Impulso aplicado! Anúncio em destaque por 7 dias. 📣')
         setSelectedId(null)
         setOverridePriceCents(null)
       } else {
@@ -84,7 +84,7 @@ export function MegafoneClient({ listings, quota, planName }: Props) {
     startBuyTransition(async () => {
       const result = await buyExtraMegaphonesAction()
       if (result.success) {
-        toast.success('+5 megafones adicionados à sua conta!')
+        toast.success('+5 impulsos adicionados à sua conta!')
       } else {
         toast.error(result.error)
       }
@@ -99,7 +99,7 @@ export function MegafoneClient({ listings, quota, planName }: Props) {
           <div className="flex items-center gap-2">
             <Megaphone size={18} className="text-yellow-500" />
             <span className="text-[13px] font-black text-yellow-700 dark:text-yellow-400">
-              seus megafones
+              seus impulsos
             </span>
           </div>
           <span className="text-[11px] text-gray-400 dark:text-sage font-medium">plano {planName}</span>
@@ -148,14 +148,14 @@ export function MegafoneClient({ listings, quota, planName }: Props) {
           className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl border border-yellow-400 dark:border-yellow-500/40 text-yellow-700 dark:text-yellow-400 text-[12px] font-bold hover:bg-yellow-100 dark:hover:bg-yellow-500/10 transition-colors disabled:opacity-50"
         >
           <ShoppingCart size={13} />
-          {isBuying ? 'aguarde...' : 'comprar +5 megafones · R$ 10,00'}
+          {isBuying ? 'aguarde...' : 'comprar +5 impulsos · R$ 10,00'}
         </button>
       </div>
 
       {/* Listing picker */}
       <div>
         <h2 className="text-[13px] font-black text-[var(--foreground)] mb-3">
-          escolha um anúncio para megafonar
+          escolha um anúncio para impulsionar
         </h2>
 
         {listings.length === 0 ? (
@@ -237,7 +237,7 @@ export function MegafoneClient({ listings, quota, planName }: Props) {
         <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 p-4 space-y-3">
           <div className="flex items-center gap-2">
             <Zap size={16} className="text-yellow-500" />
-            <p className="text-[13px] font-black text-[var(--foreground)]">confirmar megafone</p>
+            <p className="text-[13px] font-black text-[var(--foreground)]">confirmar impulso</p>
           </div>
 
           {(() => {
@@ -249,7 +249,7 @@ export function MegafoneClient({ listings, quota, planName }: Props) {
                 <div className="flex items-start gap-2">
                   <AlertCircle size={14} className="text-orange-500 mt-0.5 flex-shrink-0" />
                   <p className="text-[12px] text-orange-700 dark:text-orange-400">
-                    Este anúncio tem {days} dias. Para megafonar, é necessário reduzir o preço em{' '}
+                    Este anúncio tem {days} dias. Para impulsionar, é necessário reduzir o preço em{' '}
                     {days >= 29 ? '10%' : '5%'} (máx. R$ 50,00).
                   </p>
                 </div>
@@ -269,7 +269,7 @@ export function MegafoneClient({ listings, quota, planName }: Props) {
           <ul className="text-[12px] text-gray-500 dark:text-sage space-y-1">
             <li>· destaque no feed por <strong>7 dias</strong></li>
             <li>· aparece no topo das buscas da categoria</li>
-            <li>· 1 megafone será descontado do seu saldo</li>
+            <li>· 1 impulso será descontado do seu saldo</li>
           </ul>
 
           <div className="flex gap-2">
@@ -285,7 +285,7 @@ export function MegafoneClient({ listings, quota, planName }: Props) {
               className="flex-1 py-2.5 rounded-xl bg-yellow-400 dark:bg-yellow-500 text-white text-[13px] font-black hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
             >
               <Megaphone size={14} />
-              {isPending ? 'aplicando...' : 'megafonar!'}
+              {isPending ? 'aplicando...' : 'impulsionar!'}
             </button>
           </div>
         </div>

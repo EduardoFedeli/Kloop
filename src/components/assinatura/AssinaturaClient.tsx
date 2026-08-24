@@ -35,7 +35,7 @@ const plans: Plan[] = [
     ctaText: "Continuar com o Kloop",
     features: [
       { text: "Até 20 anúncios ativos" },
-      { text: "5 megafones por semana" },
+      { text: "5 impulsos por semana" },
       { text: "Taxa de 14% por venda" },
     ],
   },
@@ -49,7 +49,7 @@ const plans: Plan[] = [
     ctaText: "Assinar Kloop Pro",
     features: [
       { text: "Anúncios ilimitados", highlight: true },
-      { text: "15 megafones por semana", highlight: true },
+      { text: "15 impulsos por semana", highlight: true },
       { text: "Taxa reduzida de 12%", highlight: true },
     ],
   },
@@ -202,7 +202,7 @@ export function AssinaturaClient({ currentPlanSlug }: { currentPlanSlug: string 
           <div>
             <h1 className="text-[16px] font-black text-[var(--foreground)]">Escolha seu plano</h1>
             <p className="text-[12px] text-gray-500 dark:text-sage">
-              Cancele quando quiser · Megafones variam por plano
+              Cancele quando quiser · Impulsos variam por plano
             </p>
           </div>
         </div>
@@ -223,8 +223,8 @@ export function AssinaturaClient({ currentPlanSlug }: { currentPlanSlug: string 
         {/* Benefícios rápidos */}
         <div className="grid grid-cols-3 gap-3 mb-8">
           {[
-            { icon: <Megaphone size={16} />, label: "Megafone semanal", colorClass: "text-[#c5a820] bg-[#1c1c0e]" },
-            { icon: <Zap size={16} />, label: "Turbinar produtos", colorClass: "text-[var(--color-teal)] bg-[var(--color-celadon)]/15 dark:bg-[var(--color-teal)]/10" },
+            { icon: <Megaphone size={16} />, label: "Impulso semanal", colorClass: "text-[#c5a820] bg-[#1c1c0e]" },
+            { icon: <Zap size={16} />, label: "Combo em produtos", colorClass: "text-[var(--color-teal)] bg-[var(--color-celadon)]/15 dark:bg-[var(--color-teal)]/10" },
             { icon: <TrendingUp size={16} />, label: "Taxa reduzida", colorClass: "text-[var(--color-teal)] bg-[var(--color-celadon)]/15 dark:bg-[var(--color-teal)]/10" },
           ].map((item, i) => (
             <div key={i} className={cn("rounded-2xl p-3 flex flex-col items-center gap-1.5 text-center", item.colorClass)}>

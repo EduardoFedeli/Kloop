@@ -78,7 +78,7 @@ export function ListingCard({
           {listing.isTurbinado && (
             <div className="absolute top-2 right-2 z-10 flex items-center gap-0.5 bg-[var(--color-teal)] text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-sm">
               <Zap size={8} fill="currentColor" />
-              turbinado
+              combo
             </div>
           )}
 
@@ -155,7 +155,7 @@ export function ListingCard({
           {listing.isTurbinado && (
             <div className="absolute top-2 right-2 z-10 flex items-center gap-0.5 bg-[var(--color-teal)] text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-sm">
               <Zap size={8} fill="currentColor" />
-              turbinado
+              combo
             </div>
           )}
         </div>

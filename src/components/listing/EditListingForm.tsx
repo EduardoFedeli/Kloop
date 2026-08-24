@@ -394,7 +394,7 @@ const onSubmit = async (data: CreateListingInput) => {
           <div className="grid grid-cols-2 gap-3">
             {([
               { key: 'classico', label: 'Clássico', emoji: '🛍️', desc: 'Venda simples, sem desconto automático' },
-              { key: 'turbinado', label: 'Turbinado', emoji: '⚡', desc: 'Desconto automático para quem leva mais de uma peça sua' },
+              { key: 'turbinado', label: 'Combo', emoji: '⚡', desc: 'Desconto automático para quem leva mais de uma peça sua' },
             ] as const).map((m) => {
               const active = isTurbinado ? m.key === 'turbinado' : m.key === 'classico'
               return (

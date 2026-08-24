@@ -121,13 +121,13 @@ export function ProfileStoreClient({
       const result = await applyMegafoneAction(listingId)
       setMegafoneTarget(null)
       if (result.success) {
-        toast.success("Produto megafonado! 📣")
+        toast.success("Produto impulsionado! 📣")
       } else if (!result.success && result.discountRequired) {
-        toast.error("Este produto precisa de desconto para ser megafonado.", {
-          action: { label: "Abrir Megafone", onClick: () => router.push("/vendas/megafone") }
+        toast.error("Este produto precisa de desconto para ser impulsionado.", {
+          action: { label: "Abrir Impulso", onClick: () => router.push("/vendas/megafone") }
         })
       } else {
-        toast.error(result.error ?? "Erro ao megafonar")
+        toast.error(result.error ?? "Erro ao impulsionar")
       }
     })
   }
@@ -363,8 +363,8 @@ export function ProfileStoreClient({
                 <Megaphone size={20} className="text-[#f5d547]" />
               </div>
               <div>
-                <h3 className="text-[14px] font-black text-[#f5d547] leading-tight">megafones disponíveis</h3>
-                <p className="text-[11px] font-medium text-[var(--color-sage)]">toque para gerenciar megafones</p>
+                <h3 className="text-[14px] font-black text-[#f5d547] leading-tight">impulsos disponíveis</h3>
+                <p className="text-[11px] font-medium text-[var(--color-sage)]">toque para gerenciar impulsos</p>
               </div>
             </div>
             <div className="text-right">
@@ -392,7 +392,7 @@ export function ProfileStoreClient({
                 className={cn("flex items-center gap-1.5 text-[12px] font-bold px-3 py-1.5 rounded-full border transition-colors",
                   showOnlyTurbinados ? "bg-[var(--color-teal)] border-[var(--color-teal)] text-white" : "bg-white/5 border-white/10 text-white/70")}
               >
-                <Zap size={12} fill={showOnlyTurbinados ? "currentColor" : "none"} /> só turbinados
+                <Zap size={12} fill={showOnlyTurbinados ? "currentColor" : "none"} /> só combos
               </button>
 
               <button
@@ -400,7 +400,7 @@ export function ProfileStoreClient({
                 className={cn("flex items-center gap-1.5 text-[12px] font-bold px-3 py-1.5 rounded-full border transition-colors",
                   showOnlyMegafonados ? "bg-[#1c1c0e] border-[#f5d547] text-[#f5d547]" : "bg-white/5 border-white/10 text-white/70")}
               >
-                <Megaphone size={12} /> só megafonados
+                <Megaphone size={12} /> só impulsionados
               </button>
 
               <select
@@ -452,7 +452,7 @@ export function ProfileStoreClient({
                       {/* Turbinado badge */}
                       {listing.isTurbinado && (
                         <div className="absolute top-2 right-2 bg-[var(--color-teal)] text-white text-[8px] font-black px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                          <Zap size={7} fill="currentColor" /> turbo
+                          <Zap size={7} fill="currentColor" /> combo
                         </div>
                       )}
                     </div>
@@ -467,7 +467,7 @@ export function ProfileStoreClient({
                         <div className="mt-2">
                           <div className="flex justify-between items-center mb-1">
                             <span className="flex items-center gap-0.5 text-[9px] font-black text-[#c5a820]">
-                              <Megaphone size={8} /> MEGAFONADO
+                              <Megaphone size={8} /> IMPULSIONADO
                             </span>
                             <span className="text-[9px] text-gray-400">{megafoneRemaining!.label}</span>
                           </div>
@@ -487,9 +487,9 @@ export function ProfileStoreClient({
                           {isThisMegafonePending ? (
                             <Loader2 size={10} className="animate-spin" />
                           ) : megaphonesAvailable === 0 ? (
-                            "sem megafones"
+                            "sem impulsos"
                           ) : (
-                            <><Megaphone size={10} /> MEGAFONAR</>
+                            <><Megaphone size={10} /> IMPULSIONAR</>
                           )}
                         </button>
                       ) : null}
@@ -684,7 +684,7 @@ export function ProfileStoreClient({
                     : "bg-transparent border-gray-200 dark:border-white/10 text-[var(--foreground)]"
                 )}
               >
-                <Zap size={12} fill={filterTurbinados ? "currentColor" : "none"} /> turbinados
+                <Zap size={12} fill={filterTurbinados ? "currentColor" : "none"} /> combos
               </button>
             )}
             {hasMegafonados && (
@@ -697,7 +697,7 @@ export function ProfileStoreClient({
                     : "bg-transparent border-gray-200 dark:border-white/10 text-[var(--foreground)]"
                 )}
               >
-                <Megaphone size={12} /> megafonados
+                <Megaphone size={12} /> impulsionados
               </button>
             )}
           </div>

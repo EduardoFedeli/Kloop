@@ -247,7 +247,7 @@ function ConditionCards({ value, onChange, error }: { value: string; onChange: (
 function ModeCards({ value, onChange }: { value: string; onChange: (v: "classico" | "turbinado") => void }) {
   const modes = [
     { key: "classico" as const, label: "Clássico", desc: "Anúncio padrão gratuito", icon: "☁️" },
-    { key: "turbinado" as const, label: "Turbinado", desc: "Desconto automático para quem leva mais de uma peça sua", icon: "⚡" },
+    { key: "turbinado" as const, label: "Combo", desc: "Desconto automático para quem leva mais de uma peça sua", icon: "⚡" },
   ]
   return (
     <div className="grid grid-cols-2 gap-3">

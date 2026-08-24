@@ -62,7 +62,7 @@ export default function KidsPage() {
     <div className="min-h-screen bg-[var(--background)] pb-24">
       <div className="px-5 pt-8 pb-6 border-b border-gray-100 dark:border-white/5">
         <p className="text-[11px] font-bold text-[var(--color-teal)] uppercase tracking-widest mb-2">departamento</p>
-        <h1 className="text-[42px] font-black text-[var(--foreground)] leading-none mb-2">crianças</h1>
+        <h1 className="text-[42px] font-black text-[var(--foreground)] leading-none mb-2">Infantil</h1>
         <p className="text-[14px] text-gray-500 dark:text-white/50">tem que aproveitar muito essa fase 🧸</p>
       </div>
 

@@ -15,9 +15,9 @@ const FALLBACK_BRANDS = [
 ]
 
 const DEPARTAMENTOS = [
-  { name: 'moças', icon: Venus, slug: 'mocas' },
-  { name: 'rapazes', icon: Mars, slug: 'rapazes' },
-  { name: 'crianças', icon: Baby, slug: 'criancas' },
+  { name: 'feminino', icon: Venus, slug: 'mocas' },
+  { name: 'masculino', icon: Mars, slug: 'rapazes' },
+  { name: 'infantil', icon: Baby, slug: 'criancas' },
   { name: 'casa & decor', icon: Sofa, slug: 'casa-e-decoracao' },
   { name: 'eletrônicos', icon: Smartphone, slug: 'eletronicos' },
   { name: 'eletrodom...', icon: Plug, slug: 'eletrodomesticos' },

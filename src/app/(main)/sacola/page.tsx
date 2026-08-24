@@ -321,7 +321,7 @@ export default function SacolaPage() {
                           </p>
                           {item.isTurbinado && (
                             <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-[var(--color-teal)]/10 text-[var(--color-teal)] dark:bg-[var(--color-celadon)]/10 dark:text-[var(--color-celadon)]">
-                              ⚡ turbinado
+                              ⚡ combo
                             </span>
                           )}
                         </div>
@@ -349,7 +349,7 @@ export default function SacolaPage() {
                     <div className="rounded-xl bg-[var(--color-teal)]/8 dark:bg-[var(--color-teal)]/10 px-3 py-2.5 space-y-1">
                       <div className="flex items-center justify-between text-[13px]">
                         <span className="text-[var(--color-teal)] dark:text-[var(--color-celadon)] font-bold">
-                          ⚡ sacolinha turbinada ({turbinadoDiscount.count} peças — {Math.round(turbinadoDiscount.rate * 100)}% off)
+                          ⚡ sacolinha combo ({turbinadoDiscount.count} peças — {Math.round(turbinadoDiscount.rate * 100)}% off)
                         </span>
                         <span className="text-[var(--color-teal)] dark:text-[var(--color-celadon)] font-black">
                           -{formatPrice(turbinadoDiscount.savingsCents)}

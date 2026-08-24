@@ -64,7 +64,7 @@ export function HomeFeed({ listings, sellers = [], communitySection, bentoCards 
                 className="inline-flex items-center gap-2 bg-white text-[var(--color-pine)] font-black px-6 py-3 rounded-full hover:bg-[var(--color-frosted)] active:scale-95 transition-all text-[13px] shadow-lg shadow-black/20"
               >
                 <Tag size={15} />
-                botar pra vender
+                vender agora
               </Link>
             </div>
           </div>
@@ -207,7 +207,7 @@ export function HomeFeed({ listings, sellers = [], communitySection, bentoCards 
             <div className="w-6 h-6 rounded-full bg-[var(--color-teal)] flex items-center justify-center flex-shrink-0">
               <Zap size={13} fill="currentColor" className="text-white" />
             </div>
-            <h2 className="text-[19px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>sacolas turbinadas</h2>
+            <h2 className="text-[19px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>sacolas combo</h2>
           </div>
           <p className="text-[12px] text-gray-400 dark:text-[var(--color-sage)] mb-5 pl-[34px]">
             leve mais itens da mesma loja com desconto
@@ -249,7 +249,7 @@ export function HomeFeed({ listings, sellers = [], communitySection, bentoCards 
             <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0">
               <Megaphone size={13} fill="currentColor" className="text-white" />
             </div>
-            <h2 className="text-[19px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>megafonados</h2>
+            <h2 className="text-[19px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>impulsionados</h2>
           </div>
           <p className="text-[12px] text-gray-400 dark:text-[var(--color-sage)] mb-5 pl-[34px]">
             acabaram de gritar por aqui

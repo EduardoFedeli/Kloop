@@ -20,7 +20,7 @@ interface OtherDept { key: string; label: string; cats: string[] }
 
 const MAIN: MainDept[] = [
   {
-    key: "mocas", label: "moças",
+    key: "mocas", label: "feminino",
     cats: [
       { name: "acessórios", subcats: ["óculos", "relógios", "jóias e bijuterias", "cachecóis", "cintos", "chapéus"] },
       { name: "roupas",     subcats: ["blusas", "calças", "vestidos", "camisas", "casacos e jaquetas", "saias", "shorts e bermudas"] },
@@ -30,7 +30,7 @@ const MAIN: MainDept[] = [
     ],
   },
   {
-    key: "rapazes", label: "rapazes",
+    key: "rapazes", label: "masculino",
     cats: [
       { name: "acessórios", subcats: ["óculos", "relógios", "jóias e bijuterias", "cintos", "chapéus", "carteiras"] },
       { name: "roupas",     subcats: ["blusas", "calças", "camisas", "casacos e jaquetas", "shorts e bermudas", "ternos"] },
@@ -39,7 +39,7 @@ const MAIN: MainDept[] = [
     ],
   },
   {
-    key: "criancas", label: "crianças",
+    key: "criancas", label: "infantil",
     cats: [
       { name: "roupas",               subcats: ["blusas e camisetas", "calças", "vestidos", "conjuntos", "casacos", "pijamas"] },
       { name: "calçados",             subcats: ["tênis", "sandálias", "botas", "sapatilhas"] },
@@ -245,9 +245,9 @@ export function MegaNav({ brands, user, communitiesCount = 0, unreadCount = 0 }:
             {[
               { label: "pra você", href: "/", active: pathname === '/' },
               { label: "kloop shop", href: "/kloop-shop", active: false, requiresAuth: false },
-              { label: "moças", href: "/mocas", active: pathname === '/mocas' },
-              { label: "rapazes", href: "/rapazes", active: pathname === '/rapazes' },
-              { label: "kids", href: "/kids", active: pathname === '/kids' },
+              { label: "feminino", href: "/mocas", active: pathname === '/mocas' },
+              { label: "masculino", href: "/rapazes", active: pathname === '/rapazes' },
+              { label: "infantil", href: "/kids", active: pathname === '/kids' },
               { label: "casa", href: "/casa", active: pathname === '/casa' },
             ].map((item) => (
               <li key={item.label} className="flex-shrink-0">
@@ -350,7 +350,7 @@ function MainDropdown({ dept, brands }: { dept: MainDept; brands: string[] }) {
           href={`/search?dept=${dept.key}`}
           className="text-sm font-bold text-[var(--color-teal)] dark:text-[var(--color-celadon)] hover:underline underline-offset-2 whitespace-nowrap"
         >
-          tudo de {dept.label}
+          ver todos os itens
         </Link>
       </div>
     </div>
@@ -416,7 +416,7 @@ function OutrosDropdown({ brands }: { brands: string[] }) {
             href="/search"
             className="text-sm font-bold text-[var(--color-teal)] dark:text-[var(--color-celadon)] hover:underline underline-offset-2 whitespace-nowrap"
           >
-            tudo de outros
+            ver todos os itens
           </Link>
         </div>
       </div>

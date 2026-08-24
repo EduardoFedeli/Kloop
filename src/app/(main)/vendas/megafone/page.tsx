@@ -8,7 +8,7 @@ import { MegafoneClient } from '@/components/megafone/MegafoneClient'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Megafone | Kloop',
+  title: 'Impulso | Kloop',
 }
 
 export default async function MegafonePage() {
@@ -68,7 +68,7 @@ export default async function MegafonePage() {
       </Link>
 
       <div>
-        <h1 className="text-[20px] font-black text-[var(--foreground)]">megafone</h1>
+        <h1 className="text-[20px] font-black text-[var(--foreground)]">impulso</h1>
         <p className="text-[13px] text-gray-500 dark:text-sage mt-0.5">
           impulsione seus anúncios e apareça pra mais gente
         </p>
