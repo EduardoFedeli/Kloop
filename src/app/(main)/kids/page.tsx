@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ComponentType } from 'react'
-import { MamadeiraIcon, VestidoIcon, CalcaIcon, CasacoIcon, TenisIcon, PijamaIcon, BodyBebeIcon, SandaliaIcon, BolsaMaternidadeIcon } from '@/components/icons/CustomIcons'
+import { MamadeiraIcon, VestidoIcon, CalcaIcon, CasacoIcon, TenisIcon, PijamaIcon, BodyBebeIcon, SandaliaIcon, BolsaMaternidadeIcon, SapatilhaIcon, CamaIcon } from '@/components/icons/CustomIcons'
 
 type IconComponent = ComponentType<{ size?: number; className?: string }>
 type SubCard = { emoji: string; icon?: IconComponent; label: string; href: string }
@@ -40,7 +40,7 @@ const SECTIONS: Section[] = [
       { emoji: '👟', icon: TenisIcon, label: 'tênis', href: '/search?dept=criancas&cat=calcados&sub=tenis' },
       { emoji: '👡', icon: SandaliaIcon, label: 'sandálias', href: '/search?dept=criancas&cat=calcados&sub=sandalias' },
       { emoji: '👢', label: 'botas', href: '/search?dept=criancas&cat=calcados&sub=botas' },
-      { emoji: '🥿', label: 'sapatilhas', href: '/search?dept=criancas&cat=calcados&sub=sapatilhas' },
+      { emoji: '🥿', icon: SapatilhaIcon, label: 'sapatilhas', href: '/search?dept=criancas&cat=calcados&sub=sapatilhas' },
       { emoji: '🥾', label: 'sapatos', href: '/search?dept=criancas&cat=calcados&sub=sapatos' },
     ],
   },
@@ -49,7 +49,7 @@ const SECTIONS: Section[] = [
     subtitle: 'tudo para o bebê',
     href: '/search?dept=criancas&cat=acessorios-e-enxoval',
     cards: [
-      { emoji: '🛏️', label: 'cama/berço', href: '/search?dept=criancas&cat=acessorios-e-enxoval&sub=cama-berco-banho' },
+      { emoji: '🛏️', icon: CamaIcon, label: 'cama/berço', href: '/search?dept=criancas&cat=acessorios-e-enxoval&sub=cama-berco-banho' },
       { emoji: '🤱', label: 'maternidade', href: '/search?dept=criancas&cat=acessorios-e-enxoval&sub=maternidade' },
       { emoji: '👜', icon: BolsaMaternidadeIcon, label: 'bolsas', href: '/search?dept=criancas&cat=acessorios-e-enxoval&sub=bolsas' },
       { emoji: '💺', label: 'cadeirinhas', href: '/search?dept=criancas&cat=acessorios-e-enxoval&sub=cadeirinhas' },

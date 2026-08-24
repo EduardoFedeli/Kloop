@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ComponentType } from 'react'
-import { CalcaIcon, BlusaIcon, CasacoIcon, ShortsIcon, TernoIcon, PerfumeIcon, TenisIcon, OculosIcon, CamisaSocialIcon, SkincareIcon, CabeloIcon, MochilaIcon, MaletaIcon, RelogioIcon } from '@/components/icons/CustomIcons'
+import { CalcaIcon, BlusaIcon, CasacoIcon, ShortsIcon, TernoIcon, PerfumeIcon, TenisIcon, OculosIcon, CamisaSocialIcon, SkincareIcon, CabeloIcon, MochilaIcon, MaletaIcon, RelogioIcon, CarteiraIcon, ChapeuIcon, JoiaIcon } from '@/components/icons/CustomIcons'
 
 type IconComponent = ComponentType<{ size?: number; className?: string }>
 type SubCard = { emoji: string; icon?: IconComponent; label: string; href: string }
@@ -39,9 +39,9 @@ const SECTIONS: Section[] = [
     cards: [
       { emoji: '⌚', icon: RelogioIcon, label: 'relógios', href: '/search?dept=rapazes&cat=acessorios&sub=relogios' },
       { emoji: '👓', icon: OculosIcon, label: 'óculos', href: '/search?dept=rapazes&cat=acessorios&sub=oculos' },
-      { emoji: '👛', label: 'carteiras', href: '/search?dept=rapazes&cat=acessorios&sub=carteiras' },
-      { emoji: '🎩', label: 'chapéus', href: '/search?dept=rapazes&cat=acessorios&sub=chapeus' },
-      { emoji: '💍', label: 'jóias', href: '/search?dept=rapazes&cat=acessorios&sub=joias-e-bijuterias' },
+      { emoji: '👛', icon: CarteiraIcon, label: 'carteiras', href: '/search?dept=rapazes&cat=acessorios&sub=carteiras' },
+      { emoji: '🎩', icon: ChapeuIcon, label: 'chapéus', href: '/search?dept=rapazes&cat=acessorios&sub=chapeus' },
+      { emoji: '💍', icon: JoiaIcon, label: 'jóias', href: '/search?dept=rapazes&cat=acessorios&sub=joias-e-bijuterias' },
     ],
   },
   {

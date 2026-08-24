@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ComponentType } from 'react'
-import { SofaIcon } from '@/components/icons/CustomIcons'
+import { SofaIcon, CamaIcon, MesaJantarIcon, EscritorioIcon, VarandaIcon, QuadroIcon, EspelhoIcon, TapeteIcon, CortinaIcon, LencolIcon, TravesseiroIcon } from '@/components/icons/CustomIcons'
 
 type IconComponent = ComponentType<{ size?: number; className?: string }>
 type SubCard = { emoji: string; icon?: IconComponent; label: string; href: string }
@@ -13,11 +13,11 @@ const SECTIONS: Section[] = [
     href: '/search?dept=casa-e-decor&cat=moveis',
     cards: [
       { emoji: '🛋️', icon: SofaIcon, label: 'sala de estar', href: '/search?dept=casa-e-decor&cat=moveis&sub=sala-de-tv-e-estar' },
-      { emoji: '🛏️', label: 'quartos', href: '/search?dept=casa-e-decor&cat=moveis&sub=quartos' },
-      { emoji: '🍽️', label: 'sala de jantar', href: '/search?dept=casa-e-decor&cat=moveis&sub=sala-de-jantar' },
-      { emoji: '🖥️', label: 'escritório', href: '/search?dept=casa-e-decor&cat=moveis&sub=escritorio' },
+      { emoji: '🛏️', icon: CamaIcon, label: 'quartos', href: '/search?dept=casa-e-decor&cat=moveis&sub=quartos' },
+      { emoji: '🍽️', icon: MesaJantarIcon, label: 'sala de jantar', href: '/search?dept=casa-e-decor&cat=moveis&sub=sala-de-jantar' },
+      { emoji: '🖥️', icon: EscritorioIcon, label: 'escritório', href: '/search?dept=casa-e-decor&cat=moveis&sub=escritorio' },
       { emoji: '🍳', label: 'cozinha', href: '/search?dept=casa-e-decor&cat=moveis&sub=cozinha' },
-      { emoji: '🌿', label: 'varanda', href: '/search?dept=casa-e-decor&cat=moveis&sub=varanda-e-jardim' },
+      { emoji: '🌿', icon: VarandaIcon, label: 'varanda', href: '/search?dept=casa-e-decor&cat=moveis&sub=varanda-e-jardim' },
     ],
   },
   {
@@ -25,12 +25,12 @@ const SECTIONS: Section[] = [
     subtitle: 'personalidade em cada canto',
     href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites',
     cards: [
-      { emoji: '🖼️', label: 'quadros', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=adornos' },
-      { emoji: '🪞', label: 'espelhos', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=espelhos' },
+      { emoji: '🖼️', icon: QuadroIcon, label: 'quadros', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=adornos' },
+      { emoji: '🪞', icon: EspelhoIcon, label: 'espelhos', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=espelhos' },
       { emoji: '🕯️', label: 'velas', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=velas' },
       { emoji: '🌸', label: 'flores', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=flores' },
-      { emoji: '🪡', label: 'tapetes', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=tapetes' },
-      { emoji: '🏮', label: 'cortinas', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=cortinas' },
+      { emoji: '🪡', icon: TapeteIcon, label: 'tapetes', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=tapetes' },
+      { emoji: '🏮', icon: CortinaIcon, label: 'cortinas', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=cortinas' },
     ],
   },
   {
@@ -38,9 +38,9 @@ const SECTIONS: Section[] = [
     subtitle: 'conforto no dia a dia',
     href: '/search?dept=casa-e-decor&cat=cama-mesa-banho',
     cards: [
-      { emoji: '🛌', label: 'lençóis', href: '/search?dept=casa-e-decor&cat=cama-mesa-banho&sub=lencois' },
+      { emoji: '🛌', icon: LencolIcon, label: 'lençóis', href: '/search?dept=casa-e-decor&cat=cama-mesa-banho&sub=lencois' },
       { emoji: '🧸', label: 'cobertores', href: '/search?dept=casa-e-decor&cat=cama-mesa-banho&sub=cobertores' },
-      { emoji: '😴', label: 'travesseiros', href: '/search?dept=casa-e-decor&cat=cama-mesa-banho&sub=travesseiros' },
+      { emoji: '😴', icon: TravesseiroIcon, label: 'travesseiros', href: '/search?dept=casa-e-decor&cat=cama-mesa-banho&sub=travesseiros' },
       { emoji: '🚿', label: 'toalhas', href: '/search?dept=casa-e-decor&cat=cama-mesa-banho&sub=toalhas' },
     ],
   },

@@ -342,6 +342,178 @@ export function MuleIcon({ size = 24, className }: IconProps) {
   )
 }
 
+export function CamaIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Cama</title>
+      <path d="M3 5v14" />
+      <path d="M3 15h18v4" />
+      <path d="M3 11h14a4 4 0 0 1 4 4" />
+      <path d="M6 11V9.5A1.5 1.5 0 0 1 7.5 8h3A1.5 1.5 0 0 1 12 9.5V11" />
+    </svg>
+  )
+}
+
+export function CarteiraIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Carteira</title>
+      <path d="M7 6V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v2" />
+      <rect x="2" y="6" width="20" height="14" rx="2" />
+      <path d="M22 10h-5a2 2 0 0 0-2 2a2 2 0 0 0 2 2h5" />
+      <path d="M18 12h.01" />
+    </svg>
+  )
+}
+
+export function ChapeuIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Chapéu</title>
+      <path d="M2 14.5c3 4 17 4 20 0" />
+      <path d="M6.5 15.5l.8-5.5c.2-3.5 2.5-4 4.7-2 2.2-2 4.5-1.5 4.7 2l.8 5.5" />
+      <path d="M6.9 12.8c3.1 1 7.1 1 10.2 0" />
+    </svg>
+  )
+}
+
+export function CortinaIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Cortina</title>
+      <path d="M12 7v8" />
+      <path d="M9 11h6" />
+      <path d="M2 3h20" />
+      <path d="M4 3v17c2 1 4 1 6 0c-1.5-2.5-4-4.5-4-7c0-3.5 4.5-6 6-7Z" />
+      <path d="M8 3c-1 4-3 6-3 10c0 3 1.5 5.5 2 7" />
+      <path d="M3.5 13c1 1 2.5 1 3.5 0" />
+      <path d="M20 3v17c-2 1-4 1-6 0c1.5-2.5 4-4.5 4-7c0-3.5-4.5-6-6-7Z" />
+      <path d="M16 3c1 4 3 6 3 10c0 3-1.5 5.5-2 7" />
+      <path d="M20.5 13c-1 1-2.5 1-3.5 0" />
+    </svg>
+  )
+}
+
+export function EscritorioIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Escritório</title>
+      <rect x="6" y="3" width="12" height="7" rx="1" />
+      <path d="M12 10v4" />
+      <path d="M2 14h20" />
+      <path d="M5 14v7" />
+      <path d="M14 14v7h5v-7" />
+      <path d="M14 17h5" />
+    </svg>
+  )
+}
+
+export function EspelhoIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Espelho</title>
+      <circle cx="12" cy="3" r="1" />
+      <path d="M6.5 11.5L12 4l5.5 7.5" />
+      <circle cx="12" cy="14" r="6.5" />
+      <path d="M10.5 15.5l4-4" />
+      <path d="M9 12l2.5-2.5" />
+    </svg>
+  )
+}
+
+export function JoiaIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Joia</title>
+      <path d="M8 3h8l3 4-7 5-7-5Z M5 7h14 M8 3l4 4 4-4 M12 7v5 M6.5 8.5a7.5 7.5 0 1 0 11 0" />
+    </svg>
+  )
+}
+
+export function LencolIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Lençol</title>
+      <path d="M4 8l4-4h12l-4 4H4z" />
+      <path d="M16 8a2 2 0 0 1 0 4H6a2 2 0 0 0 0 4h10a2 2 0 0 1 0 4H4" />
+      <path d="M20 4v12" />
+      <path d="M16 12l4-4" />
+      <path d="M16 16l4-4" />
+      <path d="M16 20l4-4" />
+    </svg>
+  )
+}
+
+export function MesaJantarIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Mesa de jantar</title>
+      <path d="M3 7v13M3 14h3v6M7 11h10M10 11v9M14 11v9M21 7v13M21 14h-3v6" />
+    </svg>
+  )
+}
+
+export function QuadroIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Quadro</title>
+      <path d="M12 2.5v2" />
+      <path d="M7 8l5-3.5 5 3.5" />
+      <rect x="3.5" y="8" width="17" height="13" rx="1.5" />
+      <path d="M6.5 17l4-4.5 3 3 2.5-3 3.5 4.5" />
+      <circle cx="8.5" cy="11.5" r="1.5" />
+    </svg>
+  )
+}
+
+export function SapatilhaIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Sapatilha</title>
+      <path d="M 3 10.5 C 6.5 9.2 11 9.8 14.5 11.2" />
+      <path d="M 3 10.5 C 2.5 14 2.5 16.5 4.5 18 C 7 19.5 14 19.5 18 18 C 20.2 17.2 21.5 15.8 21.5 14.2 C 21.5 12.8 19 11.8 16 11.8 C 11.5 14.2 7 13.8 3 10.5 Z" />
+      <path d="M 16 11.8 C 13.8 10.2 13.5 13 16 11.8 C 18.2 10.2 18.5 13 16 11.8 Z" />
+      <path d="M 15.2 12.2 L 14 14.2 M 16.8 12.2 L 18 14.2" />
+    </svg>
+  )
+}
+
+export function TapeteIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Tapete</title>
+      <rect x="5" y="5" width="14" height="14" rx="1" />
+      <path d="M6 2v3M9 2v3M12 2v3M15 2v3M18 2v3" />
+      <path d="M6 19v3M9 19v3M12 19v3M15 19v3M18 19v3" />
+      <path d="M5 9h14M5 15h14" />
+      <path d="M12 9l3 3-3 3-3-3z" />
+    </svg>
+  )
+}
+
+export function TravesseiroIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Travesseiro</title>
+      <path d="M 4.5 7 Q 12 4.5 19.5 7 Q 22 12 19.5 17 Q 12 19.5 4.5 17 Q 2 12 4.5 7 Z" />
+      <path d="M 4.5 7 Q 7.5 9 9.5 10.5" />
+      <path d="M 19.5 7 Q 16.5 9 14.5 10.5" />
+      <path d="M 4.5 17 Q 7.5 15 9.5 13.5" />
+      <path d="M 19.5 17 Q 16.5 15 14.5 13.5" />
+    </svg>
+  )
+}
+
+export function VarandaIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Varanda</title>
+      <path d="M6 11h12M7.5 11l1 7h7l1-7M9 18v3M15 18v3" />
+      <path d="M12 11V4M12 10.5c-3.5 0-6-1.5-6.5-5 2.5 0 5 1.5 6.5 5M12 8.5c3.5 0 6-1.5 6.5-5-2.5 0-5 1.5-6.5 5M12 6c-1.5-2-1.5-3.5 0-4.5 1.5 1 1.5 2.5 0 4.5" />
+    </svg>
+  )
+}
+
 export function RelogioIcon({ size = 24, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
