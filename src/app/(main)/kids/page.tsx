@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ComponentType } from 'react'
-import { MamadeiraIcon, VestidoIcon, CalcaIcon, CasacoIcon, TenisIcon, PijamaIcon, BodyBebeIcon, SandaliaIcon, BolsaMaternidadeIcon, SapatilhaIcon, CamaIcon } from '@/components/icons/CustomIcons'
+import { MamadeiraIcon, VestidoIcon, CalcaIcon, CasacoIcon, TenisIcon, PijamaIcon, BodyBebeIcon, SandaliaIcon, BolsaMaternidadeIcon, SapatilhaIcon, CamaIcon, EducativoIcon, AventuraIcon } from '@/components/icons/CustomIcons'
 
 type IconComponent = ComponentType<{ size?: number; className?: string }>
 type SubCard = { emoji: string; icon?: IconComponent; label: string; href: string }
@@ -26,8 +26,8 @@ const SECTIONS: Section[] = [
     href: '/search?dept=criancas&cat=brinquedos',
     cards: [
       { emoji: '🧸', label: 'pelúcias', href: '/search?dept=criancas&cat=brinquedos&sub=pelucias' },
-      { emoji: '📚', label: 'educativos', href: '/search?dept=criancas&cat=brinquedos&sub=educativos' },
-      { emoji: '🎯', label: 'aventura', href: '/search?dept=criancas&cat=brinquedos&sub=esporte-e-lazer' },
+      { emoji: '📚', icon: EducativoIcon, label: 'educativos', href: '/search?dept=criancas&cat=brinquedos&sub=educativos' },
+      { emoji: '🎯', icon: AventuraIcon, label: 'aventura', href: '/search?dept=criancas&cat=brinquedos&sub=esporte-e-lazer' },
       { emoji: '🎨', label: 'artísticos', href: '/search?dept=criancas&cat=brinquedos&sub=artisticos' },
       { emoji: '🏠', label: 'casinha', href: '/search?dept=criancas&cat=brinquedos&sub=casinha' },
     ],

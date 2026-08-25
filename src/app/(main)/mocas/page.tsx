@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ComponentType } from 'react'
-import { VestidoIcon, CalcaIcon, BlusaIcon, CasacoIcon, SaiaIcon, ShortsIcon, PerfumeIcon, TenisIcon, BolsaIcon, OculosIcon, MaquiagemIcon, SkincareIcon, CabeloIcon, UnhaIcon, MochilaIcon, ClutchIcon, ToteIcon, CrossbodyIcon, SandaliaIcon, MuleIcon, RelogioIcon, ChapeuIcon, JoiaIcon } from '@/components/icons/CustomIcons'
+import { VestidoIcon, CalcaIcon, BlusaIcon, CasacoIcon, SaiaIcon, ShortsIcon, PerfumeIcon, TenisIcon, BolsaIcon, OculosIcon, MaquiagemIcon, SkincareIcon, CabeloIcon, UnhaIcon, MochilaIcon, ClutchIcon, ToteIcon, CrossbodyIcon, SandaliaIcon, MuleIcon, RelogioIcon, ChapeuIcon, JoiaIcon, SapatoSocialIcon } from '@/components/icons/CustomIcons'
 
 type IconComponent = ComponentType<{ size?: number; className?: string }>
 type SubCard = { emoji: string; icon?: IconComponent; label: string; href: string }
@@ -52,7 +52,7 @@ const SECTIONS: Section[] = [
       { emoji: '👟', icon: TenisIcon, label: 'tênis', href: '/search?dept=mocas&cat=calcados&sub=tenis' },
       { emoji: '👢', label: 'botas', href: '/search?dept=mocas&cat=calcados&sub=botas' },
       { emoji: '👡', icon: SandaliaIcon, label: 'sandálias', href: '/search?dept=mocas&cat=calcados&sub=sandalias' },
-      { emoji: '👠', label: 'sapatos', href: '/search?dept=mocas&cat=calcados&sub=sapatos' },
+      { emoji: '👠', icon: SapatoSocialIcon, label: 'sapatos', href: '/search?dept=mocas&cat=calcados&sub=sapatos' },
       { emoji: '🥿', icon: MuleIcon, label: 'mules', href: '/search?dept=mocas&cat=calcados&sub=mules' },
     ],
   },

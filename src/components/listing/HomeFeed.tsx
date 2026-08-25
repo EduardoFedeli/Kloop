@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Tag, Zap, Megaphone, Building2, Percent, Crown } from 'lucide-react'
+import { ArrowRight, Tag, Building2, Percent, Crown } from 'lucide-react'
+import { ImpulsoIcon, ComboIcon } from '@/components/icons/CustomIcons'
 import type { ListingWithDetails } from '@/types/listing'
 import type { SellerPreview, CommunitySection, BentoCard } from '@/app/(main)/page'
 import { ListingCard } from './ListingCard'
@@ -205,7 +206,7 @@ export function HomeFeed({ listings, sellers = [], communitySection, bentoCards 
         <section>
           <div className="flex items-center gap-2.5 mb-1">
             <div className="w-6 h-6 rounded-full bg-[var(--color-teal)] flex items-center justify-center flex-shrink-0">
-              <Zap size={13} fill="currentColor" className="text-white" />
+              <ComboIcon size={13} className="text-white" />
             </div>
             <h2 className="text-[19px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>sacolas combo</h2>
           </div>
@@ -247,7 +248,7 @@ export function HomeFeed({ listings, sellers = [], communitySection, bentoCards 
         <section>
           <div className="flex items-center gap-2.5 mb-1">
             <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0">
-              <Megaphone size={13} fill="currentColor" className="text-white" />
+              <ImpulsoIcon size={13} className="text-white" />
             </div>
             <h2 className="text-[19px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>impulsionados</h2>
           </div>
