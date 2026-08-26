@@ -106,9 +106,12 @@ de estados da transação (`PENDING→PAID→SHIPPED→DELIVERED→COMPLETED`), 
 - 🟢 **Carteira de cashback** (`/cashback`) — saldo, extrato, aviso de saldo prestes a
   expirar (15 dias antes do vencimento em 120 dias).
 - 🟢 **Uso no checkout** — até 30% do valor da compra pode ser pago com saldo de cashback.
-- 🟢 **Taxa: 3% vendedor + 2% comprador = 5% do GMV**, incondicional em toda venda
-  concluída, sempre igual independente do plano. Corrigida em 2026-08 — ver
-  [04](04-modelo-negocio-financeiro.md) para a análise financeira completa.
+- 🟢 **Taxa: 5% do valor, só pro comprador**, incondicional em toda venda concluída,
+  sempre igual independente do plano. Desde 2026-08 o vendedor não recebe mais cashback —
+  decisão de simplificação (ver [08](08-revisao-negocio.md)): dois mecanismos diferentes
+  não deveriam disfarçar de um só, e o incentivo do vendedor já vem de
+  assinatura/impulsos/comissão. Ver [04](04-modelo-negocio-financeiro.md) para a análise
+  financeira completa.
 
 ## Assinaturas e monetização B2C
 

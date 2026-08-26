@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { canTransitionTo } from '@/lib/transaction-rules'
-import { creditCashback, calcSellerCashback, calcBuyerCashback } from '@/lib/cashback'
+import { creditCashback, calcBuyerCashback } from '@/lib/cashback'
 import { CashbackTransactionType } from '@prisma/client'
 import { notifyUser } from '@/lib/notify'
 
@@ -46,14 +46,6 @@ export async function POST(_req: NextRequest, { params }: RouteParams) {
     const result = await tx.transaction.update({
       where: { id },
       data: { status: 'COMPLETED', completedAt: new Date() },
-    })
-
-    await creditCashback(tx, {
-      userId: transaction.sellerId,
-      type: CashbackTransactionType.CREDIT_SELLER,
-      amountCents: calcSellerCashback(transaction.listing.priceCents),
-      description: `Cashback de vendedor — venda #${id.slice(-6)}`,
-      transactionId: id,
     })
 
     await creditCashback(tx, {

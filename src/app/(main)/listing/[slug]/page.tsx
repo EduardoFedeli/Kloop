@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { formatPrice, formatDate, formatZipCode } from '@/lib/utils'
 import { calculateShipping } from '@/lib/shipping'
+import { BUYER_RATE } from '@/lib/cashback'
 import Image from 'next/image'
 import { Star, Package, RotateCcw, AlertTriangle, Lock } from 'lucide-react'
 import { ProductImageCarousel } from '@/components/produto/ProductImageCarousel'
@@ -124,7 +125,7 @@ export default async function ProdutoPage({ params }: Props) {
   const sellerInitials = seller.name.substring(0, 2).toUpperCase()
 
   const installmentCents = Math.ceil(listing.priceCents / 12)
-  const cashbackGanhoCents = Math.round(listing.priceCents * 0.05)
+  const cashbackGanhoCents = Math.round(listing.priceCents * BUYER_RATE)
   const categoryTreeNames = await getCategoryTree(listing.category.id);
   const breadcrumbs = categoryTreeNames.join(' / ').toLowerCase();
 

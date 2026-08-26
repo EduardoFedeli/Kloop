@@ -28,7 +28,7 @@ Anúncio ativo
                 ┌───────────┴───────────┐
                 ▼                       ▼
         Cashback creditado      Review liberado
-     (5% vendedor + 2% comprador)   (só o comprador avalia)
+        (5% ao comprador)      (só o comprador avalia)
 ```
 
 ## 1. Duas formas de iniciar uma compra
@@ -111,7 +111,7 @@ pagamento", conforme a regra de negócio do projeto).
 | Momento | O que acontece |
 |---|---|
 | Checkout (`pay`) | Se o comprador optou por usar saldo, debita até 30% do valor (`DEBIT_PURCHASE`) |
-| Conclusão (`complete`) | Credita 5% do valor ao vendedor e 2% ao comprador (`CREDIT_SELLER`/`CREDIT_BUYER`), expira em 120 dias |
+| Conclusão (`complete`) | Credita 5% do valor ao comprador (`CREDIT_BUYER`), expira em 120 dias. Vendedor não recebe cashback pela venda (só a assinatura Kloop Pro/impulsos incentivam o lado do vendedor) |
 | Cancelamento antes de concluir, com cashback usado | Estorna o débito (`REFUND_CANCELLATION`) |
 | Cancelamento depois de já concluído | Reverte os créditos gerados (`REVERSAL`, idempotente) |
 

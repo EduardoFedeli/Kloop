@@ -20,6 +20,15 @@ com uma margem bruta de ~8,6% antes de custo operacional. Com custo operacional 
 (equipe, infra, gateway), o break-even acontece por volta do mês 19 — e mesmo num cenário
 mais conservador de custos, dentro do mês 31, ainda dentro do horizonte de 3 anos.
 
+**"Por que só o comprador ganha cashback, e não o vendedor também?"**
+Decisão deliberada de simplificação. Cashback, pra qualquer usuário brasileiro, é um
+conceito ligado a "gastar e receber parte de volta" (cartão de crédito, PicPay, Méliuz) —
+dar cashback pro vendedor por *vender* algo é um mecanismo diferente disfarçado do mesmo
+nome, mais confuso de explicar sem trazer benefício real: o incentivo do vendedor já vem
+de outro lugar (assinatura Kloop Pro, impulsos, comissão menor). Concentrar tudo no
+comprador simplifica o discurso ("toda compra dá 5% de volta") sem mudar o custo total
+pra Kloop, que continua 5% do GMV. Ver [08](08-revisao-negocio.md) para a análise.
+
 **"Por que alguém pagaria assinatura em vez de usar o plano grátis?"**
 Hoje só existem 2 planos: grátis (14% de comissão, 75 anúncios) e Kloop Pro (R$14,99/mês,
 12% de comissão, anúncios ilimitados, 20 impulsos/semana). A redução de comissão é pequena
@@ -31,7 +40,7 @@ público-alvo primário do produto — ver a análise completa em [08](08-revisa
 
 **"Qual o diferencial de vocês frente a Enjoei, OLX, Facebook Marketplace?"**
 Negociação estruturada com prazo e limite de rodadas (em vez de combinar por chat e o
-vendedor sumir), cashback nos dois lados da transação, e uma vertical B2B para
+vendedor sumir), cashback de 5% em toda compra, e uma vertical B2B para
 condomínios que nenhum concorrente direto explora hoje. Ver [01](01-visao-geral-negocio.md).
 
 **"O modelo B2B (condomínios) já dá dinheiro?"**

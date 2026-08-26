@@ -28,7 +28,7 @@ seminovo) focado no mercado brasileiro, com proposta de sustentabilidade e econo
 circular. O modelo de negócio combina **comissão por venda** (14% no plano grátis, 12% no
 Kloop Pro) com **assinatura B2C** (só 2 planos hoje — o antigo plano intermediário "Pro"
 foi desativado). Diferenciais frente a Enjoei/OLX/Facebook Marketplace: negociação de
-preço estruturada (ofertas com turnos e prazo), cashback para comprador e vendedor,
+preço estruturada (ofertas com turnos e prazo), cashback de 5% para o comprador,
 sistema de "impulsos" para dar destaque a anúncios, consignação Kloop Pro/Kloop Shop com
 repasse escalonado (45%/55%/65% por faixa de preço) para quem não quer fotografar e
 anunciar sozinho, e uma vertical B2B para condomínios residenciais (Kloop Comunidades).

@@ -123,28 +123,33 @@ sem saída de PIX/transferência).
 
 ## O custo real de cada venda (cashback)
 
-Toda transação concluída gera cashback para os dois lados, constante em `src/lib/cashback.ts`:
+Toda transação concluída gera cashback, constante em `src/lib/cashback.ts`:
 
 | Quem recebe | Taxa real no código (`cashback.ts`) |
 |---|---|
-| Vendedor (`CREDIT_SELLER`) | **3%** (`SELLER_RATE = 0.03`) |
-| Comprador (`CREDIT_BUYER`) | **2%** (`BUYER_RATE = 0.02`) |
+| Comprador (`CREDIT_BUYER`) | **5%** (`BUYER_RATE = 0.05`) |
+| Vendedor | **Não recebe cashback pela venda** (ver nota abaixo) |
 | **Total por venda concluída** | **5% do valor** |
 
-> ✅ **Corrigido em 2026-08.** A taxa do vendedor era 5% no código (`SELLER_RATE`),
-> divergindo do comentário do enum `CashbackTransactionType` (que já dizia "3%"), do
-> `seed-financial.ts` e do simulador administrativo (que já assumiam 5% total) — os três
-> lugares "errados" na verdade já estavam certos, era só o código que divergia. Reduzida
-> para 3%, alinhando tudo: **3% vendedor + 2% comprador = 5% do GMV**, sempre igual,
-> independente do plano, expirando em **120 dias**. A tela `/cashback` também foi
-> corrigida — ela mostrava "8%/4% em planos pagos" (uma diferenciação por plano que nunca
-> existiu na lógica de crédito real) e agora lê a taxa direto de `cashback.ts`
-> (`SELLER_RATE`/`BUYER_RATE` exportadas), então não tem mais como os dois divergirem de
-> novo no futuro.
+> ✅ **Decisão de 2026-08 — cashback só pro comprador.** Até então, cada venda gerava
+> crédito pros dois lados (histórico: começou em 5%+2%, foi corrigido pra 3%+2% numa
+> rodada anterior desta análise). Decidimos concentrar o cashback inteiro no comprador —
+> é o conceito que qualquer usuário brasileiro já reconhece (cartão, PicPay, Méliuz:
+> cashback é "gastei, recebi de volta"), e dar cashback pro vendedor por *vender* algo
+> era um segundo mecanismo diferente disfarçado do mesmo nome. O incentivo do vendedor já
+> vem de outro lugar — assinatura Kloop Pro, impulsos, comissão menor. A única exceção
+> que continua existindo é a conquista "Primeiros 5 anúncios" (R$30 fixos, ver
+> [02](02-funcionalidades.md)), que é uma recompensa de gamificação, não cashback de
+> venda — tecnicamente usa o mesmo tipo `CREDIT_SELLER` no banco, mas é a única fonte
+> dele agora.
+>
+> **O custo total pra Kloop não mudou:** continua 5% do GMV, só mudou quem recebe. Toda a
+> análise de viabilidade abaixo continua válida sem precisar recalcular.
 
-O cashback pode ser usado em até **30%** do valor de uma compra futura. Como hoje não
-existe gateway de pagamento real, "usar cashback no checkout" só debita o saldo interno do
-comprador — não é ainda, de fato, dinheiro saindo do caixa da Kloop.
+O cashback pode ser usado em até **30%** do valor de uma compra futura, expira em **120
+dias**. Como hoje não existe gateway de pagamento real, "usar cashback no checkout" só
+debita o saldo interno do comprador — não é ainda, de fato, dinheiro saindo do caixa da
+Kloop.
 
 ## Simulações de viabilidade (recalculadas com os planos reais e o cashback correto)
 
@@ -177,10 +182,10 @@ usar na apresentação.
 
 ## Recomendações para antes da apresentação
 
-1. ✅ **Taxa de cashback unificada e corrigida** — vendedor reduzido de 5% para 3% em
-   `src/lib/cashback.ts`, e a tela `/cashback` agora lê a taxa real do código em vez de
-   ter um número hardcoded divergente. Não há mais números diferentes pra essa regra no
-   produto.
+1. ✅ **Cashback simplificado para só o comprador (5%)** — vendedor não recebe mais
+   cashback pela venda, resolvendo de vez a inconsistência de números diferentes pra essa
+   regra. A tela `/cashback` e a página do anúncio agora leem a taxa real de
+   `src/lib/cashback.ts` em vez de ter números hardcoded.
 2. **Atualizar o simulador administrativo** (`/admin/simulador`) para não escalar o custo
    de cashback por "% de usuários" — o crédito é incondicional, deveria aplicar sobre
    100% do GMV. O percentual (5%) que ele já assumia estava certo; só a forma de aplicar

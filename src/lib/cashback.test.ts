@@ -1,22 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import {
-  calcSellerCashback,
   calcBuyerCashback,
   calcMaxUsage,
 } from './cashback'
 
-describe('calcSellerCashback', () => {
-  it('returns 5% of amount, floored', () => {
-    expect(calcSellerCashback(10000)).toBe(500)
-    expect(calcSellerCashback(10001)).toBe(500)
-    expect(calcSellerCashback(0)).toBe(0)
-  })
-})
-
 describe('calcBuyerCashback', () => {
-  it('returns 2% of amount, floored', () => {
-    expect(calcBuyerCashback(10000)).toBe(200)
-    expect(calcBuyerCashback(10050)).toBe(201)
+  it('returns 5% of amount, floored', () => {
+    expect(calcBuyerCashback(10000)).toBe(500)
+    expect(calcBuyerCashback(10019)).toBe(500)
     expect(calcBuyerCashback(0)).toBe(0)
   })
 })

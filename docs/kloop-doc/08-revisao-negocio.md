@@ -96,44 +96,48 @@ manter rodando", mas a pergunta de foco/prioridade de equipe continua válida.
 
 ## 4. Cashback — dá pra viver com ele?
 
-> ✅ **Decidido e implementado em 2026-08.** Duas descobertas motivaram essa análise: (1)
-> o crédito de cashback é **incondicional em toda venda concluída**, para os dois lados —
-> o custo real é sobre 100% do GMV, não sobre uma fração de "usuários que usam cashback"
-> como o simulador do produto e uma versão anterior desta análise assumiam; e (2) a taxa
-> do vendedor no código estava em **5%**, divergindo do resto do produto (comentário do
-> enum, `seed-financial.ts` e o simulador já assumiam 3%). A taxa foi reduzida para 3% em
-> `src/lib/cashback.ts`, e a tela `/cashback` — que também mostrava um número errado
-> (8%/4% "em planos pagos", uma diferenciação que nunca existiu de verdade) — agora lê a
-> taxa direto do código, então não tem mais como os dois divergirem de novo.
+> ✅ **Decidido e implementado em 2026-08 (versão final: só o comprador recebe).** A
+> análise passou por três rodadas: (1) achado técnico — o crédito de cashback é
+> **incondicional em toda venda concluída**, o custo real é sobre 100% do GMV, não sobre
+> uma fração de "usuários que usam cashback" como o simulador assumia; (2) achado de
+> consistência — a taxa do vendedor no código estava em 5%, divergindo do resto do
+> produto (que já assumia 3%), corrigida nessa direção; (3) **decisão de produto** — em
+> vez de manter os dois lados recebendo cashback, concentramos tudo no comprador (5%), e
+> o vendedor deixou de receber. Cashback é, pra qualquer usuário brasileiro, um conceito
+> de "gastei, recebi de volta" (cartão, PicPay, Méliuz) — dar cashback pro vendedor por
+> *vender* algo era um segundo mecanismo disfarçado do mesmo nome, e o incentivo do
+> vendedor já vem de outro lugar (assinatura Kloop Pro, impulsos, comissão menor). A
+> única sobra de `CREDIT_SELLER` no banco hoje é a conquista "Primeiros 5 anúncios" (R$30
+> fixos) — uma recompensa de gamificação, não cashback de venda.
 
-**Antes vs. depois da correção** (cenário-base do [04](04-modelo-negocio-financeiro.md) —
-80% grátis / 20% Kloop Pro, comissão ponderada 13,6%):
+**Evolução do custo** (cenário-base do [04](04-modelo-negocio-financeiro.md) — 80% grátis
+/ 20% Kloop Pro, comissão ponderada 13,6%):
 
-| | Antes (5% vendedor, custo mal calculado) | Depois (3% vendedor, custo sobre 100% do GMV) |
-|---|---|---|
-| Custo de cashback | ~1% do GMV (cálculo errado) / 7% (cálculo certo, taxa errada) | **5% do GMV** (cálculo e taxa certos) |
-| Margem bruta antes de custo fixo | 6,6% a 12,6%, dependendo de qual erro | **8,6%** |
-| Break-even, cenário realista (R$15k fixo + 3% gateway) | Mês 7 a 28, dependendo de qual erro | **Mês 19** |
-| Break-even, cenário conservador (R$25k fixo + 3,5% gateway) | Mês 20 / não atingido | **Mês 31** |
+| | V1 (5% vendedor, cálculo errado) | V2 (3% vendedor, cálculo certo) | V3 — atual (5% só comprador) |
+|---|---|---|---|
+| Custo de cashback | ~1% ou 7% do GMV, dependendo do erro | 5% do GMV | **5% do GMV** (sem mudança de custo, só de destinatário) |
+| Margem bruta antes de custo fixo | 6,6% a 12,6% | 8,6% | **8,6%** |
+| Break-even, cenário realista | Mês 7 a 28 | Mês 19 | **Mês 19** |
+| Break-even, cenário conservador | Mês 20 / não atingido | Mês 31 | **Mês 31** |
 
 **Resposta direta às perguntas que motivaram esta seção:**
 
-- **O cashback ajuda a sustentar a vida útil do usuário?** Em teoria sim — o desenho
-  (saldo expira em 120 dias, usa até 30% da próxima compra) é o mesmo mecanismo de
-  retenção usado por milhas aéreas e crédito de loja: dá motivo pra voltar antes de
-  perder o saldo. Mas **não existe dado real de uso** que prove isso — é uma aposta de
+- **O cashback ajuda a sustentar a vida útil do usuário?** Em teoria sim, e agora com
+  discurso mais limpo — o desenho (saldo expira em 120 dias, usa até 30% da próxima
+  compra) é o mesmo mecanismo de retenção de milhas aéreas e crédito de loja, e concentrar
+  no comprador é exatamente o público em que esse mecanismo faz mais sentido
+  comportamental. Mas **não existe dado real de uso** que prove isso — é uma aposta de
   design plausível, não um resultado medido, porque o produto ainda não tem histórico de
   usuários de verdade. Vale ser honesto sobre essa diferença se a banca perguntar.
 - **O cashback traz muita despesa pra Kloop?** Traz — é a maior linha de despesa do
-  modelo — mas com a taxa corrigida (5% do GMV, não 7%) ela fica coberta com folga
-  razoável pela comissão ponderada de 13,6%.
-- **Conseguimos viver com o cashback atual?** Sim, com a taxa corrigida — os três
-  cenários simulados (piso, realista, conservador) atingem break-even dentro de 3 anos.
-  O ponto de atenção que continua válido: essa é receita/custo de um modelo com
-  pagamento mockado — a viabilidade real só se confirma quando o gateway de pagamento
-  existir de fato.
+  modelo — mas fica coberta com folga razoável pela comissão ponderada de 13,6%, e o
+  total (5% do GMV) não mudou ao mover tudo pro comprador.
+- **Conseguimos viver com o cashback atual?** Sim — os três cenários simulados (piso,
+  realista, conservador) atingem break-even dentro de 3 anos. O ponto de atenção que
+  continua válido: essa é receita/custo de um modelo com pagamento mockado — a
+  viabilidade real só se confirma quando o gateway de pagamento existir de fato.
 
-Alternativas complementares, caso 3% ainda pareça alto depois de mais dados de uso: um
+Alternativas complementares, caso 5% ainda pareça alto depois de mais dados de uso: um
 teto de cashback por transação (evita que uma venda cara gere um crédito
 desproporcional), ou tratar a taxa como promocional ("cashback de lançamento") em vez de
 estrutural — dá espaço pra ajustar pra baixo no futuro sem parecer que "tiraram um
@@ -162,7 +166,7 @@ convincente pra uma banca do que apresentar tudo como se já estivesse igualment
 3. 🟡 Kloop Pro (consignação) — parcialmente decidido: o modelo de repasse virou split
    escalonado 45/55/65% (não é mais "Kloop compra a peça"). Ainda em aberto: correr em
    paralelo com o marketplace principal, ou focar no P2P primeiro?
-4. ✅ Cashback — decidido: taxa do vendedor corrigida de 5% para 3% (5% total),
-   incondicional sobre 100% do GMV. Modelo viável nos 3 cenários simulados.
+4. ✅ Cashback — decidido: só o comprador recebe (5%), vendedor não recebe mais.
+   Incondicional sobre 100% do GMV. Modelo viável nos 3 cenários simulados.
 5. Pra apresentação: vale desenhar explicitamente "núcleo validado" vs. "camadas de
    expansão" em vez de apresentar tudo no mesmo nível de maturidade?

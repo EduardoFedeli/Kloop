@@ -55,10 +55,11 @@ greenfield (mais trabalho de design + implementação).
 
 ### Curto prazo — destravar o que já tem modelo de dados
 
-1. **Unificar a taxa de cashback** entre código, schema e texto da tela (ver
-   [04](04-modelo-negocio-financeiro.md)).
+1. ✅ **Cashback unificado e simplificado** — só o comprador recebe (5%), incondicional,
+   sem mais divergência entre código/schema/tela (ver [04](04-modelo-negocio-financeiro.md)).
 2. **Atualizar o simulador administrativo** (`/admin/simulador`) para os 2 planos reais
-   (14%/12%) em vez do modelo antigo de 3 planos.
+   (14%/12%) em vez do modelo antigo de 3 planos, e pro cashback incondicional (5%, sem
+   escalar por "% de usuários").
 3. **Job de expiração de ofertas** — hoje é "lazy" (só expira quando alguém abre a
    página); um cron job resolveria o caso de uma oferta vencida continuar "ativa" para
    quem nunca mais volta a abri-la.

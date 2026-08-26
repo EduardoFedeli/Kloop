@@ -20,8 +20,8 @@ Kloop é, na prática, uma peça que deixou de virar lixo têxtil.
 | Para quem vende | Para quem compra |
 |---|---|
 | Monetiza itens parados em casa sem taxas fixas (plano gratuito existe) | Acesso a produtos seminovos com preço abaixo do novo |
-| Ferramentas de negociação (ofertas, contra-propostas) em vez de "preço fixo, pechinche no chat" | Cashback em toda compra concluída (2%) |
-| Cashback de 5% em toda venda concluída | Sistema de ofertas dá controle sobre o preço final |
+| Ferramentas de negociação (ofertas, contra-propostas) em vez de "preço fixo, pechinche no chat" | Cashback em toda compra concluída (5%) |
+| Comissão menor e mais visibilidade com o plano Kloop Pro | Sistema de ofertas dá controle sobre o preço final |
 | Plano pago (Kloop Pro) reduz comissão e dá mais impulsos de destaque | Reputação de vendedor visível antes de comprar (reviews) |
 | Rota alternativa de consignação (Kloop Pro) para quem não quer fotografar/anunciar | Comunidades fecham a compra num raio de confiança (vizinhos) |
 
@@ -45,9 +45,13 @@ Kloop é, na prática, uma peça que deixou de virar lixo têxtil.
 1. **Negociação estruturada, não chat livre.** Ofertas têm preço, prazo de resposta
    (24h), limite de rodadas e um estado de "de quem é a vez" — elimina o "combinamos e o
    vendedor sumiu" que domina grupos de WhatsApp e Marketplace.
-2. **Cashback nos dois lados da transação.** Vendedor ganha 5%, comprador ganha 2% em
-   toda venda concluída — cria incentivo para transacionar dentro do app em vez de
-   "fechar por fora" (prática comum em marketplaces sem esse mecanismo).
+2. **Cashback pra quem compra.** 5% de volta em toda compra concluída — cria incentivo
+   para transacionar dentro do app em vez de "fechar por fora" (prática comum em
+   marketplaces sem esse mecanismo). Concentrado só no comprador de propósito: cashback
+   é, pra qualquer usuário brasileiro, um conceito ligado a "gastar e receber de volta" —
+   dar cashback pro vendedor também misturaria dois incentivos diferentes debaixo do
+   mesmo nome. O incentivo do vendedor já vem de outro lugar (assinatura, impulsos,
+   comissão menor).
 3. **Monetização em camadas, não só comissão.** A assinatura Kloop Pro dá ao vendedor
    recorrente um motivo para upgrade além de "vender mais rápido": anúncios ilimitados,
    mais impulsos semanais, comissão levemente menor (ver [08](08-revisao-negocio.md) para

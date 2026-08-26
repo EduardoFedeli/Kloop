@@ -9,15 +9,13 @@ export type TxClient = Omit<
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const CASHBACK_EXPIRY_DAYS = 120
-export const SELLER_RATE = 0.03
-export const BUYER_RATE = 0.02
+// Cashback só existe do lado do comprador — vendedor não recebe mais
+// (decisão de 2026-08: dois mecanismos diferentes disfarçados de um só;
+// o incentivo do vendedor já vem de assinatura/impulsos/comissão).
+export const BUYER_RATE = 0.05
 const MAX_USAGE_RATE = 0.30
 
 // ── Pure helpers ─────────────────────────────────────────────────────────────
-
-export function calcSellerCashback(amountCents: number): number {
-  return Math.floor(amountCents * SELLER_RATE)
-}
 
 export function calcBuyerCashback(amountCents: number): number {
   return Math.floor(amountCents * BUYER_RATE)

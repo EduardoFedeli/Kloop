@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ChevronLeft, Coins, Home } from 'lucide-react'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { getCashbackBalance, getExpiringCashback, SELLER_RATE, BUYER_RATE } from '@/lib/cashback'
+import { getCashbackBalance, getExpiringCashback, BUYER_RATE } from '@/lib/cashback'
 import { CashbackBalanceCard } from '@/components/cashback/CashbackBalanceCard'
 import { formatPrice } from '@/lib/utils'
 import { CashbackTransactionType } from '@prisma/client'
@@ -12,7 +12,7 @@ const EXPIRY_WARNING_DAYS = 15
 const PAGE_SIZE = 20
 
 const typeLabel: Record<CashbackTransactionType, string> = {
-  CREDIT_SELLER: 'Cashback de venda',
+  CREDIT_SELLER: 'Recompensa de conquista',
   CREDIT_BUYER: 'Cashback de compra',
   DEBIT_PURCHASE: 'Usado em compra',
   REFUND_CANCELLATION: 'Estorno por cancelamento',
@@ -49,7 +49,6 @@ export default async function CashbackPage() {
     }),
   ])
 
-  const sellerRate = SELLER_RATE * 100
   const buyerRate = BUYER_RATE * 100
 
   const hasBalance = balanceCents > 0
@@ -82,7 +81,7 @@ export default async function CashbackPage() {
               <p className="text-[13px] text-gray-500 dark:text-sage mt-1">saldo disponível</p>
             </div>
             <p className="text-[13px] text-gray-500 dark:text-sage max-w-xs leading-relaxed">
-              Você ainda não tem cashback acumulado. Compre ou venda pelo Kloop e ganhe de volta parte do valor!
+              Você ainda não tem cashback acumulado. Compre pelo Kloop e ganhe de volta parte do valor!
             </p>
             <Link
               href="/"
@@ -99,8 +98,7 @@ export default async function CashbackPage() {
           <p className="text-[15px] font-black text-[var(--foreground)] mb-3">como funciona</p>
           <div className="space-y-3">
             {[
-              { emoji: '🛒', text: `Compradores ganham ${buyerRate}% de cashback em cada compra concluída.` },
-              { emoji: '🏷️', text: `Vendedores ganham ${sellerRate}% de cashback em cada venda concluída.` },
+              { emoji: '🛒', text: `Toda compra concluída dá ${buyerRate}% de cashback pra você.` },
               { emoji: '💸', text: 'Use até 30% do valor de uma compra com seu saldo.' },
               { emoji: '⏳', text: 'O cashback expira em 120 dias após ser creditado.' },
             ].map(({ emoji, text }) => (
