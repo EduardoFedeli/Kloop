@@ -9,8 +9,8 @@ export type TxClient = Omit<
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const CASHBACK_EXPIRY_DAYS = 120
-const SELLER_RATE = 0.05
-const BUYER_RATE = 0.02
+export const SELLER_RATE = 0.03
+export const BUYER_RATE = 0.02
 const MAX_USAGE_RATE = 0.30
 
 // ── Pure helpers ─────────────────────────────────────────────────────────────

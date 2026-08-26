@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ChevronLeft, Coins, Home } from 'lucide-react'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { getCashbackBalance, getExpiringCashback } from '@/lib/cashback'
+import { getCashbackBalance, getExpiringCashback, SELLER_RATE, BUYER_RATE } from '@/lib/cashback'
 import { CashbackBalanceCard } from '@/components/cashback/CashbackBalanceCard'
 import { formatPrice } from '@/lib/utils'
 import { CashbackTransactionType } from '@prisma/client'
@@ -31,7 +31,7 @@ export default async function CashbackPage() {
 
   const userId = session.user.id
 
-  const [balanceCents, expiringSoonCents, history, subscription] = await Promise.all([
+  const [balanceCents, expiringSoonCents, history] = await Promise.all([
     getCashbackBalance(userId),
     getExpiringCashback(userId, EXPIRY_WARNING_DAYS),
     db.cashbackTransaction.findMany({
@@ -47,15 +47,10 @@ export default async function CashbackPage() {
         expiresAt: true,
       },
     }),
-    db.userSubscription.findUnique({
-      where: { userId },
-      select: { plan: { select: { slug: true } } },
-    }),
   ])
 
-  const isPaidPlan = subscription?.plan?.slug === 'pro' || subscription?.plan?.slug === 'premium'
-  const sellerRate = isPaidPlan ? 8 : 5
-  const buyerRate = isPaidPlan ? 4 : 2
+  const sellerRate = SELLER_RATE * 100
+  const buyerRate = BUYER_RATE * 100
 
   const hasBalance = balanceCents > 0
 
