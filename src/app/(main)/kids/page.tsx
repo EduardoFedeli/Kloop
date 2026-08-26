@@ -1,10 +1,21 @@
 import Link from 'next/link'
 import type { ComponentType } from 'react'
 import { MamadeiraIcon, VestidoIcon, CalcaIcon, CasacoIcon, TenisIcon, PijamaIcon, BodyBebeIcon, SandaliaIcon, BolsaMaternidadeIcon, SapatilhaIcon, CamaIcon, EducativoIcon, AventuraIcon } from '@/components/icons/CustomIcons'
+import { CategoryScrollRow } from '@/components/listing/CategoryScrollRow'
 
 type IconComponent = ComponentType<{ size?: number; className?: string }>
 type SubCard = { emoji: string; icon?: IconComponent; label: string; href: string }
 type Section = { title: string; subtitle: string; href: string; cards: SubCard[] }
+
+function renderCard(card: SubCard) {
+  return {
+    label: card.label,
+    href: card.href,
+    icon: card.icon
+      ? <card.icon size={26} className="text-[var(--color-teal)] dark:text-[var(--color-celadon)]" />
+      : <span className="text-[28px] leading-none">{card.emoji}</span>,
+  }
+}
 
 const SECTIONS: Section[] = [
   {
@@ -78,27 +89,7 @@ export default function KidsPage() {
                 ver tudo →
               </Link>
             </div>
-            <div
-              className="flex gap-3 overflow-x-auto pb-3 px-5 [&::-webkit-scrollbar]:hidden"
-              style={{ scrollbarWidth: 'none' }}
-            >
-              {section.cards.map((card) => (
-                <Link
-                  key={card.label}
-                  href={card.href}
-                  className="flex-shrink-0 flex flex-col items-center justify-center gap-2 w-[88px] h-[88px] bg-white dark:bg-[var(--color-pine)] border border-gray-100 dark:border-white/5 rounded-2xl shadow-sm hover:scale-[1.04] active:scale-[0.97] transition-transform"
-                >
-                  {card.icon ? (
-                    <card.icon size={26} className="text-[var(--color-teal)] dark:text-[var(--color-celadon)]" />
-                  ) : (
-                    <span className="text-[28px] leading-none">{card.emoji}</span>
-                  )}
-                  <span className="text-[11px] font-bold text-[var(--foreground)] text-center leading-tight px-1">
-                    {card.label}
-                  </span>
-                </Link>
-              ))}
-            </div>
+            <CategoryScrollRow cards={section.cards.map(renderCard)} />
           </section>
         ))}
       </div>

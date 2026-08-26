@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     where: { userId },
     include: { plan: { select: { maxActiveListings: true, name: true } } },
   })
-  const maxListings = subscription?.plan?.maxActiveListings ?? 15
+  const maxListings = subscription?.plan?.maxActiveListings ?? 75
   if (maxListings !== -1) {
     const activeCount = await db.listing.count({
       where: { sellerId: userId, status: "ACTIVE" },

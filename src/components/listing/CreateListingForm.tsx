@@ -465,10 +465,7 @@ export function CreateListingForm({ activeCount, maxListings, planName, categori
               <Package className="w-7 h-7 text-[var(--color-teal)] dark:text-[var(--color-celadon)]" strokeWidth={2} />
             </div>
             <div>
-              <div className="flex items-center gap-3">
-                <p className="font-black text-[var(--foreground)] text-[18px]">kloop shop</p>
-                <span className="px-2 py-0.5 rounded-full bg-[var(--color-teal)] text-white text-[11px] font-black tracking-wide">PRO</span>
-              </div>
+              <p className="font-black text-[var(--foreground)] text-[18px]">kloop shop</p>
               <p className="text-[14px] text-gray-500 dark:text-sage mt-1">Envie uma sacola e a gente vende por você</p>
             </div>
           </div>

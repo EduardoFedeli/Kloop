@@ -6,6 +6,7 @@ import Link from "next/link"
 import { ArrowLeft, Check, Zap, Rocket, Loader2, Megaphone, TrendingUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { subscribeToPlan } from "@/lib/actions/subscription"
+import { useDragScroll } from "@/lib/hooks/useDragScroll"
 import { toast } from "sonner"
 
 interface PlanFeature {
@@ -34,7 +35,7 @@ const plans: Plan[] = [
     isDark: false,
     ctaText: "Continuar com o Kloop",
     features: [
-      { text: "Até 20 anúncios ativos" },
+      { text: "Até 75 anúncios ativos" },
       { text: "5 impulsos por semana" },
       { text: "Taxa de 14% por venda" },
     ],
@@ -49,7 +50,7 @@ const plans: Plan[] = [
     ctaText: "Assinar Kloop Pro",
     features: [
       { text: "Anúncios ilimitados", highlight: true },
-      { text: "15 impulsos por semana", highlight: true },
+      { text: "20 impulsos por semana", highlight: true },
       { text: "Taxa reduzida de 12%", highlight: true },
     ],
   },
@@ -175,6 +176,7 @@ function PlanCard({
 export function AssinaturaClient({ currentPlanSlug }: { currentPlanSlug: string }) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+  const drag = useDragScroll<HTMLDivElement>()
 
   const handleSubscribe = (planId: string) => {
     startTransition(async () => {
@@ -235,7 +237,18 @@ export function AssinaturaClient({ currentPlanSlug }: { currentPlanSlug: string 
         </div>
 
         {/* Cards de plano */}
-        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 px-4 -mx-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 md:max-w-2xl md:mx-auto md:gap-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div
+          ref={drag.ref}
+          onMouseDown={drag.onMouseDown}
+          onMouseUp={drag.onMouseUp}
+          onMouseLeave={drag.onMouseLeave}
+          onMouseMove={drag.onMouseMove}
+          onClickCapture={drag.onClickCapture}
+          className={cn(
+            "flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 px-4 -mx-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 md:max-w-2xl md:mx-auto md:gap-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] md:cursor-auto",
+            drag.className
+          )}
+        >
           {plans.map((plan) => (
             <PlanCard
               key={plan.id}

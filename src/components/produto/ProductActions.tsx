@@ -130,7 +130,7 @@ export function ProductActions({
           {isBuying ? (
             <Loader2 size={18} className="animate-spin" />
           ) : isAvailable ? (
-            'eu quero! 💚'
+            'comprar produto'
           ) : (
             'produto indisponível'
           )}

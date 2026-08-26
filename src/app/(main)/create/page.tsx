@@ -31,7 +31,7 @@ export default async function CreateListingPage() {
     getUserCommunities(userId),
   ])
 
-  const maxListings = subscription?.plan?.maxActiveListings ?? 5
+  const maxListings = subscription?.plan?.maxActiveListings ?? 75
   const planName = subscription?.plan?.name ?? "Free"
 
   return (

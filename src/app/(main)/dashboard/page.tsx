@@ -49,7 +49,7 @@ export default async function DashboardPage() {
 
   if (!user) redirect("/")
 
-  const maxListings = user.subscription?.plan?.maxActiveListings ?? 5
+  const maxListings = user.subscription?.plan?.maxActiveListings ?? 75
   const activeCount = user._count.listings
 
   return (
@@ -89,7 +89,7 @@ export default async function DashboardPage() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-airforce">Meus anúncios</h2>
           <span className="text-sm text-teal-muted">
-            {activeCount} de {maxListings === -1 ? "∞" : maxListings} ativos
+            {maxListings === -1 ? `${activeCount} ativos` : `${activeCount} de ${maxListings} ativos`}
           </span>
         </div>
         <MyListings listings={listings} />

@@ -37,7 +37,7 @@ export default async function PerfilPerfilPage() {
 
   if (!user) redirect('/')
 
-  const maxListings = user.subscription?.plan?.maxActiveListings ?? 5
+  const maxListings = user.subscription?.plan?.maxActiveListings ?? 75
   const activeCount = user._count.listings
   
   // Pega o slug da assinatura e garante a tipagem para o componente
@@ -95,7 +95,7 @@ export default async function PerfilPerfilPage() {
             <div>
               <p className="text-[15px] font-bold text-[var(--foreground)]">minha loja</p>
               <p className="text-[12px] text-gray-500 dark:text-sage mt-0.5">
-                {activeCount} de {maxListings === -1 ? '∞' : maxListings} anúncios ativos
+                {maxListings === -1 ? `${activeCount} anúncios ativos` : `${activeCount} de ${maxListings} anúncios ativos`}
               </p>
             </div>
           </div>

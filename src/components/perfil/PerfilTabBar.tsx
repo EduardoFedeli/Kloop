@@ -19,7 +19,7 @@ export function PerfilTabBar() {
   const pathname = usePathname()
 
   return (
-    <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden">
+    <div className="grid grid-cols-5">
       {TABS.map(({ label, href, Icon }) => {
         const isActive = pathname.startsWith(href)
         return (
@@ -27,7 +27,7 @@ export function PerfilTabBar() {
             key={href}
             href={href}
             className={cn(
-              "flex-shrink-0 flex flex-col items-center gap-1.5 px-5 pt-3 pb-2.5 transition-colors border-b-2 whitespace-nowrap",
+              "flex flex-col items-center gap-1.5 pt-3 pb-2.5 transition-colors border-b-2",
               isActive
                 ? "text-[var(--color-pine)] dark:text-[var(--color-teal)] border-[var(--color-pine)] dark:border-[var(--color-teal)]"
                 : "text-gray-400 dark:text-sage/60 border-transparent hover:text-gray-600 dark:hover:text-sage"
