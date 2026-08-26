@@ -19,6 +19,7 @@
 | [06-infraestrutura.md](06-infraestrutura.md) | Arquitetura técnica atual e proposta de evolução de infra |
 | [07-perguntas-banca.md](07-perguntas-banca.md) | Perguntas prováveis da banca com respostas prontas |
 | [08-revisao-negocio.md](08-revisao-negocio.md) | Crítica de negócio: o que pode ser desnecessário hoje (assinatura, limite de anúncios, Kloop Pro, cashback) |
+| [09-comunidades.md](09-comunidades.md) | Kloop Comunidades a fundo: como funciona, requisitos, roadmap de público/financeiro/segurança |
 
 ## Resumo executivo (1 minuto)
 
@@ -28,8 +29,9 @@ circular. O modelo de negócio combina **comissão por venda** (14% no plano gr�
 Kloop Pro) com **assinatura B2C** (só 2 planos hoje — o antigo plano intermediário "Pro"
 foi desativado). Diferenciais frente a Enjoei/OLX/Facebook Marketplace: negociação de
 preço estruturada (ofertas com turnos e prazo), cashback para comprador e vendedor,
-sistema de "impulsos" para dar destaque a anúncios, e uma vertical B2B para condomínios
-residenciais (Kloop Comunidades).
+sistema de "impulsos" para dar destaque a anúncios, consignação Kloop Pro/Kloop Shop com
+repasse escalonado (45%/55%/65% por faixa de preço) para quem não quer fotografar e
+anunciar sozinho, e uma vertical B2B para condomínios residenciais (Kloop Comunidades).
 
 O projeto está em estado de **MVP funcional**: cadastro, anúncios, busca, ofertas,
 transações, avaliações, assinaturas, cashback e boosts estão implementados e persistidos

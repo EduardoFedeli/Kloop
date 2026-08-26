@@ -106,15 +106,18 @@ de estados da transação (`PENDING→PAID→SHIPPED→DELIVERED→COMPLETED`), 
 - 🟢 **Carteira de cashback** (`/cashback`) — saldo, extrato, aviso de saldo prestes a
   expirar (15 dias antes do vencimento em 120 dias).
 - 🟢 **Uso no checkout** — até 30% do valor da compra pode ser pago com saldo de cashback.
-- ⚠️ Ver [04](04-modelo-negocio-financeiro.md) para a divergência de taxa (5%+2% real no
-  código vs. 3%+2% no comentário do schema/simulador vs. "8%/4% em planos pagos" no texto
-  da própria tela — a taxa real nunca varia por plano).
+- 🟢 **Taxa: 3% vendedor + 2% comprador = 5% do GMV**, incondicional em toda venda
+  concluída, sempre igual independente do plano. Corrigida em 2026-08 — ver
+  [04](04-modelo-negocio-financeiro.md) para a análise financeira completa.
 
 ## Assinaturas e monetização B2C
 
 - 🟡 **Planos** (`/assinatura`) — só **2 planos ativos**: Kloop (grátis, comissão 14%,
-  20 anúncios, 5 impulsos/semana) e Kloop Pro (R$14,99/mês, comissão 12%, anúncios
-  ilimitados, 15 impulsos/semana). Assinar troca o plano no banco instantaneamente —
+  75 anúncios, 5 impulsos/semana) e Kloop Pro (R$14,99/mês, comissão 12%, anúncios
+  ilimitados, 20 impulsos/semana). O limite do plano grátis foi levantado de 20 para 75
+  anúncios (decisão de 2026-08 — ver [08](08-revisao-negocio.md)) justamente para não
+  penalizar o usuário casual fazendo desapego, sem depender de uma parede de anúncios
+  pra empurrar a assinatura. Assinar troca o plano no banco instantaneamente —
   **sem gateway de pagamento, sem cancelamento, sem downgrade** implementados. Ver
   [04](04-modelo-negocio-financeiro.md) para os números e a análise de se vale a pena.
 - ⚫ **`/plans`** — era uma rota stub (`<div>Planos</div>`), duplicata morta de
@@ -139,11 +142,21 @@ de estados da transação (`PENDING→PAID→SHIPPED→DELIVERED→COMPLETED`), 
 - 🟢 **Decisão do usuário sobre cada item aprovado** — publicar na Kloop Shop, doar ou
   pedir devolução. Itens rejeitados pelo admin também podem ser marcados para doação ou
   devolução pelo usuário.
-- 🟢 **Kloop Shop** (`/kloop-shop`, gestão em `/admin/kloop-shop`) — vitrine dos produtos
-  aprovados e publicados. **Modelo é de compra do lote pela Kloop, não consignação com
-  repasse** — o schema do produto não tem campo de valor a devolver ao usuário original.
+- 🟡 **Kloop Shop** (`/kloop-shop`, gestão em `/admin/kloop-shop`) — vitrine dos produtos
+  aprovados e publicados. **Desde 2026-08, é consignação de verdade com repasse
+  escalonado** ao consignante: 45% (peças até R$79,99), 55% (R$80,00–R$299,99) ou 65%
+  (R$300,00+) — calculado em `src/lib/kloopShopPayout.ts` e travado quando o admin marca o
+  produto como "vendido" (`markProductSold`). O consignante acompanha o valor
+  estimado/recebido pelo `/pro/dashboard`. **Ainda simulado no sentido de que não existe
+  checkout público** para o cliente final comprar na Kloop Shop — a "venda" hoje é marcada
+  manualmente pelo admin, e o repasse é só um número travado no banco, sem PIX/transferência
+  de verdade saindo ainda. Ver [04](04-modelo-negocio-financeiro.md) para a análise completa.
 
 ## Comunidades B2B (condomínios)
+
+> Ver [09-comunidades.md](09-comunidades.md) para a análise completa de negócio (público,
+> financeiro, segurança) e o roadmap dessa vertical — este catálogo cobre só o que já
+> está implementado.
 
 - 🟢 **Feed exclusivo por comunidade** (`/comunidades`, `/comunidades/[slug]`) — lista as
   comunidades do usuário e, dentro de cada uma, os anúncios vinculados a ela

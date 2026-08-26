@@ -8,6 +8,13 @@
 
 ## 1. A assinatura vale o esforço que ela custa?
 
+> ✅ **Decidido em 2026-08:** mantivemos a assinatura, mas desacoplada do limite de
+> anúncios (ver item 2) — passou a vender por impulsos/velocidade e loja personalizável
+> (roadmap), não pela economia de comissão. O cálculo abaixo (2pp de economia, ~5
+> vendas/mês pra compensar) continua valendo como contexto de por que a comissão sozinha
+> não é um bom motivo de venda.
+
+
 **O que ela dá hoje:** de 14% para 12% de comissão (só 2 pontos percentuais), mais
 anúncios ilimitados (vs. 20), mais impulsos (15 vs. 5), por R$14,99/mês.
 
@@ -39,6 +46,12 @@ maior parte da receita simulada continua vindo da comissão, não da assinatura)
 
 ## 2. O limite de 20 anúncios no plano grátis é uma boa ideia?
 
+> ✅ **Decidido em 2026-08:** o limite subiu de 20 para **75 anúncios** no plano grátis
+> (Kloop Pro passou a vender por impulsos/velocidade + loja personalizável no roadmap, não
+> mais pela economia de comissão nem por "desbloquear" anúncios). O raciocínio abaixo fica
+> registrado como histórico de por que a mudança foi feita.
+
+
 **A pergunta que importa:** quem é o usuário que mais provavelmente bate nesse limite? Se
 for o "vendedor profissional" que já teria motivo de sobra pra assinar mesmo sem o limite
 (mais impulsos, loja), o limite é só um empurrão a mais — ok. Mas se for o **usuário
@@ -61,26 +74,70 @@ assinatura passar a vender só por impulsos/velocidade, não por "desbloquear o 
 
 ## 3. Kloop Pro (consignação) — vale o custo operacional na fase atual?
 
-Hoje é o modelo mais pesado de operar: exige alguém revisando lote item a item no admin, e
-o modelo implementado (a Kloop compra a peça, não é consignação com repasse) significa que
-a Kloop assume risco de estoque e capital de giro **antes de saber se a peça vende**. Isso
-é um modelo de negócio fundamentalmente diferente do marketplace P2P principal (onde o
-Kloop nunca segura estoque, só intermedia) — e mais caro de escalar, porque cada lote
-precisa de trabalho humano de avaliação.
+> ✅ **Decidido em 2026-08:** o modelo de repasse mudou de "Kloop compra a peça" pra
+> **consignação de verdade com split escalonado** (45% até R$79,99 / 55% de R$80 a
+> R$299,99 / 65% acima de R$300, ver [04](04-modelo-negocio-financeiro.md)). Isso já
+> resolve a parte mais preocupante do risco descrito abaixo — a Kloop não assume mais
+> capital de giro nem risco de estoque comprando a peça adiantado. O que continua em
+> aberto é só a pergunta operacional: vale rodar essa vertical em paralelo com o
+> marketplace principal agora?
 
-**Para a conversa:** faz sentido perguntar se essa vertical deveria ser adiada até o
+Ainda é o modelo mais pesado de operar: exige alguém revisando lote item a item no admin
+(fotografar, descrever, precificar cada peça) — é trabalho humano por peça que o
+marketplace P2P principal não tem (lá quem fotografa e descreve é o próprio vendedor). Cada
+lote novo é custo de mão de obra antes de qualquer venda acontecer, e o repasse escalonado
+(item 4 acima) já reflete isso — mas não elimina o custo, só o compensa melhor.
+
+**Para a conversa:** ainda faz sentido perguntar se essa vertical deveria ser adiada até o
 marketplace P2P principal ter tração provada, em vez de rodar em paralelo desde o
 início — ou se ela é estratégica o bastante (capturar quem "nunca anunciaria sozinho") pra
-justificar o custo agora. Não tem resposta errada aqui, é uma escolha de foco.
+justificar o custo agora. Com o risco de capital resolvido, a balança pende mais pra "vale
+manter rodando", mas a pergunta de foco/prioridade de equipe continua válida.
 
-## 4. Cashback de 7% — dá pra prometer isso pra sempre?
+## 4. Cashback — dá pra viver com ele?
 
-Cashback fixo desde o dia um cria uma expectativa difícil de reduzir depois sem reação
-negativa dos usuários (todo produto que já cortou benefício de fidelidade sabe disso). Vale
-considerar, para a conversa: um teto de cashback por transação/mês (evita que uma venda
-gigante gere um crédito desproporcional), ou tratar a taxa atual como promocional
-("cashback de lançamento") em vez de estrutural — dá espaço pra ajustar sem parecer que
-"tiraram um benefício".
+> ✅ **Decidido e implementado em 2026-08.** Duas descobertas motivaram essa análise: (1)
+> o crédito de cashback é **incondicional em toda venda concluída**, para os dois lados —
+> o custo real é sobre 100% do GMV, não sobre uma fração de "usuários que usam cashback"
+> como o simulador do produto e uma versão anterior desta análise assumiam; e (2) a taxa
+> do vendedor no código estava em **5%**, divergindo do resto do produto (comentário do
+> enum, `seed-financial.ts` e o simulador já assumiam 3%). A taxa foi reduzida para 3% em
+> `src/lib/cashback.ts`, e a tela `/cashback` — que também mostrava um número errado
+> (8%/4% "em planos pagos", uma diferenciação que nunca existiu de verdade) — agora lê a
+> taxa direto do código, então não tem mais como os dois divergirem de novo.
+
+**Antes vs. depois da correção** (cenário-base do [04](04-modelo-negocio-financeiro.md) —
+80% grátis / 20% Kloop Pro, comissão ponderada 13,6%):
+
+| | Antes (5% vendedor, custo mal calculado) | Depois (3% vendedor, custo sobre 100% do GMV) |
+|---|---|---|
+| Custo de cashback | ~1% do GMV (cálculo errado) / 7% (cálculo certo, taxa errada) | **5% do GMV** (cálculo e taxa certos) |
+| Margem bruta antes de custo fixo | 6,6% a 12,6%, dependendo de qual erro | **8,6%** |
+| Break-even, cenário realista (R$15k fixo + 3% gateway) | Mês 7 a 28, dependendo de qual erro | **Mês 19** |
+| Break-even, cenário conservador (R$25k fixo + 3,5% gateway) | Mês 20 / não atingido | **Mês 31** |
+
+**Resposta direta às perguntas que motivaram esta seção:**
+
+- **O cashback ajuda a sustentar a vida útil do usuário?** Em teoria sim — o desenho
+  (saldo expira em 120 dias, usa até 30% da próxima compra) é o mesmo mecanismo de
+  retenção usado por milhas aéreas e crédito de loja: dá motivo pra voltar antes de
+  perder o saldo. Mas **não existe dado real de uso** que prove isso — é uma aposta de
+  design plausível, não um resultado medido, porque o produto ainda não tem histórico de
+  usuários de verdade. Vale ser honesto sobre essa diferença se a banca perguntar.
+- **O cashback traz muita despesa pra Kloop?** Traz — é a maior linha de despesa do
+  modelo — mas com a taxa corrigida (5% do GMV, não 7%) ela fica coberta com folga
+  razoável pela comissão ponderada de 13,6%.
+- **Conseguimos viver com o cashback atual?** Sim, com a taxa corrigida — os três
+  cenários simulados (piso, realista, conservador) atingem break-even dentro de 3 anos.
+  O ponto de atenção que continua válido: essa é receita/custo de um modelo com
+  pagamento mockado — a viabilidade real só se confirma quando o gateway de pagamento
+  existir de fato.
+
+Alternativas complementares, caso 3% ainda pareça alto depois de mais dados de uso: um
+teto de cashback por transação (evita que uma venda cara gere um crédito
+desproporcional), ou tratar a taxa como promocional ("cashback de lançamento") em vez de
+estrutural — dá espaço pra ajustar pra baixo no futuro sem parecer que "tiraram um
+benefício".
 
 ## 5. Excesso de superfícies para um primeiro momento?
 
@@ -99,12 +156,13 @@ convincente pra uma banca do que apresentar tudo como se já estivesse igualment
 
 ## Resumo das perguntas em aberto (pauta pra discussão)
 
-1. Assinatura: manter como está, vender por outro motivo (não a comissão), ou adiar pra
-   fase 2?
-2. Limite de 20 anúncios grátis: manter, subir bastante, ou remover?
-3. Kloop Pro (consignação): correr em paralelo com o marketplace principal, ou focar no
-   P2P primeiro?
-4. Cashback de 7%: manter como benefício permanente, ou reposicionar como promocional
-   com teto?
+1. ✅ Assinatura — decidido: mantida, mas vendida por impulsos/velocidade + loja
+   personalizável (roadmap), não mais pela economia de comissão.
+2. ✅ Limite de anúncios grátis — decidido: subiu de 20 para 75.
+3. 🟡 Kloop Pro (consignação) — parcialmente decidido: o modelo de repasse virou split
+   escalonado 45/55/65% (não é mais "Kloop compra a peça"). Ainda em aberto: correr em
+   paralelo com o marketplace principal, ou focar no P2P primeiro?
+4. ✅ Cashback — decidido: taxa do vendedor corrigida de 5% para 3% (5% total),
+   incondicional sobre 100% do GMV. Modelo viável nos 3 cenários simulados.
 5. Pra apresentação: vale desenhar explicitamente "núcleo validado" vs. "camadas de
    expansão" em vez de apresentar tudo no mesmo nível de maturidade?

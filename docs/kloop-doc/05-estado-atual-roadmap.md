@@ -12,7 +12,9 @@
 - Avaliações pós-compra.
 - Assinaturas (troca de plano), impulsos dentro da cota do plano.
 - Uma conquista de gamificação (primeiros 5 anúncios).
-- Kloop Pro: envio de lote → avaliação admin → decisão do usuário → Kloop Shop.
+- Kloop Pro: envio de lote → avaliação admin → decisão do usuário → Kloop Shop → repasse
+  escalonado ao consignante (45%/55%/65% por faixa de preço), calculado e travado quando o
+  admin marca a venda.
 - Comunidades: feed exclusivo por comunidade, criação via admin, login por Totem/QR.
 - Painel admin completo: vendas, lotes, Kloop Shop, comunidades, usuários, marcas,
   denúncias, simulador financeiro.
@@ -27,6 +29,7 @@
 | Oferta em lote (`BundleOffer`) | Model existe no banco, rota não grava nada nele |
 | Impulso extra | Botão concede +5 grátis, sem cobrança |
 | Recebimento de lote Pro | Itens são gerados aleatoriamente, sem upload real de fotos |
+| Venda na Kloop Shop | Marcada manualmente pelo admin (`markProductSold`) — sem checkout público pro cliente final ainda; o repasse calculado é real, o dinheiro saindo do caixa não é |
 
 ## O que foi removido/descontinuado (decisão de produto, não bug)
 
@@ -66,22 +69,35 @@ greenfield (mais trabalho de design + implementação).
 
 ### Médio prazo — completar verticais já desenhadas no schema
 
-5. **Loja Pró (`Store`)** — hoje só o modelo de dados existe; falta o fluxo de criação de
-   loja, boosts pagos de loja e a cobrança correspondente.
-6. **Autosserviço de Comunidades** — fluxo de "solicitar entrada" / "síndico aprova
-   morador" (hoje é 100% manual via admin), e ativar os tipos "Academia"/"Empresa" já
-   desenhados como cards desabilitados.
-7. **Monetização do B2B** — decidir e implementar um modelo de cobrança para condomínios
-   (mensalidade fixa por comunidade, comissão diferenciada, ou taxa de setup) — hoje o
-   `Community` não tem nenhum campo de plano/preço.
+5. **Loja personalizável para assinantes Kloop Pro** *(compromisso de roadmap assumido)* —
+   já reservada como benefício do plano Pro (flag `lojaPersonalizavel: true` na
+   `SubscriptionPlan`), mas sem nenhum código que a implemente ainda. Modelo de dados
+   `Store`/`StoreBoost` no schema pode servir de base, mas o escopo mínimo é uma vitrine
+   de perfil de vendedor customizável (capa, destaque, tema) — não precisa nascer tão
+   elaborado quanto os models sugerem. Enquanto não sai do papel, não demonstrar como se
+   já existisse.
+6. **Autosserviço de Comunidades + Condomínio Comercial** *(decisão de roadmap tomada em
+   2026-08, ver [09-comunidades.md](09-comunidades.md))* — hoje só existe o tipo
+   "Condomínio" (residencial), criado manualmente pelo admin, sem fluxo de "solicitar
+   entrada" / "síndico aprova morador". O próximo tipo a habilitar é **condomínio
+   comercial**, não "empresa" genérica — reaproveita a mesma estrutura de venda via
+   síndico/administradora. Comunidades de afinidade sem prédio (ex.: grupos de interesse)
+   ficam explicitamente fora deste item — são uma iniciativa separada, não uma extensão.
+7. **Monetização do B2B** *(modelo já decidido, falta implementar)* — split percentual
+   por transação dividido entre Kloop e o condomínio (não mensalidade fixa, não taxa de
+   setup) — ver [09-comunidades.md](09-comunidades.md) para a análise completa. Hoje o
+   `Community` não tem nenhum campo de plano/preço no schema.
 8. **Chat direto comprador-vendedor** — se o produto realmente quer manter comunicação só
    por Q&A público, vale atualizar o `CLAUDE.md` para refletir isso; se o chat é desejado,
    é uma feature nova (models `Conversation`/`Message` + UI).
 
-### Longo prazo — escala e consignação real
+### Longo prazo — escala
 
-9. **Kloop Pro como consignação de verdade** — adicionar repasse ao usuário original
-   (percentual da venda do `KloopShopProduct`), hoje inexistente no schema.
+9. ✅ **Kloop Pro como consignação de verdade** *(concluído em 2026-08)* — repasse
+   escalonado 45%/55%/65% por faixa de preço, implementado em
+   `src/lib/kloopShopPayout.ts`. O que falta agora não é mais o modelo econômico, é o
+   **checkout público da Kloop Shop** — hoje a venda é marcada manualmente pelo admin, não
+   existe fluxo de compra real pro cliente final na vitrine `/kloop-shop`.
 10. **Boosts avançados** — `FEED_HIGHLIGHT`, `CATEGORY_TOP`, `SEARCH_PRIORITY` já existem
     no enum mas não têm lógica; poderiam virar upsells pagos avulsos (hoje só o impulso
     dentro da cota do plano existe).

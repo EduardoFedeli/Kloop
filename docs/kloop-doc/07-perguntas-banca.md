@@ -14,22 +14,20 @@ Kloop Pro) e assinatura mensal do Kloop Pro (R$14,99) para vendedores que querem
 anúncios e mais impulsos. Ver [04](04-modelo-negocio-financeiro.md).
 
 **"Isso é suficiente para dar lucro?"**
-A margem bruta por transação é saudável — a comissão ponderada (~13-14% do GMV) cobre com
-folga o cashback pago (7% do valor, só sobre quem escolhe usar). O que determina se o
-negócio é lucrativo de verdade não é a comissão, é o custo de operar (infra, equipe,
-aquisição de usuário, taxa de gateway). Simulamos cenários com custo operacional realista
-e o break-even acontece já no primeiro semestre com um time enxuto — o modelo atual (2
-planos) é mais robusto do que uma versão anterior desta análise, que usava números de um
-modelo antigo de 3 planos.
+Sim. A comissão ponderada (~13,6% do GMV) cobre o cashback (5% do GMV, **incondicional em
+toda venda concluída** — não só "sobre quem escolhe usar", ver [08](08-revisao-negocio.md))
+com uma margem bruta de ~8,6% antes de custo operacional. Com custo operacional realista
+(equipe, infra, gateway), o break-even acontece por volta do mês 19 — e mesmo num cenário
+mais conservador de custos, dentro do mês 31, ainda dentro do horizonte de 3 anos.
 
 **"Por que alguém pagaria assinatura em vez de usar o plano grátis?"**
-Hoje só existem 2 planos: grátis (14% de comissão, 20 anúncios) e Kloop Pro (R$14,99/mês,
-12% de comissão, anúncios ilimitados, mais impulsos). A redução de comissão é pequena (só
-2 pontos percentuais), então na prática ela só compensa financeiramente a partir de ~5
-vendas por mês — abaixo disso, quem assina está pagando pelos outros benefícios (limite
-de anúncios, impulsos), não pela economia de taxa. Vale ser transparente sobre isso: é uma
-resposta honesta, e evita prometer um ROI de assinatura maior do que o real. Há uma
-discussão em aberto sobre se esse desenho é o ideal — ver [08](08-revisao-negocio.md).
+Hoje só existem 2 planos: grátis (14% de comissão, 75 anúncios) e Kloop Pro (R$14,99/mês,
+12% de comissão, anúncios ilimitados, 20 impulsos/semana). A redução de comissão é pequena
+(só 2 pontos percentuais) e o limite do plano grátis é alto o bastante pra raramente ser o
+motivo real de assinar — de propósito: quem assina hoje está pagando por impulsos/
+velocidade e (no roadmap) loja personalizável, não por "desbloquear" o básico. Essa
+mudança foi feita justamente pra não punir o usuário casual fazendo desapego, que é o
+público-alvo primário do produto — ver a análise completa em [08](08-revisao-negocio.md).
 
 **"Qual o diferencial de vocês frente a Enjoei, OLX, Facebook Marketplace?"**
 Negociação estruturada com prazo e limite de rodadas (em vez de combinar por chat e o
@@ -43,11 +41,15 @@ fechada dentro do prédio), sem cobrança própria implementada. É roadmap, nã
 uma fonte de receita validada.
 
 **"E a Kloop Pro (mandar o lote de roupas), o dono da peça recebe alguma coisa?"**
-No modelo implementado hoje, a Kloop avalia o lote e, para os itens aprovados que o
-usuário decide publicar, a peça vira um produto da "Kloop Shop" — o modelo de dados atual
-não tem um campo de repasse percentual ao usuário original. Ou seja, hoje funciona mais
-como "a Kloop compra a peça aprovada" do que consignação com split — uma decisão de
-produto que ainda pode evoluir (está no roadmap).
+Sim — é consignação de verdade com repasse escalonado por faixa de preço: 45% em peças
+até R$79,99, 55% de R$80 a R$299,99, e 65% em peças de R$300 ou mais. A lógica: a Kloop
+faz todo o trabalho por peça (foto, anúncio, guarda, envio), então peças baratas dão mais
+margem pra Kloop (o trabalho é quase o mesmo de uma peça cara) e peças caras dão mais
+repasse ao dono (o valor absoluto já compensa). É mais generoso que o modelo fixo de
+50/50 do Enjoei nas peças de maior valor, sem comprometer a margem nas baratas — que são a
+maioria do volume. O repasse é calculado e travado quando a venda é registrada. O que
+ainda não existe é um checkout público de verdade pra Kloop Shop (a venda hoje é marcada
+manualmente pelo admin) — bom ser transparente sobre isso se perguntado a fundo.
 
 ## Sobre validação e mercado
 
@@ -90,11 +92,6 @@ como algo já em andamento.
 Estas foram encontradas revisando o código para montar esta documentação — é melhor o
 time já saber a resposta do que ser pego de surpresa:
 
-- **"Qual a taxa de cashback, 3%, 5% ou 8%?"** → A implementação real usa **5% para o
-  vendedor + 2% para o comprador (7% total)**, sempre igual independente do plano. O
-  comentário do schema e o simulador administrativo ainda citam 3%, e o texto da tela de
-  cashback cita 8%/4% "em planos pagos" (que não existe de verdade) — é uma inconsistência
-  de texto/comentário que vale corrigir, não um erro de cálculo real.
 - **"Existe favoritar anúncios?"** → Não — foi uma ideia avaliada e descartada pelo time,
   removida do produto. Não é uma feature planejada nem quebrada, é uma decisão de escopo.
 - **"Como funciona o chat com o vendedor?"** → Hoje não existe chat privado — a
