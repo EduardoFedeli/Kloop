@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Plus, Building2, Dumbbell, Briefcase, X, Search, Check } from "lucide-react"
-import { createCommunity, searchAdminUsers } from "@/lib/actions/admin"
+import { Plus, Building2, Dumbbell, Briefcase, X, Search, Check, Pencil, ImagePlus, Loader2 } from "lucide-react"
+import { createCommunity, updateCommunity, searchAdminUsers } from "@/lib/actions/admin"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -10,9 +10,20 @@ type Comunidade = {
   id: string
   name: string
   slug: string
+  description: string | null
+  logoUrl: string | null
   isActive: boolean
   admin: { id: string; name: string | null; email: string | null }
   _count: { members: number }
+}
+
+async function uploadImage(file: File): Promise<string | null> {
+  const fd = new FormData()
+  fd.append("file", file)
+  const res = await fetch("/api/upload/image", { method: "POST", body: fd })
+  if (!res.ok) return null
+  const { url } = (await res.json()) as { url: string }
+  return url
 }
 
 type UserOption = { id: string; name: string | null; email: string | null; avatarUrl: string | null }
@@ -25,6 +36,7 @@ const TYPES = [
 
 export function ComunidadesClient({ initialCommunities }: { initialCommunities: Comunidade[] }) {
   const [isPending, startTransition] = useTransition()
+  const [communities, setCommunities] = useState(initialCommunities)
   const [isTypeModalOpen, setIsTypeModalOpen] = useState(false)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
 
@@ -34,6 +46,55 @@ export function ComunidadesClient({ initialCommunities }: { initialCommunities: 
   const [userOptions, setUserOptions] = useState<UserOption[]>([])
   const [selectedUser, setSelectedUser] = useState<UserOption | null>(null)
   const [searching, setSearching] = useState(false)
+
+  const [editingCommunity, setEditingCommunity] = useState<Comunidade | null>(null)
+  const [editName, setEditName] = useState("")
+  const [editDescription, setEditDescription] = useState("")
+  const [editLogoUrl, setEditLogoUrl] = useState<string | null>(null)
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false)
+
+  function openEditModal(c: Comunidade) {
+    setEditingCommunity(c)
+    setEditName(c.name)
+    setEditDescription(c.description ?? "")
+    setEditLogoUrl(c.logoUrl)
+  }
+
+  function closeEditModal() {
+    setEditingCommunity(null)
+  }
+
+  async function handleEditLogoUpload(file: File) {
+    setIsUploadingLogo(true)
+    const url = await uploadImage(file)
+    setIsUploadingLogo(false)
+    if (!url) { toast.error("Falha no upload da foto"); return }
+    setEditLogoUrl(url)
+  }
+
+  function handleUpdate(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editingCommunity || !editName.trim()) return
+    const id = editingCommunity.id
+    startTransition(async () => {
+      const res = await updateCommunity(id, {
+        name: editName.trim(),
+        description: editDescription.trim() || null,
+        logoUrl: editLogoUrl,
+      })
+      if (res.error) {
+        toast.error(res.error)
+      } else {
+        toast.success("Comunidade atualizada!")
+        setCommunities((prev) =>
+          prev.map((c) =>
+            c.id === id ? { ...c, name: editName.trim(), description: editDescription.trim() || null, logoUrl: editLogoUrl } : c
+          )
+        )
+        closeEditModal()
+      }
+    })
+  }
 
   async function handleUserSearch(value: string) {
     setUserQuery(value)
@@ -97,21 +158,33 @@ export function ComunidadesClient({ initialCommunities }: { initialCommunities: 
         <table className="w-full text-left text-sm">
           <thead className="bg-gray-50 border-b border-gray-200 text-gray-500">
             <tr>
+              <th className="p-4 font-semibold"></th>
               <th className="p-4 font-semibold">Nome</th>
               <th className="p-4 font-semibold">Slug</th>
               <th className="p-4 font-semibold">Administrador</th>
               <th className="p-4 font-semibold text-center">Membros</th>
               <th className="p-4 font-semibold text-center">Status</th>
+              <th className="p-4 font-semibold" />
             </tr>
           </thead>
           <tbody>
-            {initialCommunities.length === 0 ? (
+            {communities.length === 0 ? (
               <tr>
-                <td colSpan={5} className="p-8 text-center text-gray-500 font-medium">Nenhuma comunidade cadastrada ainda.</td>
+                <td colSpan={7} className="p-8 text-center text-gray-500 font-medium">Nenhuma comunidade cadastrada ainda.</td>
               </tr>
             ) : (
-              initialCommunities.map((c) => (
+              communities.map((c) => (
                 <tr key={c.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50">
+                  <td className="p-4">
+                    {c.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={c.logoUrl} alt={c.name} className="w-10 h-10 rounded-lg object-cover border border-gray-200" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-300">
+                        <Building2 size={18} />
+                      </div>
+                    )}
+                  </td>
                   <td className="p-4 font-bold text-[var(--color-pine)]">{c.name}</td>
                   <td className="p-4 text-gray-500">{c.slug}</td>
                   <td className="p-4 text-gray-600">{c.admin.name ?? c.admin.email}</td>
@@ -123,6 +196,15 @@ export function ComunidadesClient({ initialCommunities }: { initialCommunities: 
                     )}>
                       {c.isActive ? "ativa" : "inativa"}
                     </span>
+                  </td>
+                  <td className="p-4 text-right">
+                    <button
+                      onClick={() => openEditModal(c)}
+                      className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-blue-100 hover:text-blue-600 transition-colors"
+                      aria-label="Editar comunidade"
+                    >
+                      <Pencil size={13} />
+                    </button>
                   </td>
                 </tr>
               ))
@@ -264,6 +346,84 @@ export function ComunidadesClient({ initialCommunities }: { initialCommunities: 
               className="w-full rounded-lg bg-teal p-3 text-sm font-bold text-white transition-colors hover:bg-teal/90 disabled:opacity-50"
             >
               {isPending ? "Criando..." : "Criar comunidade"}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Modal: editar comunidade */}
+      {editingCommunity && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <form
+            onSubmit={handleUpdate}
+            className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-4"
+          >
+            <button
+              type="button"
+              onClick={closeEditModal}
+              className="absolute right-4 top-4 rounded-full p-1 text-gray-400 hover:bg-gray-100"
+              aria-label="Fechar"
+            >
+              <X size={18} />
+            </button>
+            <h3 className="text-lg font-black text-[var(--color-pine)]">Editar comunidade</h3>
+
+            <div>
+              <label className="text-xs font-semibold text-gray-600 block mb-1">Foto da comunidade</label>
+              <label className="flex items-center gap-3 cursor-pointer group">
+                {editLogoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={editLogoUrl} alt="" className="w-16 h-16 rounded-xl object-cover border border-gray-200" />
+                ) : (
+                  <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 group-hover:bg-gray-200 transition-colors">
+                    {isUploadingLogo ? <Loader2 size={20} className="animate-spin" /> : <ImagePlus size={20} />}
+                  </div>
+                )}
+                <span className="text-xs font-bold text-[var(--color-teal)]">
+                  {isUploadingLogo ? "enviando..." : editLogoUrl ? "trocar foto" : "adicionar foto"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  disabled={isUploadingLogo}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) handleEditLogoUpload(file)
+                    e.target.value = ""
+                  }}
+                />
+              </label>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-gray-600">Nome</label>
+              <input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                required
+                className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[var(--color-teal)]"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-gray-600">
+                Descrição <span className="font-normal text-gray-400">(opcional)</span>
+              </label>
+              <textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                rows={2}
+                className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[var(--color-teal)] resize-none"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isPending || isUploadingLogo || !editName.trim()}
+              className="w-full rounded-lg bg-teal p-3 text-sm font-bold text-white transition-colors hover:bg-teal/90 disabled:opacity-50"
+            >
+              {isPending ? "Salvando..." : "Salvar alterações"}
             </button>
           </form>
         </div>

@@ -93,7 +93,6 @@ export default async function CommunityFeedPage({ params }: Props) {
                 key={listing.id}
                 listing={listing}
                 minimal
-                communityBadge={{ type: "named", name: community.name }}
               />
             ))}
           </div>

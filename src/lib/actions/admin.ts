@@ -194,6 +194,28 @@ export async function updateAdminUser(
   }
 }
 
+export async function updateCommunity(
+  id: string,
+  data: { name?: string; description?: string | null; logoUrl?: string | null }
+) {
+  try {
+    await db.community.update({
+      where: { id },
+      data: {
+        ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.description !== undefined ? { description: data.description } : {}),
+        ...(data.logoUrl !== undefined ? { logoUrl: data.logoUrl } : {}),
+      },
+    })
+    revalidatePath("/admin/comunidades")
+    revalidatePath("/comunidades")
+    return { success: true }
+  } catch (error) {
+    console.error("Erro ao atualizar comunidade:", error)
+    return { error: "Erro ao atualizar comunidade." }
+  }
+}
+
 export async function createCommunity(data: { name: string; description?: string; adminUserId: string }) {
   try {
     const slug = slugify(data.name)
