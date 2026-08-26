@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
+import { calcConsignorPayout } from "@/lib/kloopShopPayout"
 
 async function requireAdmin() {
   const session = await auth()
@@ -111,6 +112,35 @@ export async function userConfirmItem(
     return { ok: true }
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Erro ao confirmar item" }
+  }
+}
+
+export async function markProductSold(productId: string): Promise<{ ok: true } | { error: string }> {
+  try {
+    await requireAdmin()
+
+    const product = await db.kloopShopProduct.findUnique({
+      where: { id: productId },
+      select: { priceCents: true, soldAt: true },
+    })
+    if (!product) return { error: "Produto não encontrado" }
+    if (product.soldAt) return { error: "Este produto já está marcado como vendido" }
+
+    await db.kloopShopProduct.update({
+      where: { id: productId },
+      data: {
+        soldAt: new Date(),
+        isActive: false,
+        consignorPayoutCents: calcConsignorPayout(product.priceCents),
+      },
+    })
+
+    revalidatePath("/admin/kloop-shop")
+    revalidatePath("/kloop-shop")
+    revalidatePath("/pro/dashboard")
+    return { ok: true }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Erro ao marcar como vendido" }
   }
 }
 

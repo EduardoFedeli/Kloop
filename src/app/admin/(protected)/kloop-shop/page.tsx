@@ -14,12 +14,15 @@ export default async function KloopShopPage() {
       condition: true,
       isActive: true,
       createdAt: true,
+      soldAt: true,
+      consignorPayoutCents: true,
     },
   })
 
   const serialized = products.map((p) => ({
     ...p,
     createdAt: p.createdAt.toISOString(),
+    soldAt: p.soldAt ? p.soldAt.toISOString() : null,
   }))
 
   return <KloopShopClient products={serialized} />

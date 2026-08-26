@@ -2,10 +2,11 @@
 
 import { useState, useTransition } from "react"
 import {
-  Store, Pencil, Trash2, X, Check, Loader2, ToggleLeft, ToggleRight,
+  Store, Pencil, Trash2, X, Check, Loader2, ToggleLeft, ToggleRight, PackageCheck,
 } from "lucide-react"
 import { cn, formatPrice } from "@/lib/utils"
-import { updateShopProduct, deleteShopProduct } from "@/lib/actions/kloopShop"
+import { updateShopProduct, deleteShopProduct, markProductSold } from "@/lib/actions/kloopShop"
+import { getConsignorShareRate } from "@/lib/kloopShopPayout"
 
 interface ShopProduct {
   id: string
@@ -15,6 +16,8 @@ interface ShopProduct {
   condition: string
   isActive: boolean
   createdAt: string
+  soldAt: string | null
+  consignorPayoutCents: number | null
 }
 
 interface Props {
@@ -85,6 +88,21 @@ export function KloopShopClient({ products: initial }: Props) {
     })
   }
 
+  function handleMarkSold(productId: string) {
+    if (!confirm("Marcar este produto como vendido? O repasse ao consignante é calculado e travado nesse momento.")) return
+    startTransition(async () => {
+      const result = await markProductSold(productId)
+      if ("error" in result) { setError(result.error); return }
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === productId
+            ? { ...p, isActive: false, soldAt: new Date().toISOString(), consignorPayoutCents: Math.floor(p.priceCents * getConsignorShareRate(p.priceCents)) }
+            : p
+        )
+      )
+    })
+  }
+
   function handleDelete(productId: string) {
     if (!confirm("Remover este produto da Kloop Shop?")) return
     startTransition(async () => {
@@ -94,15 +112,16 @@ export function KloopShopClient({ products: initial }: Props) {
     })
   }
 
-  const active = products.filter((p) => p.isActive).length
-  const inactive = products.filter((p) => !p.isActive).length
+  const sold = products.filter((p) => p.soldAt).length
+  const active = products.filter((p) => p.isActive && !p.soldAt).length
+  const inactive = products.filter((p) => !p.isActive && !p.soldAt).length
 
   return (
     <div className="max-w-5xl">
       <div className="mb-6">
         <h1 className="text-[22px] font-black text-gray-900">Kloop Shop</h1>
         <p className="text-[13px] text-gray-500 mt-0.5">
-          {products.length} produto(s) · {active} ativo(s) · {inactive} inativo(s)
+          {products.length} produto(s) · {active} ativo(s) · {inactive} inativo(s) · {sold} vendido(s)
         </p>
       </div>
 
@@ -126,6 +145,7 @@ export function KloopShopClient({ products: initial }: Props) {
                 <th className="text-left px-5 py-3.5 font-bold text-gray-500 uppercase text-[11px] tracking-wide">Produto</th>
                 <th className="text-left px-5 py-3.5 font-bold text-gray-500 uppercase text-[11px] tracking-wide">Condição</th>
                 <th className="text-left px-5 py-3.5 font-bold text-gray-500 uppercase text-[11px] tracking-wide">Preço</th>
+                <th className="text-left px-5 py-3.5 font-bold text-gray-500 uppercase text-[11px] tracking-wide">Repasse</th>
                 <th className="text-left px-5 py-3.5 font-bold text-gray-500 uppercase text-[11px] tracking-wide">Status</th>
                 <th className="px-5 py-3.5" />
               </tr>
@@ -177,20 +197,40 @@ export function KloopShopClient({ products: initial }: Props) {
                       )}
                     </td>
                     <td className="px-5 py-4">
-                      <button
-                        onClick={() => toggleActive(product)}
-                        disabled={isPending}
-                        className={cn(
-                          "flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full transition-colors",
-                          product.isActive
-                            ? "bg-green-100 text-green-700 hover:bg-green-200"
-                            : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                        )}
-                      >
-                        {product.isActive
-                          ? <><ToggleRight size={13} /> Ativo</>
-                          : <><ToggleLeft size={13} /> Inativo</>}
-                      </button>
+                      {product.soldAt ? (
+                        <div>
+                          <p className="font-black text-gray-900">{formatPrice(product.consignorPayoutCents ?? 0)}</p>
+                          <p className="text-[10px] text-gray-400">
+                            {Math.round(getConsignorShareRate(product.priceCents) * 100)}% pro consignante
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-[11px] text-gray-400">
+                          {Math.round(getConsignorShareRate(product.priceCents) * 100)}% ao vender
+                        </p>
+                      )}
+                    </td>
+                    <td className="px-5 py-4">
+                      {product.soldAt ? (
+                        <span className="flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 w-fit">
+                          <PackageCheck size={13} /> Vendido
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => toggleActive(product)}
+                          disabled={isPending}
+                          className={cn(
+                            "flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full transition-colors",
+                            product.isActive
+                              ? "bg-green-100 text-green-700 hover:bg-green-200"
+                              : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                          )}
+                        >
+                          {product.isActive
+                            ? <><ToggleRight size={13} /> Ativo</>
+                            : <><ToggleLeft size={13} /> Inativo</>}
+                        </button>
+                      )}
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-1.5 justify-end">
@@ -212,9 +252,20 @@ export function KloopShopClient({ products: initial }: Props) {
                           </>
                         ) : (
                           <>
+                            {!product.soldAt && (
+                              <button
+                                onClick={() => handleMarkSold(product.id)}
+                                disabled={isPending}
+                                title="Marcar como vendido"
+                                className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-amber-100 hover:text-amber-700 transition-colors disabled:opacity-50"
+                              >
+                                <PackageCheck size={13} />
+                              </button>
+                            )}
                             <button
                               onClick={() => startEdit(product)}
-                              className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-blue-100 hover:text-blue-600 transition-colors"
+                              disabled={!!product.soldAt}
+                              className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-blue-100 hover:text-blue-600 transition-colors disabled:opacity-40"
                             >
                               <Pencil size={13} />
                             </button>

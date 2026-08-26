@@ -28,7 +28,9 @@ export default async function ProDashboardPage() {
             suggestedPriceCents: true,
             adminNote: true,
             userDecision: true,
-            shopProduct: { select: { id: true } },
+            shopProduct: {
+              select: { id: true, priceCents: true, soldAt: true, consignorPayoutCents: true },
+            },
           },
         },
       },
@@ -55,6 +57,13 @@ export default async function ProDashboardPage() {
           name: i.name,
           condition: i.condition,
           suggestedPriceCents: i.suggestedPriceCents,
+        })),
+        publishedItems: published.map((i) => ({
+          id: i.id,
+          name: i.name,
+          priceCents: i.shopProduct!.priceCents,
+          sold: !!i.shopProduct!.soldAt,
+          consignorPayoutCents: i.shopProduct!.consignorPayoutCents,
         })),
         rejectedItems: rejected.map((i) => ({
           id: i.id,

@@ -10,7 +10,7 @@ type SortOption = 'newest' | 'price_asc' | 'price_desc'
 type ConditionFilter = 'ALL' | 'NEW' | 'LIKE_NEW' | 'GOOD' | 'FAIR'
 
 interface Props {
-  searchParams: Promise<{ sort?: string; condition?: string }>
+  searchParams: Promise<{ sort?: string; condition?: string; minPrice?: string; maxPrice?: string }>
 }
 
 const CONDITION_LABEL: Record<string, string> = {
@@ -37,6 +37,8 @@ export default async function KloopShopPage({ searchParams }: Props) {
   const params = await searchParams
   const sort = (params.sort as SortOption) ?? 'newest'
   const condition = (params.condition as ConditionFilter) ?? 'ALL'
+  const minPriceCents = params.minPrice ? Math.round(Number(params.minPrice) * 100) : undefined
+  const maxPriceCents = params.maxPrice ? Math.round(Number(params.maxPrice) * 100) : undefined
 
   const orderBy = SORT_MAP[sort] ?? SORT_MAP.newest
 
@@ -44,6 +46,12 @@ export default async function KloopShopPage({ searchParams }: Props) {
     where: {
       isActive: true,
       ...(condition !== 'ALL' ? { condition: condition as never } : {}),
+      ...((minPriceCents || maxPriceCents) ? {
+        priceCents: {
+          ...(minPriceCents ? { gte: minPriceCents } : {}),
+          ...(maxPriceCents ? { lte: maxPriceCents } : {}),
+        },
+      } : {}),
     },
     orderBy,
     select: {
@@ -111,7 +119,12 @@ export default async function KloopShopPage({ searchParams }: Props) {
 
       {/* Filters */}
       <div className="max-w-2xl mx-auto px-4 pb-3">
-        <KloopShopFilters currentSort={sort} currentCondition={condition} />
+        <KloopShopFilters
+          currentSort={sort}
+          currentCondition={condition}
+          currentMinPrice={params.minPrice}
+          currentMaxPrice={params.maxPrice}
+        />
       </div>
 
       {/* Products */}

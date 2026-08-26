@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import { cn, formatPrice } from "@/lib/utils"
 import { setUserItemDecision, userConfirmItem } from "@/lib/actions/kloopShop"
+import { getConsignorShareRate } from "@/lib/kloopShopPayout"
 
 type LotStatus = "PENDING" | "RECEIVED" | "ANALYZING" | "ACTIVE" | "DONE"
 
@@ -27,6 +28,14 @@ interface RejectedItem {
   userDecision: string | null
 }
 
+interface PublishedItem {
+  id: string
+  name: string
+  priceCents: number
+  sold: boolean
+  consignorPayoutCents: number | null
+}
+
 interface LotData {
   code: string
   status: LotStatus
@@ -38,6 +47,7 @@ interface LotData {
   itemsRejected: number
   approvedItems: ApprovedItem[]
   rejectedItems: RejectedItem[]
+  publishedItems: PublishedItem[]
 }
 
 interface Props {
@@ -236,7 +246,27 @@ export function ProDashboardClient({ lot }: Props) {
                 </div>
                 <p className="text-[11px] font-bold uppercase tracking-widest text-[var(--color-celadon)] mb-1">kloop shop</p>
                 <p className="text-[15px] font-black text-white mb-1">{lot.itemsPublished} peça(s) à venda!</p>
-                <p className="text-[12px] text-white/60">Suas peças estão na vitrine oficial da Kloop Shop.</p>
+                <p className="text-[12px] text-white/60 mb-4">Suas peças estão na vitrine oficial da Kloop Shop.</p>
+
+                <div className="space-y-2">
+                  {lot.publishedItems.map((item) => {
+                    const rate = getConsignorShareRate(item.priceCents)
+                    const estimatedPayout = Math.floor(item.priceCents * rate)
+                    return (
+                      <div key={item.id} className="flex items-center justify-between bg-white/10 rounded-xl px-3 py-2.5">
+                        <div className="min-w-0">
+                          <p className="text-[12px] font-bold text-white truncate">{item.name}</p>
+                          <p className="text-[10px] text-white/50">
+                            {item.sold ? "vendido" : `à venda por ${formatPrice(item.priceCents)}`} · você fica com {Math.round(rate * 100)}%
+                          </p>
+                        </div>
+                        <p className="text-[13px] font-black text-[var(--color-celadon)] flex-shrink-0 ml-2">
+                          {formatPrice(item.sold ? (item.consignorPayoutCents ?? 0) : estimatedPayout)}
+                        </p>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             )}
 

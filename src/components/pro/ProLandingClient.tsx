@@ -124,10 +124,7 @@ export function ProLandingClient({ planSlug = "basic", hasActiveLot = false, add
             >
               <ArrowLeft size={18} className="text-[var(--foreground)]" />
             </button>
-            <div className="flex items-center gap-2">
-              <span className="text-[16px] font-black text-[var(--foreground)]">kloop</span>
-              <span className="px-2 py-0.5 rounded-full bg-[var(--color-teal)] text-white text-[11px] font-black tracking-wide">PRO</span>
-            </div>
+            <span className="text-[16px] font-black text-[var(--foreground)]">kloop shop</span>
           </div>
           <Link
             href="/pro/dashboard"
@@ -227,7 +224,7 @@ export function ProLandingClient({ planSlug = "basic", hasActiveLot = false, add
                     <p className="text-[14px] font-black text-[var(--foreground)]">fotografia, anúncio e venda é com a gente</p>
                   </div>
                   <p className="text-[12px] text-gray-500 dark:text-sage leading-relaxed mb-2">
-                    a gente fotografa bonito, coloca à venda, negocia e envia ao comprador. por esses serviços, temos uma comissão de 40% — 60% é sempre seu.
+                    a gente fotografa bonito, coloca à venda, negocia e envia ao comprador. por esses serviços, cobramos uma comissão que varia conforme o valor da peça — quanto mais ela vale, maior sua parte.
                   </p>
                   <button onClick={() => setIsFeesModalOpen(true)} className="text-[11px] font-bold text-[var(--color-teal)] hover:underline flex items-center gap-1">
                     entenda melhor nossas tarifas <ChevronRight size={12} />
@@ -246,8 +243,8 @@ export function ProLandingClient({ planSlug = "basic", hasActiveLot = false, add
             <div className="bg-[var(--color-pine)] dark:bg-[var(--color-forest)] border border-transparent dark:border-white/5 p-4 rounded-2xl flex items-start gap-3 shadow-sm">
               <CheckCircle2 size={18} className="text-[var(--color-teal)] flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-[13px] font-black text-white">60% de comissão pra você</p>
-                <p className="text-[12px] text-white/70 leading-relaxed mt-0.5">pagamento mínimo garantido de R$ 3,00 por peça vendida. cobramos apenas uma taxa fixa por tempo de estoque.</p>
+                <p className="text-[13px] font-black text-white">de 45% a 65% de comissão pra você</p>
+                <p className="text-[12px] text-white/70 leading-relaxed mt-0.5">varia conforme o valor da peça — pagamento mínimo garantido de R$ 3,00 por peça vendida. cobramos também uma taxa fixa por tempo de estoque.</p>
               </div>
             </div>
             <div className="bg-[var(--color-pine)] dark:bg-[var(--color-forest)] border border-transparent dark:border-white/5 p-4 rounded-2xl flex items-start gap-3 shadow-sm">
@@ -591,13 +588,21 @@ export function ProLandingClient({ planSlug = "basic", hasActiveLot = false, add
                 <div className="absolute right-[-20px] top-[-20px] w-32 h-32 bg-[var(--color-teal)]/15 rounded-full blur-2xl pointer-events-none" />
                 <div className="relative z-10">
                   <p className="text-[11px] font-bold uppercase tracking-widest text-[var(--color-celadon)] mb-2">comissão por venda</p>
-                  <div className="flex items-baseline gap-2 mb-2">
-                    <span className="text-[40px] font-black text-white leading-none">60%</span>
-                    <span className="text-[16px] font-black text-white/60">é seu</span>
-                  </div>
-                  <p className="text-[13px] text-white/60 leading-relaxed">
-                    por cada venda concluída, você fica com 60% do valor. a gente fica com 40% pelos serviços de fotografia, anúncio e logística.
+                  <p className="text-[13px] text-white/60 leading-relaxed mb-4">
+                    a gente faz todo o trabalho por peça — fotografia, anúncio, negociação e envio. por isso a comissão varia conforme o valor da peça: quanto mais ela vale, maior a sua parte.
                   </p>
+                  <div className="space-y-2">
+                    {[
+                      { faixa: "até R$ 79,99", voce: "45%", kloop: "55%" },
+                      { faixa: "R$ 80,00 a R$ 299,99", voce: "55%", kloop: "45%" },
+                      { faixa: "R$ 300,00 ou mais", voce: "65%", kloop: "35%" },
+                    ].map((row) => (
+                      <div key={row.faixa} className="flex items-center justify-between bg-white/10 rounded-xl px-3 py-2.5">
+                        <p className="text-[12px] font-bold text-white/80">{row.faixa}</p>
+                        <p className="text-[14px] font-black text-[var(--color-celadon)]">{row.voce} <span className="text-[11px] font-bold text-white/40">pra você</span></p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
               <div className="bg-white dark:bg-[var(--color-pine)] rounded-2xl border border-gray-100 dark:border-white/5 overflow-hidden mb-4 shadow-sm">

@@ -779,16 +779,20 @@ model ProLotItem {
 }
 
 model KloopShopProduct {
-  id          String           @id @default(cuid())
-  lotItemId   String           @unique @map("lot_item_id")
-  name        String
-  description String?
-  priceCents  Int              @map("price_cents")
-  condition   ListingCondition @default(GOOD)
-  isActive    Boolean          @default(true) @map("is_active")
-  soldAt      DateTime?        @map("sold_at")
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @updatedAt @map("updated_at")
+  id                    String           @id @default(cuid())
+  lotItemId             String           @unique @map("lot_item_id")
+  name                  String
+  description           String?
+  priceCents            Int              @map("price_cents")
+  condition             ListingCondition @default(GOOD)
+  isActive              Boolean          @default(true) @map("is_active")
+  soldAt                DateTime?        @map("sold_at")
+  // Repasse ao consignante (dono original da peça), calculado no momento da
+  // venda por faixa de preço — ver src/lib/kloopShopPayout.ts. Fica travado
+  // (não recalcula se o preço mudar depois de vendido).
+  consignorPayoutCents  Int?             @map("consignor_payout_cents")
+  createdAt             DateTime         @default(now()) @map("created_at")
+  updatedAt             DateTime         @updatedAt @map("updated_at")
 
   lotItem ProLotItem @relation(fields: [lotItemId], references: [id], onDelete: Cascade)
 
