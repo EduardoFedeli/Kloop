@@ -4,6 +4,7 @@ import { getUserCommunities } from "@/lib/data/communities"
 import Link from "next/link"
 import { Building2 } from "lucide-react"
 import { CircuitBackground } from "@/components/layout/CircuitBackground"
+import { ComunidadesViewToggler } from "@/components/comunidades/ComunidadesViewToggler"
 
 export const metadata = { title: "Minhas Comunidades — Kloop" }
 
@@ -23,6 +24,7 @@ export default async function ComunidadesPage() {
     <div className="relative min-h-[80vh] -mx-4 -mt-6 px-4 py-8" style={{ background: "var(--color-eclipse)" }}>
       <CircuitBackground />
 
+      <ComunidadesViewToggler>
       <div className="relative z-10 max-w-2xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
           <div
@@ -105,6 +107,7 @@ export default async function ComunidadesPage() {
           </div>
         )}
       </div>
+      </ComunidadesViewToggler>
     </div>
   )
 }
