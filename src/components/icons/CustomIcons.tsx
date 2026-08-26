@@ -649,6 +649,150 @@ export function AventuraIcon({ size = 24, className }: IconProps) {
   )
 }
 
+export function PocheteIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Pochete</title>
+      <path d="M2 9l3.5 1" />
+      <path d="M22 9l-3.5 1" />
+      <path d="M4 10c0-1 2-2 8-2s8 1 8 2c0 5.5-3.5 8.5-8 8.5S4 15.5 4 10z" />
+      <path d="M5 11.5c3 1.5 11 1.5 14 0" />
+      <path d="M9 12.5v2" />
+    </svg>
+  )
+}
+
+export function BotaIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Bota</title>
+      <path d="M 8.5 5 H 12.5 C 13.5 8 15 11 18 13 C 20 14.3 21.5 15.5 21.5 17 C 21.5 18.5 20 19 18.5 19 H 16 C 15 17.5 12 17.5 11 19 H 6 C 5.5 19 5.5 18 5.5 17 C 5.5 13 6.5 8 8.5 5 Z" />
+      <path d="M 5.5 16.5 H 10.5" />
+      <path d="M 10.5 5 L 9 9.5 C 9.8 10.3 11 10.3 11.8 9.5" />
+    </svg>
+  )
+}
+
+export function CachecolIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Cachecol</title>
+      <path d="M 5 8 C 5 4.5, 19 4.5, 19 8 C 19 11.5, 5 11.5, 5 8 Z" />
+      <path d="M 7 11 V 19 H 11 V 11" />
+      <path d="M 13 11 V 15 H 17 V 10.5" />
+      <path d="M 7 15.5 H 11 M 13 13 H 17" />
+      <path d="M 8 19 V 21.5 M 10 19 V 21.5 M 14 15 V 17.5 M 16 15 V 17.5" />
+    </svg>
+  )
+}
+
+export function VelaIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Vela</title>
+      <path d="M12 2c-2 3-3 4.8-3 6.5a3 3 0 0 0 6 0C15 6.8 14 5 12 2z" />
+      <path d="M12 8.5v3" />
+      <path d="M8 11c2 1.5 6 1.5 8 0v9a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1z" />
+    </svg>
+  )
+}
+
+export function FlorIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Flor</title>
+      <path d="M9 13h6c1.5 0 2.5 1.5 2.5 3.5 0 2.5-1 4.5-2.5 4.5h-6c-1.5 0-2.5-2-2.5-4.5 0-2 1-3.5 2.5-3.5Z M12 13V7.5 M12 7.5c-3 0-4-2.5-4-4 1.5 0 3 1 4 2.5 1-1.5 2.5-2.5 4-2.5 0 1.5-1 4-4 4Z M12 6V2.5 M12 11.5c-2 0-3.5-1-4-2 1.5 0 3 .5 4 2 M12 9.5c2 0 3.5-1 4-2-1.5 0-3 .5-4 2" />
+    </svg>
+  )
+}
+
+export function CobertorIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Cobertor</title>
+      <path d="M 7 5 H 17 A 3 3 0 0 1 20 8 A 3 3 0 0 1 17 11 H 7 A 3 3 0 0 0 4 14 A 3 3 0 0 0 7 17 H 17 A 3 3 0 0 0 20 14 A 3 3 0 0 0 17 11" />
+      <path d="M 7 5 V 11" />
+      <path d="M 10 8 H 14" strokeDasharray="1 1" />
+      <path d="M 10 14 H 14" strokeDasharray="1 1" />
+    </svg>
+  )
+}
+
+export function ToalhaIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Toalha</title>
+      <path d="M4 3.5V6M20 3.5V6M2.5 6H6M18 6h3.5M6 6v10a1.5 1.5 0 0 0 1.5 1.5h9a1.5 1.5 0 0 0 1.5-1.5V6c0-1.66-1.34-3-3-3h-6c-1.66 0-3 1.34-3 3zM8 17.5v2a1.5 1.5 0 0 0 1.5 1.5h5a1.5 1.5 0 0 0 1.5-1.5v-2M6 13h12" />
+    </svg>
+  )
+}
+
+export function XicaraIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Xícara</title>
+      <path d="M8 6c-1-1.5 1-2.5 0-4" />
+      <path d="M12 6c-1-1.5 1-2.5 0-4" />
+      <path d="M5 9h10v4a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V9z" />
+      <path d="M15 11h1a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-1" />
+      <path d="M4 20h12" />
+    </svg>
+  )
+}
+
+export function TalherIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Talher</title>
+      <path d="M4 3v4.5c0 4 6 4 6 0V3M7 3v4.5M7 10.5V21M17 3c-2.5 0-3 2-3 4.5 0 2.2 1.5 3 3 3s3-.8 3-3c0-2.5-.5-4.5-3-4.5zM17 10.5V21" />
+    </svg>
+  )
+}
+
+export function LustreIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Lustre</title>
+      <path d="M9 2h6" />
+      <path d="M12 2v17" />
+      <path d="M12 19c-.7.8-.7 1.7 0 2.5c.7-.8.7-1.7 0-2.5" />
+      <path d="M5 15c0 4 4 4 7 1" />
+      <path d="M19 15c0 4-4 4-7 1" />
+      <path d="M3 15h4M10 13h4M17 15h4" />
+      <path d="M5 11.5v3.5M12 9.5v3.5M19 11.5v3.5" />
+      <path d="M5 8c-.7 1-.7 2.5 0 3.5c.7-1 .7-2.5 0-3.5" />
+      <path d="M12 6c-.7 1-.7 2.5 0 3.5c.7-1 .7-2.5 0-3.5" />
+      <path d="M19 8c-.7 1-.7 2.5 0 3.5c.7-1 .7-2.5 0-3.5" />
+    </svg>
+  )
+}
+
+export function PeluciaIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Pelúcia</title>
+      <path d="M 5 11.5 A 4 4 0 1 1 10.5 6.5 M 13.5 6.5 A 4 4 0 1 1 19 11.5 M 6.8 9.5 A 2 2 0 0 1 9 7.3 M 15 7.3 A 2 2 0 0 1 17.2 9.5 M 12 6.5 v 2" />
+      <circle cx="12" cy="13.5" r="7" />
+      <path d="M 8.5 11.5 v 0.01 M 15.5 11.5 v 0.01" />
+      <ellipse cx="12" cy="15.3" rx="3.2" ry="2.2" />
+      <path d="M 11 14.3 h 2 l -1 1 z M 12 15.3 v 0.7 M 10 16.3 a 1.2 1.2 0 0 0 2 -0.2 a 1.2 1.2 0 0 0 2 0.2" />
+    </svg>
+  )
+}
+
+export function CasinhaIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Casinha</title>
+      <path d="M16 5.5V3h2.5v4.5" />
+      <path d="M3 11L12 2l9 9" />
+      <path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9" />
+      <path d="M10 20v-4a2 2 0 0 1 4 0v4" />
+      <circle cx="12" cy="7.5" r="1.5" />
+    </svg>
+  )
+}
+
 export function RelogioIcon({ size = 24, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ComponentType } from 'react'
-import { MamadeiraIcon, VestidoIcon, CalcaIcon, CasacoIcon, TenisIcon, PijamaIcon, BodyBebeIcon, SandaliaIcon, BolsaMaternidadeIcon, SapatilhaIcon, CamaIcon, EducativoIcon, AventuraIcon } from '@/components/icons/CustomIcons'
+import { MamadeiraIcon, VestidoIcon, CalcaIcon, CasacoIcon, TenisIcon, PijamaIcon, BodyBebeIcon, SandaliaIcon, BolsaMaternidadeIcon, SapatilhaIcon, CamaIcon, EducativoIcon, AventuraIcon, BotaIcon, PeluciaIcon, CasinhaIcon } from '@/components/icons/CustomIcons'
 import { CategoryScrollRow } from '@/components/listing/CategoryScrollRow'
 
 type IconComponent = ComponentType<{ size?: number; className?: string }>
@@ -36,11 +36,11 @@ const SECTIONS: Section[] = [
     subtitle: 'diversão garantida',
     href: '/search?dept=criancas&cat=brinquedos',
     cards: [
-      { emoji: '🧸', label: 'pelúcias', href: '/search?dept=criancas&cat=brinquedos&sub=pelucias' },
+      { emoji: '🧸', icon: PeluciaIcon, label: 'pelúcias', href: '/search?dept=criancas&cat=brinquedos&sub=pelucias' },
       { emoji: '📚', icon: EducativoIcon, label: 'educativos', href: '/search?dept=criancas&cat=brinquedos&sub=educativos' },
       { emoji: '🎯', icon: AventuraIcon, label: 'aventura', href: '/search?dept=criancas&cat=brinquedos&sub=esporte-e-lazer' },
       { emoji: '🎨', label: 'artísticos', href: '/search?dept=criancas&cat=brinquedos&sub=artisticos' },
-      { emoji: '🏠', label: 'casinha', href: '/search?dept=criancas&cat=brinquedos&sub=casinha' },
+      { emoji: '🏠', icon: CasinhaIcon, label: 'casinha', href: '/search?dept=criancas&cat=brinquedos&sub=casinha' },
     ],
   },
   {
@@ -50,7 +50,7 @@ const SECTIONS: Section[] = [
     cards: [
       { emoji: '👟', icon: TenisIcon, label: 'tênis', href: '/search?dept=criancas&cat=calcados&sub=tenis' },
       { emoji: '👡', icon: SandaliaIcon, label: 'sandálias', href: '/search?dept=criancas&cat=calcados&sub=sandalias' },
-      { emoji: '👢', label: 'botas', href: '/search?dept=criancas&cat=calcados&sub=botas' },
+      { emoji: '👢', icon: BotaIcon, label: 'botas', href: '/search?dept=criancas&cat=calcados&sub=botas' },
       { emoji: '🥿', icon: SapatilhaIcon, label: 'sapatilhas', href: '/search?dept=criancas&cat=calcados&sub=sapatilhas' },
       { emoji: '🥾', label: 'sapatos', href: '/search?dept=criancas&cat=calcados&sub=sapatos' },
     ],

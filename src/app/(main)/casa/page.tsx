@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ComponentType } from 'react'
-import { SofaIcon, CamaIcon, MesaJantarIcon, EscritorioIcon, VarandaIcon, QuadroIcon, EspelhoIcon, TapeteIcon, CortinaIcon, LencolIcon, TravesseiroIcon, PanelaIcon, FormaIcon, CopoIcon, LuminariaIcon, AbajurIcon } from '@/components/icons/CustomIcons'
+import { SofaIcon, CamaIcon, MesaJantarIcon, EscritorioIcon, VarandaIcon, QuadroIcon, EspelhoIcon, TapeteIcon, CortinaIcon, LencolIcon, TravesseiroIcon, PanelaIcon, FormaIcon, CopoIcon, LuminariaIcon, AbajurIcon, VelaIcon, FlorIcon, CobertorIcon, ToalhaIcon, XicaraIcon, TalherIcon, LustreIcon } from '@/components/icons/CustomIcons'
 
 type IconComponent = ComponentType<{ size?: number; className?: string }>
 type SubCard = { emoji: string; icon?: IconComponent; label: string; href: string }
@@ -27,8 +27,8 @@ const SECTIONS: Section[] = [
     cards: [
       { emoji: '🖼️', icon: QuadroIcon, label: 'quadros', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=adornos' },
       { emoji: '🪞', icon: EspelhoIcon, label: 'espelhos', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=espelhos' },
-      { emoji: '🕯️', label: 'velas', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=velas' },
-      { emoji: '🌸', label: 'flores', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=flores' },
+      { emoji: '🕯️', icon: VelaIcon, label: 'velas', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=velas' },
+      { emoji: '🌸', icon: FlorIcon, label: 'flores', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=flores' },
       { emoji: '🪡', icon: TapeteIcon, label: 'tapetes', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=tapetes' },
       { emoji: '🏮', icon: CortinaIcon, label: 'cortinas', href: '/search?dept=casa-e-decor&cat=decoracao-e-enfeites&sub=cortinas' },
     ],
@@ -39,9 +39,9 @@ const SECTIONS: Section[] = [
     href: '/search?dept=casa-e-decor&cat=cama-mesa-banho',
     cards: [
       { emoji: '🛌', icon: LencolIcon, label: 'lençóis', href: '/search?dept=casa-e-decor&cat=cama-mesa-banho&sub=lencois' },
-      { emoji: '🧸', label: 'cobertores', href: '/search?dept=casa-e-decor&cat=cama-mesa-banho&sub=cobertores' },
+      { emoji: '🧸', icon: CobertorIcon, label: 'cobertores', href: '/search?dept=casa-e-decor&cat=cama-mesa-banho&sub=cobertores' },
       { emoji: '😴', icon: TravesseiroIcon, label: 'travesseiros', href: '/search?dept=casa-e-decor&cat=cama-mesa-banho&sub=travesseiros' },
-      { emoji: '🚿', label: 'toalhas', href: '/search?dept=casa-e-decor&cat=cama-mesa-banho&sub=toalhas' },
+      { emoji: '🚿', icon: ToalhaIcon, label: 'toalhas', href: '/search?dept=casa-e-decor&cat=cama-mesa-banho&sub=toalhas' },
     ],
   },
   {
@@ -50,8 +50,8 @@ const SECTIONS: Section[] = [
     href: '/search?dept=casa-e-decor&cat=utensilios-para-cozinha',
     cards: [
       { emoji: '🍳', icon: PanelaIcon, label: 'panelas', href: '/search?dept=casa-e-decor&cat=utensilios-para-cozinha&sub=panelas' },
-      { emoji: '🍴', label: 'talheres', href: '/search?dept=casa-e-decor&cat=utensilios-para-cozinha&sub=talheres' },
-      { emoji: '☕', label: 'xícaras', href: '/search?dept=casa-e-decor&cat=utensilios-para-cozinha&sub=xicaras' },
+      { emoji: '🍴', icon: TalherIcon, label: 'talheres', href: '/search?dept=casa-e-decor&cat=utensilios-para-cozinha&sub=talheres' },
+      { emoji: '☕', icon: XicaraIcon, label: 'xícaras', href: '/search?dept=casa-e-decor&cat=utensilios-para-cozinha&sub=xicaras' },
       { emoji: '🥣', icon: FormaIcon, label: 'formas', href: '/search?dept=casa-e-decor&cat=utensilios-para-cozinha&sub=formas' },
       { emoji: '🧃', icon: CopoIcon, label: 'copos', href: '/search?dept=casa-e-decor&cat=utensilios-para-cozinha&sub=copos' },
     ],
@@ -62,7 +62,7 @@ const SECTIONS: Section[] = [
     href: '/search?dept=casa-e-decor&cat=iluminacao',
     cards: [
       { emoji: '💡', icon: LuminariaIcon, label: 'luminárias', href: '/search?dept=casa-e-decor&cat=iluminacao&sub=luminarias' },
-      { emoji: '🔆', label: 'lustres', href: '/search?dept=casa-e-decor&cat=iluminacao&sub=lustres' },
+      { emoji: '🔆', icon: LustreIcon, label: 'lustres', href: '/search?dept=casa-e-decor&cat=iluminacao&sub=lustres' },
       { emoji: '🕯️', icon: AbajurIcon, label: 'abajures', href: '/search?dept=casa-e-decor&cat=iluminacao&sub=abajures' },
       { emoji: '✨', label: 'fitas LED', href: '/search?dept=casa-e-decor&cat=iluminacao&sub=fitas-de-led' },
     ],

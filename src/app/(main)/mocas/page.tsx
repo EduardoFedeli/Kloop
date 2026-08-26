@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ComponentType } from 'react'
-import { VestidoIcon, CalcaIcon, BlusaIcon, CasacoIcon, SaiaIcon, ShortsIcon, PerfumeIcon, TenisIcon, BolsaIcon, OculosIcon, MaquiagemIcon, SkincareIcon, CabeloIcon, UnhaIcon, MochilaIcon, ClutchIcon, ToteIcon, CrossbodyIcon, SandaliaIcon, MuleIcon, RelogioIcon, ChapeuIcon, JoiaIcon, SapatoSocialIcon } from '@/components/icons/CustomIcons'
+import { VestidoIcon, CalcaIcon, BlusaIcon, CasacoIcon, SaiaIcon, ShortsIcon, PerfumeIcon, TenisIcon, BolsaIcon, OculosIcon, MaquiagemIcon, SkincareIcon, CabeloIcon, UnhaIcon, MochilaIcon, ClutchIcon, ToteIcon, CrossbodyIcon, SandaliaIcon, MuleIcon, RelogioIcon, ChapeuIcon, JoiaIcon, SapatoSocialIcon, CachecolIcon, BotaIcon } from '@/components/icons/CustomIcons'
 import { CategoryScrollRow } from '@/components/listing/CategoryScrollRow'
 
 type IconComponent = ComponentType<{ size?: number; className?: string }>
@@ -61,7 +61,7 @@ const SECTIONS: Section[] = [
     href: '/search?dept=mocas&cat=calcados',
     cards: [
       { emoji: '👟', icon: TenisIcon, label: 'tênis', href: '/search?dept=mocas&cat=calcados&sub=tenis' },
-      { emoji: '👢', label: 'botas', href: '/search?dept=mocas&cat=calcados&sub=botas' },
+      { emoji: '👢', icon: BotaIcon, label: 'botas', href: '/search?dept=mocas&cat=calcados&sub=botas' },
       { emoji: '👡', icon: SandaliaIcon, label: 'sandálias', href: '/search?dept=mocas&cat=calcados&sub=sandalias' },
       { emoji: '👠', icon: SapatoSocialIcon, label: 'sapatos', href: '/search?dept=mocas&cat=calcados&sub=sapatos' },
       { emoji: '🥿', icon: MuleIcon, label: 'mules', href: '/search?dept=mocas&cat=calcados&sub=mules' },
@@ -75,7 +75,7 @@ const SECTIONS: Section[] = [
       { emoji: '👓', icon: OculosIcon, label: 'óculos', href: '/search?dept=mocas&cat=acessorios&sub=oculos' },
       { emoji: '⌚', icon: RelogioIcon, label: 'relógios', href: '/search?dept=mocas&cat=acessorios&sub=relogios' },
       { emoji: '💍', icon: JoiaIcon, label: 'jóias', href: '/search?dept=mocas&cat=acessorios&sub=joias-e-bijuterias' },
-      { emoji: '🧣', label: 'cachecóis', href: '/search?dept=mocas&cat=acessorios&sub=cachacois' },
+      { emoji: '🧣', icon: CachecolIcon, label: 'cachecóis', href: '/search?dept=mocas&cat=acessorios&sub=cachacois' },
       { emoji: '🎩', icon: ChapeuIcon, label: 'chapéus', href: '/search?dept=mocas&cat=acessorios&sub=chapeus' },
     ],
   },
