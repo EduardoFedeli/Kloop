@@ -50,6 +50,17 @@
   --color-pine: #1B4332;
   --color-forest: #081C15;
 
+  /* ── Comunidades: paleta neon-azul (exclusiva para /comunidades) ── */
+  --color-eclipse: #04060F;
+  --color-void-navy: #0A1330;
+  --color-midnight-navy: #101B45;
+  --color-deep-signal: #0A3FC4;
+  --color-neon-blue: #0956FF;
+  --color-neon-lift: #4C7EFF;
+  --color-electric-sky: #8FADFF;
+  --color-sky-ice: #C7D6FF;
+  --color-neon-mist: #EAF0FF;
+
   --font-sans: "Inter", "system-ui", "sans-serif";
   --font-display: "Fredoka", "Inter", "system-ui", "sans-serif";
 }
@@ -59,4 +70,14 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   transition: background-color 0.2s, color 0.2s;
+}
+
+/* ── Community card (neon-blue hover) ── */
+.community-card {
+  background: linear-gradient(135deg, var(--color-midnight-navy), var(--color-void-navy));
+  border: 1px solid rgba(76, 126, 255, 0.16);
+}
+.community-card:hover {
+  border-color: rgba(76, 126, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(9, 86, 255, 0.12);
 }

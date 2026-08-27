@@ -79,6 +79,7 @@ export function MegaNav({ brands, user, communitiesCount = 0, unreadCount = 0 }:
   const cartCount = useCartStore((s) => s.items.length)
   const isHome = pathname === '/'
   const isDeptPage = ['/mocas', '/rapazes', '/kids', '/casa'].includes(pathname)
+  const isComunidades = pathname.startsWith('/comunidades')
   
   const [activeKey, setActiveKey] = useState<string | null>(null)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
@@ -110,8 +111,9 @@ export function MegaNav({ brands, user, communitiesCount = 0, unreadCount = 0 }:
   return (
     <>
       <header className={cn(
-        "sticky top-0 z-40 bg-white dark:bg-[var(--color-pine)] border-b border-gray-200 dark:border-forest transition-colors relative",
-        !isHome && !isDeptPage && "hidden md:block"
+        "sticky top-0 z-40 border-b transition-colors relative",
+        isComunidades ? "dark bg-[#04060F] border-[#0A1330] text-white" : "bg-white dark:bg-[var(--color-pine)] border-gray-200 dark:border-forest",
+        !isHome && !isDeptPage && !isComunidades && "hidden md:block"
       )}>
         {/* ── Main row ─────────────────────────────────────────────────────── */}
         <div className="max-w-screen-xl mx-auto px-4 h-[60px] flex items-center gap-3">
@@ -172,11 +174,25 @@ export function MegaNav({ brands, user, communitiesCount = 0, unreadCount = 0 }:
 
             {/* Icons */}
             <div className="flex items-center">
-              {communitiesCount > 0 && (
-                <Link href="/comunidades" aria-label="Minhas comunidades" className={iconCls}>
-                  <Building2 size={20} />
-                </Link>
-              )}
+              {communitiesCount > 0 && (() => {
+                const isComunidades = pathname.startsWith("/comunidades")
+                return (
+                  <Link
+                    href="/comunidades"
+                    aria-label="Minhas comunidades"
+                    className={isComunidades
+                      ? "p-2 rounded-full transition-colors text-[var(--color-neon-lift)]"
+                      : iconCls
+                    }
+                    style={isComunidades ? {
+                      background: "rgba(9,86,255,0.16)",
+                      border: "1px solid rgba(76,126,255,0.4)",
+                    } : undefined}
+                  >
+                    <Building2 size={20} />
+                  </Link>
+                )
+              })()}
               <Link href="/ajuda" aria-label="Ajuda" className={iconCls}>
                 <HelpCircle size={20} />
               </Link>
