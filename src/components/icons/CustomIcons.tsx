@@ -313,12 +313,10 @@ export function BolsaMaternidadeIcon({ size = 24, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
       <title>Bolsa maternidade</title>
-      <path d="M9 9V5a3 3 0 0 1 6 0v4" />
-      <rect x="6" y="9" width="12" height="12" rx="2" />
-      <path d="M6 14H4.5A1.5 1.5 0 0 0 3 15.5v3A1.5 1.5 0 0 0 4.5 20H6" />
-      <path d="M18 14h1.5a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5H18" />
-      <path d="M8 14h8v6a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-6Z" />
-      <path d="M8 14l4 2.5 4-2.5" />
+      <path d="M8 9V6.5a4 4 0 0 1 8 0V9" />
+      <rect x="4" y="9" width="16" height="11" rx="3" />
+      <path d="M4 13.5h16" />
+      <circle cx="12" cy="16.7" r="1" fill="currentColor" stroke="none" />
     </svg>
   )
 }
@@ -327,7 +325,21 @@ export function SandaliaIcon({ size = 24, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
       <title>Sandália</title>
-      <path d="M12 3c3 0 5 1.5 5 4.5 0 3.5-1.5 6.5-2.5 9.5 1 2 1 3.5-.5 4.5-1.5 1-4 1.5-7 0-1.5-1-1.5-2.5-.5-4.5C5.5 14 4 11 4 7.5 4 4.5 9 3 12 3z" />
+      <ellipse cx="12" cy="13" rx="5.5" ry="8.7" />
+      <path d="M12 5v3" />
+      <path d="M12 8 7 12" />
+      <path d="M12 8 17 12" />
+    </svg>
+  )
+}
+
+export function GestanteIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Maternidade</title>
+      <circle cx="12" cy="4.5" r="1.8" />
+      <path d="M9.2 20.5v-3.8c-1.3-.6-2-1.9-2-3.7 0-3.3 2.1-5 4.8-5s4.8 1.7 4.8 5c0 1.9-.8 3.2-2.2 3.8" />
+      <path d="M9.2 20.5h5.6" />
     </svg>
   )
 }
@@ -545,11 +557,9 @@ export function SapatoSocialIcon({ size = 24, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
       <title>Sapato social</title>
-      <path d="M 4 10 C 3 12.5 3 15.5 3 18.5 H 7.5 V 16.5 C 9.5 16.5 11 17.5 12.5 18.5 H 18.5 C 20.5 18.5 22 17 21 15 C 19 12.5 14.5 11 11 9.5 C 8.5 9.5 6 10 4 10 Z" />
-      <path d="M 3 16.5 H 7.5" />
-      <path d="M 17 13.2 C 16.5 15 16.5 16.8 17.5 18.5" />
-      <path d="M 11.5 11.5 L 13.5 10" />
-      <path d="M 13 13 L 15 11.5" />
+      <path d="M4 13.5c-1.3 0-1.8 1.8-1.8 4.3v1.7c0 .6.4 1 1 1h14.8c1.4 0 2.4-.9 2.4-2.2 0-1.4-1-3.2-6-3.2L9.5 12c-2 1.8-4 1.5-5.5 1.5z" />
+      <path d="M2.2 17.5h16" />
+      <path d="M9 12.8c1 .8 2.3 2 3.3 3" />
     </svg>
   )
 }

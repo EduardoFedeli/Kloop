@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ComponentType } from 'react'
-import { MamadeiraIcon, VestidoIcon, CalcaIcon, CasacoIcon, TenisIcon, PijamaIcon, BodyBebeIcon, SandaliaIcon, BolsaMaternidadeIcon, SapatilhaIcon, CamaIcon, EducativoIcon, AventuraIcon, BotaIcon, PeluciaIcon, CasinhaIcon, ArtisticoIcon, CadeirinhaIcon } from '@/components/icons/CustomIcons'
+import { MamadeiraIcon, VestidoIcon, CalcaIcon, CasacoIcon, TenisIcon, PijamaIcon, BodyBebeIcon, SandaliaIcon, BolsaMaternidadeIcon, SapatilhaIcon, SapatoSocialIcon, CamaIcon, EducativoIcon, AventuraIcon, BotaIcon, PeluciaIcon, CasinhaIcon, ArtisticoIcon, CadeirinhaIcon, GestanteIcon } from '@/components/icons/CustomIcons'
 import { CategoryScrollRow } from '@/components/listing/CategoryScrollRow'
 
 type IconComponent = ComponentType<{ size?: number; className?: string }>
@@ -52,7 +52,7 @@ const SECTIONS: Section[] = [
       { emoji: '👡', icon: SandaliaIcon, label: 'sandálias', href: '/search?dept=criancas&cat=calcados&sub=sandalias' },
       { emoji: '👢', icon: BotaIcon, label: 'botas', href: '/search?dept=criancas&cat=calcados&sub=botas' },
       { emoji: '🥿', icon: SapatilhaIcon, label: 'sapatilhas', href: '/search?dept=criancas&cat=calcados&sub=sapatilhas' },
-      { emoji: '🥾', label: 'sapatos', href: '/search?dept=criancas&cat=calcados&sub=sapatos' },
+      { emoji: '🥾', icon: SapatoSocialIcon, label: 'sapatos', href: '/search?dept=criancas&cat=calcados&sub=sapatos' },
     ],
   },
   {
@@ -61,7 +61,7 @@ const SECTIONS: Section[] = [
     href: '/search?dept=criancas&cat=acessorios-e-enxoval',
     cards: [
       { emoji: '🛏️', icon: CamaIcon, label: 'cama/berço', href: '/search?dept=criancas&cat=acessorios-e-enxoval&sub=cama-berco-banho' },
-      { emoji: '🤱', label: 'maternidade', href: '/search?dept=criancas&cat=acessorios-e-enxoval&sub=maternidade' },
+      { emoji: '🤱', icon: GestanteIcon, label: 'maternidade', href: '/search?dept=criancas&cat=acessorios-e-enxoval&sub=maternidade' },
       { emoji: '👜', icon: BolsaMaternidadeIcon, label: 'bolsas', href: '/search?dept=criancas&cat=acessorios-e-enxoval&sub=bolsas' },
       { emoji: '💺', icon: CadeirinhaIcon, label: 'cadeirinhas', href: '/search?dept=criancas&cat=acessorios-e-enxoval&sub=cadeirinhas' },
     ],
