@@ -96,6 +96,21 @@ duas instâncias EC2, uma para a aplicação e outra para o banco) quando o cust
 justificar — está detalhado como proposta de roadmap em [06](06-infraestrutura.md), não
 como algo já em andamento.
 
+**"Por que Comunidades não é um sistema separado, com banco próprio e API conversando
+com o app principal?"**
+Decisão deliberada, não falta de tempo. Comece monolítico, separe só quando alguma
+pressão técnica real obrigar — e hoje essa pressão não existe pra Comunidades: sem time
+separado, sem necessidade de escalar independente, sem exigência de isolamento de dado
+por cliente. "Banco por condomínio" seria, na real, um passo atrás (multiplicaria custo
+operacional sem resolver nenhum problema que a Kloop tenha); o modelo atual (uma tabela
+`Community` com FK, isolando por linha) é o mesmo padrão que a maioria dos SaaS B2B do
+mundo usa em escala. Onde uma fronteira de sistema é genuína — o totem físico do
+condomínio — ela **já** é tratada como tal, com API própria (`/api/totem/*`). Sabemos
+exatamente os gatilhos que justificariam reconsiderar (isolamento contratual de dado,
+integração com software de gestão de condomínio de terceiros, ou uma frota grande de
+totens exigindo um serviço dedicado de gestão de dispositivo) — análise completa em
+[06](06-infraestrutura.md) e [09](09-comunidades.md).
+
 ## Perguntas armadilha (inconsistências que o time deve saber de cor)
 
 Estas foram encontradas revisando o código para montar esta documentação — é melhor o

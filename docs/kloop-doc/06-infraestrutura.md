@@ -42,6 +42,61 @@ mais escasso, não custo de infraestrutura.
 - **Vendor lock-in** relativo — migrar de Vercel/Neon depois de crescer o produto exige
   planejamento.
 
+## Monólito vs. microsserviços: por que Comunidades não é um sistema separado
+
+> Registrado em 2026-08 depois de uma pergunta interna do time: "o jeito que Comunidades
+> foi implementado — só mais uma tabela no mesmo banco, gerenciada pelo mesmo app — não é
+> preguiça? Se tivéssemos mais tempo, não deveria ser um sistema à parte, conversando com
+> o app principal por API, com banco próprio?" A resposta curta: não, e a Kloop deve
+> continuar assim por enquanto — de propósito, não por falta de tempo.
+
+**O princípio, que não é opinião nossa, é prática estabelecida de arquitetura:** comece
+monolítico, separe só quando alguma pressão real obrigar a separar. Cada sistema separado
+que "conversa" com outro via API custa caro — mais um ponto de falha, mais latência, mais
+complexidade de deploy, risco real de dado ficar inconsistente entre os dois lados
+(transação distribuída é um problema difícil de verdade). Empresas grandes (Shopify é o
+exemplo mais citado) ficam monolíticas por anos de propósito, e só separam quando a dor de
+não separar fica maior que o custo de separar.
+
+**Aplicando isso a Comunidades, especificamente:**
+
+- **"Precisaríamos de um banco por condomínio"?** Não — isso seria, na real, um passo
+  pra trás. "Banco por tenant" é um padrão real, mas resolve um problema que a Kloop não
+  tem: isolamento de dado por exigência contratual/regulatória. Sem essa exigência, é
+  pior que a alternativa: rodar migration em centenas de bancos a cada mudança de schema,
+  não conseguir cruzar dados entre comunidades pra relatório, multiplicar custo de
+  conexão. O padrão certo — que já é o implementado — é uma tabela `Community` com FK em
+  `CommunityMember`/`Listing`, isolando por linha. É como a maioria dos SaaS B2B do mundo
+  (Stripe incluso) faz multi-tenancy em escala.
+- **"Precisaríamos de uma API entre os dois sistemas"?** Só faria sentido se fossem dois
+  sistemas de verdade. E, de fato, **onde essa fronteira é real, ela já existe**: o totem
+  físico do condomínio já conversa com o app via API (`/api/totem/*`) — porque o totem é
+  literalmente um dispositivo separado, isso é uma fronteira genuína. Criar uma API
+  interna entre "o app" e "o módulo de comunidades" quando os dois rodam no mesmo
+  processo e banco seria burocracia sem benefício.
+
+**Os gatilhos que justificariam reconsiderar** (nenhum presente hoje):
+1. Um cliente exigir isolamento de dado por contrato (ex.: uma administradora grande que
+   exige banco próprio como cláusula).
+2. A base de comunidades crescer a ponto de precisar de time e ciclo de deploy próprios,
+   independentes do resto do produto.
+3. Precisar integrar com software de gestão de condomínio de terceiros (SuperLógica,
+   Housy, etc.) — aí sim, uma camada de API/integração faria sentido, mas seria uma API
+   **entre Kloop e o sistema externo**, não entre duas partes internas do Kloop.
+4. A frota de totens físicos crescer o bastante pra justificar um serviço dedicado de
+   gestão de dispositivo (provisionamento remoto, atualização de firmware, autenticação
+   de hardware) — esse é o único ponto onde separar tem lógica técnica hoje, e mesmo
+   assim só quando a frota justificar.
+
+**Resposta pronta pra banca técnica** (ver também [09-comunidades.md](09-comunidades.md)
+e [07-perguntas-banca.md](07-perguntas-banca.md)):
+
+> "Avaliamos separar Comunidades num sistema à parte e decidimos conscientemente não
+> fazer isso agora, porque não existe pressão técnica real que justifique — sem times
+> separados, sem necessidade de escalar independente, sem exigência de isolamento de
+> dado por cliente. Separar cedo demais é um erro de arquitetura tão real quanto não
+> separar quando necessário. Sabemos exatamente qual seria o gatilho pra reconsiderar."
+
 ## Proposta de evolução (roadmap futuro, não é o estado atual)
 
 > Importante para a banca: isso é uma **proposta de arquitetura futura**, não uma

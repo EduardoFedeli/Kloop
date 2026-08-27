@@ -67,6 +67,37 @@ abaixo):
 Se um prospect não bate esses 4 pontos, ele provavelmente não é o público certo pra
 Comunidades no estágio atual do produto — é candidato pra fase futura (ver roadmap).
 
+## Decisão de arquitetura: por que Comunidades não é um sistema separado
+
+> Pergunta que o time se fez pensando numa banca técnica: "Comunidades hoje é só mais uma
+> tabela no mesmo banco, gerenciada pelo mesmo app — isso não é simples demais? Se
+> tivéssemos mais tempo, não deveria ser um sistema à parte, com banco próprio,
+> conversando com o app principal por API?" Resposta: não deveria, e isso é uma decisão
+> deliberada, não uma limitação de tempo. Análise completa em
+> [06-infraestrutura.md](06-infraestrutura.md#monólito-vs-microsserviços-por-que-comunidades-não-é-um-sistema-separado).
+
+**Em uma frase:** comece monolítico, separe só quando alguma pressão técnica real (não
+imaginada) obrigar a separar — e hoje, pra Comunidades, essa pressão não existe. Nem
+"banco próprio por condomínio" (isso seria pior que o modelo atual — banco por tenant só
+compensa quando há exigência de isolamento contratual, que a Kloop não tem hoje), nem
+"API entre os dois sistemas" (só faria sentido se fossem dois sistemas de verdade — a
+única fronteira física real, o totem do condomínio, **já** conversa via API,
+`/api/totem/*`, exatamente porque ali existe uma fronteira genuína).
+
+**O que isso significa pra escala de dado:** o modelo atual (`Community` com FK em
+`CommunityMember`/`Listing`, isolando por linha, não por banco) é o mesmo padrão que a
+maioria dos SaaS B2B do mundo usa em escala — inclusive com milhares de comunidades, uma
+única base de dados bem indexada aguenta tranquilamente. "Banco por condomínio"
+multiplicaria custo operacional (migration em centenas de bancos, relatórios que cruzam
+comunidades ficam difíceis) sem resolver nenhum problema que a Kloop tenha hoje.
+
+**Quando reconsiderar de verdade:** um cliente exigindo isolamento de dado por contrato;
+a base de comunidades crescendo a ponto de precisar de time/deploy próprios; precisar
+integrar com software de gestão de condomínio de terceiros (SuperLógica, Housy — aí a API
+seria com o sistema externo, não interna à Kloop); ou a frota de totens físicos crescendo
+o bastante pra justificar um serviço dedicado de gestão de dispositivo (provisionamento,
+firmware, autenticação de hardware — esse é o único ponto com lógica técnica real hoje).
+
 ## Decisões de roadmap (2026-08) — ainda não implementadas em código
 
 ### Público: condomínio residencial → condomínio comercial → (fase separada) comunidades de afinidade
