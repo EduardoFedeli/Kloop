@@ -793,6 +793,45 @@ export function CasinhaIcon({ size = 24, className }: IconProps) {
   )
 }
 
+export function CadeirinhaIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Cadeirinha</title>
+      <rect x="7.5" y="3" width="9" height="5" rx="2" />
+      <path d="M 7 7.5 C 4.5 7.5 3.5 9.5 3.5 12 V 16 C 3.5 18.2 5.3 20 7.5 20 H 16.5 C 18.7 20 20.5 18.2 20.5 16 V 12 C 20.5 9.5 19.5 7.5 17 7.5" />
+      <path d="M 9.5 8 V 11.5 C 9.5 13 10.5 14 12 14 C 13.5 14 14.5 13 14.5 11.5 V 8" />
+      <path d="M 9.5 11 H 14.5" />
+      <path d="M 12 14 V 17" />
+    </svg>
+  )
+}
+
+export function ArtisticoIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Artístico</title>
+      <path d="M9 15c-4-1-6.5-4.5-6-8.5C4.8 3 8.5 2 12 3.5c4 1.7 6 5.5 4.5 9C15.3 15.3 13 16 11 15.5" />
+      <circle cx="7.5" cy="8" r="1" />
+      <circle cx="11" cy="6.5" r="1" />
+      <circle cx="14.5" cy="8" r="1" />
+      <path d="M9 15l-6 6" />
+      <path d="M3 21l1.5-4.5L9 15z" />
+    </svg>
+  )
+}
+
+export function FitaLedIcon({ size = 24, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <title>Fita LED</title>
+      <path d="M2 8c3-4 7-4 10 0s7 4 10 0" />
+      <path d="M2 16c3-4 7-4 10 0s7 4 10 0" />
+      <path d="M6 8v0M12 8v0M18 8v0" strokeWidth="3" />
+      <path d="M4 16v0M10 16v0M16 16v0" strokeWidth="3" />
+    </svg>
+  )
+}
+
 export function RelogioIcon({ size = 24, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>

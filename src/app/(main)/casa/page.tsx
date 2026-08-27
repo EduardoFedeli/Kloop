@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ComponentType } from 'react'
-import { SofaIcon, CamaIcon, MesaJantarIcon, EscritorioIcon, VarandaIcon, QuadroIcon, EspelhoIcon, TapeteIcon, CortinaIcon, LencolIcon, TravesseiroIcon, PanelaIcon, FormaIcon, CopoIcon, LuminariaIcon, AbajurIcon, VelaIcon, FlorIcon, CobertorIcon, ToalhaIcon, XicaraIcon, TalherIcon, LustreIcon } from '@/components/icons/CustomIcons'
+import { SofaIcon, CamaIcon, MesaJantarIcon, EscritorioIcon, VarandaIcon, QuadroIcon, EspelhoIcon, TapeteIcon, CortinaIcon, LencolIcon, TravesseiroIcon, PanelaIcon, FormaIcon, CopoIcon, LuminariaIcon, AbajurIcon, VelaIcon, FlorIcon, CobertorIcon, ToalhaIcon, XicaraIcon, TalherIcon, LustreIcon, FitaLedIcon } from '@/components/icons/CustomIcons'
 
 type IconComponent = ComponentType<{ size?: number; className?: string }>
 type SubCard = { emoji: string; icon?: IconComponent; label: string; href: string }
@@ -64,7 +64,7 @@ const SECTIONS: Section[] = [
       { emoji: '💡', icon: LuminariaIcon, label: 'luminárias', href: '/search?dept=casa-e-decor&cat=iluminacao&sub=luminarias' },
       { emoji: '🔆', icon: LustreIcon, label: 'lustres', href: '/search?dept=casa-e-decor&cat=iluminacao&sub=lustres' },
       { emoji: '🕯️', icon: AbajurIcon, label: 'abajures', href: '/search?dept=casa-e-decor&cat=iluminacao&sub=abajures' },
-      { emoji: '✨', label: 'fitas LED', href: '/search?dept=casa-e-decor&cat=iluminacao&sub=fitas-de-led' },
+      { emoji: '✨', icon: FitaLedIcon, label: 'fitas LED', href: '/search?dept=casa-e-decor&cat=iluminacao&sub=fitas-de-led' },
     ],
   },
 ]
