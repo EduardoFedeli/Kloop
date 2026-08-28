@@ -2,9 +2,8 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { getUserCommunities } from "@/lib/data/communities"
 import Link from "next/link"
-import { Building2 } from "lucide-react"
+import { Building2, ArrowRight } from "lucide-react"
 import { CircuitBackground } from "@/components/layout/CircuitBackground"
-import { ComunidadesViewToggler } from "@/components/comunidades/ComunidadesViewToggler"
 
 export const metadata = { title: "Minhas Comunidades — Kloop" }
 
@@ -24,14 +23,13 @@ export default async function ComunidadesPage() {
     <div className="relative min-h-[80vh] -mx-4 -mt-6 px-4 py-8" style={{ background: "var(--color-eclipse)" }}>
       <CircuitBackground />
 
-      <ComunidadesViewToggler>
       <div className="relative z-10 max-w-2xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center"
             style={{
-              background: "rgba(9,86,255,0.16)",
-              border: "1px solid rgba(76,126,255,0.4)",
+              background: "rgba(64,145,108,0.16)",
+              border: "1px solid rgba(116,198,157,0.4)",
             }}
           >
             <Building2 size={20} className="text-neon-lift" />
@@ -42,6 +40,14 @@ export default async function ComunidadesPage() {
           </div>
         </div>
 
+        <Link
+          href="/comunidades/sobre"
+          className="inline-flex items-center gap-2 mb-6 bg-neon-lift hover:bg-electric-sky text-eclipse text-sm font-bold px-5 py-2.5 rounded-full transition-colors"
+        >
+          O que é o Kloop Comunidades?
+          <ArrowRight size={16} />
+        </Link>
+
         {communities.length === 0 ? (
           <div className="text-center py-16 px-4">
             <Building2 size={48} className="mx-auto text-neon-lift/20 mb-4" />
@@ -49,12 +55,6 @@ export default async function ComunidadesPage() {
             <p className="text-sm text-sky-ice/70 leading-relaxed max-w-sm mx-auto">
               Comunidades Kloop são exclusivas para condomínios e clubes parceiros. Entre em contato com seu síndico ou responsável para solicitar acesso.
             </p>
-            <Link
-              href="/comunidades/sobre"
-              className="inline-flex items-center gap-1.5 mt-5 text-[13px] font-bold text-neon-lift hover:text-electric-sky transition-colors"
-            >
-              saiba mais sobre as comunidades
-            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -67,7 +67,7 @@ export default async function ComunidadesPage() {
                 <div
                   className="h-24 flex items-center justify-center"
                   style={{
-                    background: "linear-gradient(135deg, rgba(9,86,255,0.12), rgba(76,126,255,0.06))",
+                    background: "linear-gradient(135deg, rgba(64,145,108,0.12), rgba(116,198,157,0.06))",
                   }}
                 >
                   {community.logoUrl ? (
@@ -91,8 +91,8 @@ export default async function ComunidadesPage() {
                     <span
                       className="text-[11px] font-bold text-electric-sky px-2 py-0.5 rounded-full"
                       style={{
-                        background: "rgba(76,126,255,0.14)",
-                        border: "1px solid rgba(76,126,255,0.3)",
+                        background: "rgba(116,198,157,0.14)",
+                        border: "1px solid rgba(116,198,157,0.3)",
                       }}
                     >
                       {community.memberCount} {community.memberCount === 1 ? "membro" : "membros"}
@@ -107,7 +107,6 @@ export default async function ComunidadesPage() {
           </div>
         )}
       </div>
-      </ComunidadesViewToggler>
     </div>
   )
 }

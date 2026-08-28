@@ -146,15 +146,15 @@ export function BuildingScene({ onZoneChange }: BuildingSceneProps) {
         {/* Glow Ring Platform (kept from the previous version) */}
         <mesh position={[0, -2.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[3.0, 3.5, 64]} />
-          <meshBasicMaterial color="#0956FF" transparent opacity={0.6} side={THREE.DoubleSide} />
+          <meshBasicMaterial color="#40916C" transparent opacity={0.6} side={THREE.DoubleSide} />
         </mesh>
       </Float>
       
       {/* Relighting: Cool tech lighting setup */}
       <ambientLight intensity={0.5} />
-      <directionalLight position={[10, 15, 10]} intensity={1.8} color="#EAF0FF" />
-      <directionalLight position={[-10, -5, -10]} intensity={0.6} color="#0956FF" />
-      <spotLight position={[0, -10, 5]} angle={0.5} penumbra={1} intensity={2.5} color="#4C7EFF" />
+      <directionalLight position={[10, 15, 10]} intensity={1.8} color="#D8F3DC" />
+      <directionalLight position={[-10, -5, -10]} intensity={0.6} color="#40916C" />
+      <spotLight position={[0, -10, 5]} angle={0.5} penumbra={1} intensity={2.5} color="#74C69D" />
     </group>
   )
 }
@@ -166,32 +166,32 @@ function BuildingPlaceholder() {
       {/* Base Platform */}
       <mesh position={[0, -2.1, 0]}>
         <cylinderGeometry args={[4.5, 4.5, 0.2, 64]} />
-        <meshStandardMaterial color="#0A1330" roughness={0.9} metalness={0.1} />
+        <meshStandardMaterial color="#1B4332" roughness={0.9} metalness={0.1} />
       </mesh>
-      
+
       {/* Neon Glow Ring around base */}
       <mesh position={[0, -1.95, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[4.0, 4.4, 64]} />
-        <meshBasicMaterial color="#0956FF" transparent opacity={0.6} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#40916C" transparent opacity={0.6} side={THREE.DoubleSide} />
       </mesh>
 
       {/* Internal Core (Metal/Dark with some emissive windows simulation) */}
       <mesh position={[0, 0, 0]}>
         <boxGeometry args={[2.8, 4.2, 2.8, 4, 10, 4]} />
-        <meshStandardMaterial 
-          color="#101B45" 
-          roughness={0.7} 
+        <meshStandardMaterial
+          color="#2D6A4F"
+          roughness={0.7}
           metalness={0.8}
           wireframe={true} // gives a cool tech/structural look inside the glass
         />
       </mesh>
-      
+
       {/* Internal Glowing Floors/Lights */}
       <mesh position={[0, 0, 0]}>
         <boxGeometry args={[2.5, 3.8, 2.5]} />
-        <meshStandardMaterial 
-          color="#04060F" 
-          emissive="#0956FF"
+        <meshStandardMaterial
+          color="#081C15"
+          emissive="#40916C"
           emissiveIntensity={0.2}
         />
       </mesh>
@@ -199,8 +199,8 @@ function BuildingPlaceholder() {
       {/* Main Glass Facade */}
       <mesh position={[0, 0, 0]}>
         <boxGeometry args={[3.2, 4.4, 3.2]} />
-        <meshPhysicalMaterial 
-          color="#8FADFF"
+        <meshPhysicalMaterial
+          color="#95D5B2"
           transmission={0.9}
           opacity={1}
           metalness={0.2}
@@ -216,7 +216,7 @@ function BuildingPlaceholder() {
         [-1.6, 1.6].map((z) => (
           <mesh key={`${x}-${z}`} position={[x, 0, z]}>
             <boxGeometry args={[0.1, 4.4, 0.1]} />
-            <meshStandardMaterial color="#0A1330" metalness={0.8} roughness={0.2} />
+            <meshStandardMaterial color="#1B4332" metalness={0.8} roughness={0.2} />
           </mesh>
         ))
       )}

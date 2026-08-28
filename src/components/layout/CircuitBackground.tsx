@@ -8,7 +8,7 @@ const LINE_DISTANCE = 130
 const MOUSE_RADIUS = 230
 const BASE_SPEED = 0.3
 const NODE_RADIUS = 1.5
-const NODE_COLOR = [76, 126, 255] as const // --neon-lift in RGB
+const NODE_COLOR = [116, 198, 157] as const // --neon-lift in RGB
 const MOBILE_BREAKPOINT = 640
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -109,7 +109,7 @@ export function CircuitBackground() {
       const isReduced = reducedMotionRef.current
 
       // Clear with eclipse background
-      ctx!.fillStyle = "#04060F"
+      ctx!.fillStyle = "#081C15"
       ctx!.fillRect(0, 0, w, h)
 
       // Update positions (skip if reduced motion)

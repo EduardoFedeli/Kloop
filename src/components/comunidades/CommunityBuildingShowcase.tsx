@@ -9,34 +9,35 @@ import gsap from "gsap"
 const BENEFITS = [
   {
     id: "security",
-    title: "Mais segurança",
-    description: "Negociações entre moradores verificados do condomínio.",
+    title: "Só vizinhos veem",
+    description: "Os anúncios de uma comunidade ficam visíveis só para moradores confirmados do seu condomínio.",
     icon: ShieldCheck,
   },
   {
     id: "community",
-    title: "Comunidade ativa",
-    description: "Converse, troque e fortaleça os laços com seus vizinhos.",
+    title: "Feito pra quem mora perto",
+    description: "Conecta você com quem já divide o mesmo prédio, sem precisar de frete ou de combinar com um estranho.",
     icon: Users,
   },
   {
     id: "economy",
-    title: "Menos taxas",
-    description: "Menos taxas e mais economia para todos os moradores.",
+    title: "Menos taxas, mais economia",
+    description: "Comprar e vender pertinho de casa custa menos pra todo mundo envolvido.",
     icon: Tag,
   },
   {
     id: "sustainability",
-    description: "Dê uma nova vida aos produtos e ajude o meio ambiente.",
+    title: "Economia circular de verdade",
+    description: "Cada peça que muda de dono ali do lado é menos desperdício e mais vida útil pros objetos.",
     icon: Leaf,
   }
 ]
 
 const CALL_TO_ACTION_TEXTS = [
-  "sua comunidade, suas regras",
-  "menos desperdício, mais conexão",
-  "compre e venda com quem mora ao lado",
-  "um clique, um novo lar pra peça"
+  "só quem mora ali vê",
+  "seu vizinho primeiro",
+  "compre e venda sem sair do prédio",
+  "uma nova vida pra cada peça"
 ]
 
 export function CommunityBuildingShowcase({ onContinue }: { onContinue?: () => void }) {
@@ -88,12 +89,12 @@ export function CommunityBuildingShowcase({ onContinue }: { onContinue?: () => v
         {/* Left Column: Content */}
         <div className="space-y-8">
           <div>
-            <p className="text-neon-lift font-bold tracking-wider text-sm uppercase mb-3">Modelo Comunidades</p>
+            <p className="text-neon-lift font-bold tracking-wider text-sm uppercase mb-3">Kloop Comunidades</p>
             <h2 className="text-4xl md:text-5xl font-black text-neon-mist mb-6">
-              Por que usar <span className="text-neon-lift">Comunidades?</span>
+              O que é o <span className="text-neon-lift">Kloop Comunidades?</span>
             </h2>
             <p className="text-sky-ice/80 text-lg max-w-md leading-relaxed">
-              Um modelo pensado para conectar pessoas e facilitar a troca dentro de condomínios e clubes.
+              Um feed de compra e venda exclusivo para quem já mora perto de você — hoje, moradores do mesmo condomínio.
             </p>
           </div>
 
@@ -169,13 +170,13 @@ export function CommunityBuildingShowcase({ onContinue }: { onContinue?: () => v
           
           {/* CTA at the bottom right */}
           <div className="absolute bottom-8 right-8 flex flex-col items-end gap-3 z-20">
-            <button 
+            <button
               onClick={onContinue}
               className="bg-neon-lift hover:bg-electric-sky text-eclipse font-bold py-3 px-8 rounded-full flex items-center gap-2 transition-all"
             >
-              Continuar <ArrowRight size={18} />
+              Ver comunidades <ArrowRight size={18} />
             </button>
-            <span className="text-xs text-sky-ice/60">Ver condomínios cadastrados</span>
+            <span className="text-xs text-sky-ice/60">Voltar para minhas comunidades</span>
           </div>
 
           <div className="absolute bottom-8 left-8 text-xs text-neon-lift/60 animate-pulse pointer-events-none">

@@ -112,7 +112,7 @@ export function MegaNav({ brands, user, communitiesCount = 0, unreadCount = 0 }:
     <>
       <header className={cn(
         "sticky top-0 z-40 border-b transition-colors relative",
-        isComunidades ? "dark bg-[#04060F] border-[#0A1330] text-white" : "bg-white dark:bg-[var(--color-pine)] border-gray-200 dark:border-forest",
+        isComunidades ? "dark bg-[#081C15] border-[#1B4332] text-white" : "bg-white dark:bg-[var(--color-pine)] border-gray-200 dark:border-forest",
         !isHome && !isDeptPage && !isComunidades && "hidden md:block"
       )}>
         {/* ── Main row ─────────────────────────────────────────────────────── */}
@@ -185,8 +185,8 @@ export function MegaNav({ brands, user, communitiesCount = 0, unreadCount = 0 }:
                       : iconCls
                     }
                     style={isComunidades ? {
-                      background: "rgba(9,86,255,0.16)",
-                      border: "1px solid rgba(76,126,255,0.4)",
+                      background: "rgba(64,145,108,0.16)",
+                      border: "1px solid rgba(116,198,157,0.4)",
                     } : undefined}
                   >
                     <Building2 size={20} />
