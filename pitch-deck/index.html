@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kloop — Pitch</title>
+<link rel="icon" href="assets/img/kloop-icon.png">
+<style>
+
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("assets/fonts/SpaceGrotesk-Variable.woff2") format("woff2");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --linen: #F8FAF8;
+  --paper: #EEF2EE;
+  --frosted: #D8F3DC;
+  --celadon: #B7E4C7;
+  --sage: #95D5B2;
+  --mint: #74C69D;
+  --teal-muted: #52B788;
+  --teal: #40916C;
+  --emerald: #2D6A4F;
+  --pine: #1B4332;
+  --forest: #081C15;
+  --font: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--pine);
+  overflow: hidden;
+  font-family: var(--font);
+  transition: background .25s ease;
+}
+
+/* ===== Fixed-canvas stage: locks every proportion to 1920x1080 and
+   uniformly scales, so the deck looks identical regardless of the
+   machine/projector running it. Letterbox bars (only visible when the
+   screen isn't exactly 16:9) blend into the active slide's own color. ===== */
+#stage {
+  position: fixed;
+  top: 50%; left: 50%;
+  width: 1920px; height: 1080px;
+  transform-origin: center center;
+  overflow: hidden;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  width: 1920px; height: 1080px;
+  display: none;
+  background: var(--bg);
+  color: var(--fg);
+}
+.slide.active { display: block; }
+
+/* ---------- theme tokens ---------- */
+.slide.theme-light {
+  --bg: var(--paper);
+  --fg: var(--pine);
+  --fg-muted: var(--emerald);
+  --fg-soft: var(--teal-muted);
+  --accent: var(--teal);
+  --ring-track: rgba(27,67,50,.18);
+  --deco-ring: rgba(27,67,50,.05);
+}
+.slide.theme-dark {
+  --bg: var(--pine);
+  --fg: var(--linen);
+  --fg-muted: var(--celadon);
+  --fg-soft: var(--sage);
+  --accent: var(--celadon);
+  --ring-track: rgba(248,250,248,.28);
+  --deco-ring: rgba(248,250,248,.07);
+}
+.slide.theme-deep {
+  --bg: var(--forest);
+  --fg: var(--linen);
+  --fg-muted: var(--celadon);
+  --fg-soft: var(--sage);
+  --accent: var(--mint);
+  --ring-track: rgba(248,250,248,.24);
+  --deco-ring: rgba(248,250,248,.06);
+}
+
+/* ---------- decorative background ring (adds depth) ---------- */
+.deco-ring {
+  position: absolute; width: 1100px; height: 1100px; border-radius: 50%;
+  border: 2px solid var(--deco-ring);
+  pointer-events: none; z-index: 0;
+}
+
+/* ---------- header logo (all slides except cover + closing) ---------- */
+.slide-logo { position: absolute; top: 44px; left: 96px; height: 28px; width: auto; z-index: 2; }
+
+/* ---------- shared chrome: fixed title zone + fixed footer zone ---------- */
+.title-zone {
+  position: absolute;
+  top: 88px; left: 128px; right: 128px;
+  font-size: 44px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  color: var(--fg);
+  line-height: 1.18;
+  max-width: 1500px;
+}
+/* Fixed type scale used everywhere: 44px for every title, 22px for every
+   block of slide body copy (paragraphs, statements, list items). Small
+   labels — pills, badges, captions, the footer counter — stay their own
+   smaller tier on purpose; that is hierarchy, not inconsistency. */
+
+.body-zone {
+  position: absolute;
+  top: 280px; left: 128px; right: 128px; bottom: 160px;
+}
+
+.footer-zone {
+  position: absolute;
+  bottom: 56px; right: 96px;
+  display: flex; align-items: center; gap: 16px;
+  z-index: 2;
+}
+.footer-count {
+  font-size: 20px; font-weight: 500; color: var(--fg-muted); opacity: .75;
+  letter-spacing: .04em;
+}
+/* Ring is always the exact same geometry (r=42, stroke 5) on every slide —
+   only its color/fill state changes. Open = problem, closing = solution, closed = final. */
+.loop-mark circle { fill: none; stroke-width: 5; }
+.loop-mark.state-open circle { stroke: var(--ring-track); }
+.loop-mark.state-closing circle { stroke: var(--accent); }
+.loop-mark.state-closed circle { fill: var(--fg); stroke: none; }
+
+.citation-line { font-size: 15px; color: var(--fg-soft); }
+
+/* ---------- SLIDE 1 — capa ---------- */
+#s1 .cover-wrap {
+  position: absolute; inset: 0; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 32px; text-align: center;
+}
+.logo-mark { width: 560px; height: auto; display: block; }
+#s1 .subtitle { font-size: 34px; font-weight: 400; color: var(--fg-muted); max-width: 1100px; }
+#s1 .credits {
+  position: absolute; bottom: 72px; left: 0; right: 0; z-index: 1;
+  text-align: center; font-size: 18px; color: var(--fg-soft); font-weight: 500;
+  letter-spacing: .01em;
+}
+
+/* ---------- SLIDE 2 — a dor ---------- */
+#s2 .top-stat { position: absolute; top: 88px; left: 128px; right: 128px; z-index: 1; font-size: 44px; font-weight: 600; letter-spacing: -.01em; color: var(--fg); line-height: 1.2; max-width: 1500px; }
+#s2 .top-stat strong { color: var(--accent); }
+#s2 .top-stat .citation-line { display: block; margin-top: 14px; font-size: 15px; font-weight: 400; letter-spacing: normal; }
+
+#s2 .lifecycle { position: absolute; top: 380px; left: 128px; right: 700px; height: 420px; z-index: 1; display: flex; flex-direction: column; justify-content: center; gap: 26px; }
+#s2 .lc-row { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; }
+#s2 .lc-pill { font-size: 20px; color: var(--fg-muted); background: rgba(248,250,248,.07); border-radius: 12px; padding: 13px 18px; white-space: nowrap; }
+#s2 .lc-arrow { color: var(--fg-soft); font-size: 20px; flex-shrink: 0; }
+#s2 .lc-decision { position: relative; font-size: 22px; font-weight: 600; color: var(--fg); border: 2px solid var(--accent); border-radius: 14px; padding: 15px 22px; white-space: nowrap; }
+#s2 .lc-tag { position: absolute; top: -18px; right: -8px; font-size: 13px; font-weight: 700; color: var(--pine); background: var(--accent); padding: 5px 14px; border-radius: 999px; white-space: nowrap; }
+#s2 .lc-branches { display: flex; flex-direction: column; gap: 14px; margin-left: 48px; padding-left: 28px; border-left: 2px dashed var(--fg-soft); }
+#s2 .lc-branch { display: flex; align-items: center; gap: 12px; font-size: 19px; flex-wrap: wrap; }
+#s2 .lc-branch .lc-branch-label { min-width: 220px; }
+#s2 .lc-branch.without { color: var(--fg-soft); }
+#s2 .lc-branch.with { color: var(--fg); font-weight: 600; }
+#s2 .lc-branch .lc-pill.end-bad { background: transparent; border: 1px dashed var(--fg-soft); color: var(--fg-soft); }
+#s2 .lc-branch .lc-pill.end-good { background: var(--accent); color: var(--pine); font-weight: 700; }
+
+#s2 .evidence { position: absolute; top: 380px; right: 128px; width: 540px; height: 380px; z-index: 1; display: flex; flex-direction: column; gap: 14px; }
+#s2 .evidence-photo { width: 540px; height: 380px; border-radius: 20px; overflow: hidden; border: 1px solid rgba(248,250,248,.15); flex-shrink: 0; }
+#s2 .evidence-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#s2 .evidence .photo-caption { font-size: 15px; color: var(--fg-soft); opacity: .9; line-height: 1.5; }
+
+/* ---------- SLIDE 3 — o que é o Kloop + demo (unificado) ---------- */
+#s3 .solution-top { position: absolute; top: 210px; left: 128px; right: 128px; z-index: 1; text-align: center; }
+#s3 .solution-top p { font-size: 22px; font-weight: 400; color: var(--fg); line-height: 1.4; max-width: 1100px; margin: 0 auto; }
+#s3 .steps { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 22px; }
+#s3 .step {
+  font-size: 18px; font-weight: 600; color: var(--accent);
+  border: 2px solid var(--accent); border-radius: 999px; padding: 10px 24px;
+}
+#s3 .arrow { font-size: 20px; color: var(--fg-soft); }
+#s3 .corner-note { position: absolute; bottom: 56px; left: 128px; right: 420px; z-index: 1; font-size: 16px; color: var(--fg-muted); font-weight: 400; }
+#s3 .phones-row { position: absolute; top: 340px; left: 128px; right: 128px; bottom: 130px; z-index: 1; display: flex; align-items: flex-start; justify-content: center; gap: 56px; }
+#s3 .phone-col { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+#s3 .anchor-tag { font-size: 15px; font-weight: 500; color: var(--fg-muted); background: rgba(64,145,108,.1); border-radius: 999px; padding: 8px 18px; }
+.phone-frame {
+  width: 300px; height: 616px;
+  border: 10px solid var(--pine); border-radius: 46px;
+  background: var(--forest);
+  position: relative; overflow: hidden;
+  box-shadow: 0 24px 60px rgba(27,67,50,.18);
+}
+.phone-frame.small { width: 270px; height: 554px; }
+.phone-frame.small .notch { width: 80px; }
+.phone-frame.small:has(video) { border-top-width: 5px; }
+.phone-frame.small:has(video) .notch { top: 6px; }
+.phone-frame .notch {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  width: 88px; height: 14px; background: var(--pine); border-radius: 999px; z-index: 3;
+}
+.phone-frame video, .phone-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.phone-frame .placeholder {
+  position: absolute; inset: 0; display: none;
+  flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  background: var(--pine); color: var(--frosted); text-align: center; padding: 32px;
+}
+.phone-frame .placeholder.show { display: flex; }
+.phone-frame .placeholder .ph-title { font-size: 20px; font-weight: 600; }
+.phone-frame .placeholder .ph-sub { font-size: 14px; font-weight: 400; color: var(--sage); }
+
+/* ---------- SLIDE 4 — diferencial: confiança ---------- */
+#s4 .split { position: absolute; top: 260px; left: 128px; right: 128px; bottom: 150px; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+#s4 .col { border-radius: 24px; padding: 44px 44px; display: flex; flex-direction: column; }
+#s4 .col.c2c { background: transparent; border: 2px solid var(--fg-soft); }
+#s4 .col.c2c, #s4 .col.c2c h3 { color: var(--fg); }
+#s4 .col.c2c .frame-line { color: var(--fg-muted); }
+#s4 .col.c2c li { color: var(--fg); }
+#s4 .col.c2c li::before { color: var(--accent); }
+#s4 .col.comm { background: var(--paper); border: 2px solid var(--teal); }
+#s4 .col.comm, #s4 .col.comm h3 { color: var(--pine); }
+#s4 .card-icon { margin-top: auto; padding-top: 28px; width: 84px; height: 84px; }
+#s4 .card-icon svg { width: 100%; height: 100%; display: block; }
+#s4 .col.c2c .card-icon { color: var(--fg-soft); }
+#s4 .col.comm .card-icon { color: var(--teal); }
+#s4 .col.comm .frame-line { color: var(--emerald); }
+#s4 .col.comm li { color: var(--pine); }
+#s4 .col.comm li::before { color: var(--teal); }
+#s4 .col h3 { font-size: 24px; font-weight: 600; margin-bottom: 10px; }
+#s4 .col .frame-line { font-size: 17px; font-style: italic; margin-bottom: 22px; }
+#s4 .col ul { list-style: none; display: flex; flex-direction: column; gap: 20px; }
+#s4 .col li { font-size: 22px; line-height: 1.4; position: relative; padding-left: 22px; }
+#s4 .col li::before { content: "—"; position: absolute; left: 0; }
+
+/* ---------- SLIDE 5 — comunidades ---------- */
+#s5 .thesis { position: absolute; top: 250px; left: 128px; right: 128px; z-index: 1; font-size: 22px; color: var(--fg); font-weight: 400; max-width: 1550px; line-height: 1.5; }
+#s5 .plans { position: absolute; top: 420px; left: 128px; right: 128px; bottom: 130px; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+#s5 .plan { border-radius: 24px; padding: 36px 40px; border: 2px solid var(--frosted); }
+#s5 .plan.pro { border-color: var(--accent); background: rgba(64,145,108,.06); }
+#s5 .plan .plan-name { font-size: 24px; font-weight: 600; color: var(--fg); }
+#s5 .plan .plan-tag { font-size: 15px; font-weight: 500; color: var(--accent); margin-bottom: 18px; letter-spacing: .02em; }
+#s5 .plan ul { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+#s5 .plan li { font-size: 22px; color: var(--fg); line-height: 1.3; position: relative; padding-left: 20px; }
+#s5 .plan li::before { content: "—"; position: absolute; left: 0; color: var(--accent); }
+#s5 .plan.plan-split { display: flex; gap: 28px; align-items: stretch; }
+#s5 .plan-body { flex: 1 1 auto; min-width: 0; }
+#s5 .plan-visual { flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.phone-frame.mini { width: 224px; height: 460px; border-width: 7px; border-radius: 30px; }
+.phone-frame.mini .notch { width: 56px; height: 10px; top: 9px; }
+#s5 .plan-photos { display: flex; gap: 14px; margin-top: 20px; height: 300px; }
+#s5 .plan-photo { flex: 1; height: 100%; border-radius: 16px; overflow: hidden; border: 1px solid rgba(27,67,50,.12); background: var(--linen); }
+#s5 .plan-photo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+#s5 .honesty-note { position: absolute; bottom: 56px; left: 128px; right: 420px; z-index: 1; font-size: 16px; color: var(--fg-muted); border-top: 1px solid var(--frosted); padding-top: 14px; }
+
+/* ---------- SLIDE 6 — custo (3 cartões: Enjoei / OLX / Kloop) ---------- */
+#s6 .fee-grid { position: absolute; top: 240px; left: 128px; right: 128px; bottom: 175px; z-index: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; }
+#s6 .fee-card { border-radius: 24px; padding: 36px 34px; border: 2px solid var(--fg-soft); display: flex; flex-direction: column; }
+#s6 .fee-logo-row { height: 40px; display: flex; align-items: center; }
+#s6 .fee-logo { height: 36px; width: auto; max-width: 170px; object-fit: contain; }
+#s6 .fee-name { font-size: 20px; font-weight: 600; color: var(--fg); margin-top: 10px; }
+#s6 .fee-model { font-size: 15px; color: var(--fg-soft); line-height: 1.4; margin-top: 10px; min-height: 58px; }
+#s6 .fee-discount { font-size: 16px; color: var(--fg-muted); margin-top: 10px; }
+#s6 .fee-net { font-size: 50px; font-weight: 700; letter-spacing: -.02em; color: var(--fg); margin-top: 4px; }
+#s6 .fee-note { font-size: 14px; color: var(--fg-soft); line-height: 1.45; margin-top: auto; padding-top: 16px; border-top: 1px solid rgba(149,213,178,.25); }
+#s6 .fee-citation { position: absolute; bottom: 128px; left: 128px; z-index: 1; }
+#s6 .closing-line { position: absolute; bottom: 56px; left: 128px; right: 128px; z-index: 1; font-size: 17px; color: var(--fg-muted); font-style: italic; max-width: 1500px; }
+
+/* ---------- SLIDE 7 — viabilidade ---------- */
+#s7 .top-half { position: absolute; top: 250px; left: 128px; right: 128px; z-index: 1; height: 330px; }
+#s7 .equation { display: flex; align-items: baseline; gap: 26px; }
+#s7 .eq-term { text-align: left; }
+#s7 .eq-term .num { font-size: 74px; font-weight: 700; letter-spacing: -.02em; color: var(--fg); }
+#s7 .eq-term.result .num { color: var(--accent); }
+#s7 .eq-term .lbl { font-size: 15px; color: var(--fg-muted); font-weight: 500; margin-top: 2px; }
+#s7 .eq-op { font-size: 52px; font-weight: 300; color: var(--fg-soft); }
+#s7 .eq-note { font-size: 14px; color: var(--fg-soft); margin-top: 14px; max-width: 700px; }
+#s7 .breakeven-row { display: flex; gap: 24px; margin-top: 28px; }
+#s7 .chip { background: var(--frosted); border-radius: 14px; padding: 14px 26px; font-size: 19px; font-weight: 600; color: var(--pine); }
+#s7 .chip span { font-weight: 400; color: var(--emerald); font-size: 15px; display: block; margin-top: 2px; }
+#s7 .micro-footer { margin-top: 26px; font-size: 15px; color: var(--fg-soft); }
+#s7 .bottom-half { position: absolute; top: 620px; left: 128px; right: 128px; bottom: 150px; z-index: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 48px; }
+#s7 .status-col h4 { font-size: 17px; font-weight: 600; color: var(--fg); margin-bottom: 14px; letter-spacing: .01em; }
+#s7 .status-col p { font-size: 22px; color: var(--fg-muted); line-height: 1.5; }
+#s7 .status-col.done h4 { color: var(--accent); }
+
+/* ---------- SLIDE 8 — obrigado ---------- */
+#s8 .center-wrap { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; }
+#s8 .thanks-line { font-size: 104px; font-weight: 700; letter-spacing: -.02em; color: var(--fg); }
+#s8 .thanks-credits { font-size: 20px; color: var(--fg-soft); font-weight: 500; }
+
+</style>
+</head>
+<body>
+
+<div id="stage">
+
+  <!-- ============ SLIDE 1 — CAPA ============ -->
+  <section class="slide theme-deep active" id="s1">
+    <div class="deco-ring" style="top:-480px; right:-420px;"></div>
+    <div class="cover-wrap">
+      <img class="logo-mark" src="assets/img/logo-extensa.png" alt="Kloop">
+      <div class="subtitle">Marketplace de desapegos, economia circular e comércio de vizinhança</div>
+    </div>
+    <div class="credits">Otavio Vitoriano · Gabriel Torres · Eduardo Fedeli · Caique Chagas · Rodrigo Resende</div>
+    <div class="footer-zone">
+      <span class="footer-count">1 / 8</span>
+      <svg class="loop-mark state-open" width="44" height="44" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/></svg>
+    </div>
+  </section>
+  <!-- Passagem: "Antes de mostrar o que a gente construiu, um número." -->
+
+  <!-- ============ SLIDE 2 — A DOR ============ -->
+  <section class="slide theme-dark" id="s2">
+    <div class="deco-ring" style="bottom:-500px; left:-460px;"></div>
+    <img class="slide-logo" src="assets/img/logo-extensa.png" alt="Kloop">
+    <div class="top-stat">
+      <strong>4 milhões</strong> de toneladas de resíduo têxtil descartadas no Brasil por ano. <strong>~80%</strong> vai para aterro ou lixão (no mundo, ~92 milhões/ano).
+      <span class="citation-line">Fonte: Abrema, 20 de janeiro de 2025</span>
+    </div>
+    <div class="lifecycle">
+      <div class="lc-row">
+        <div class="lc-pill">Peça produzida</div>
+        <div class="lc-arrow">→</div>
+        <div class="lc-pill">Usada por um tempo</div>
+        <div class="lc-arrow">→</div>
+        <div class="lc-pill">Dona não quer mais</div>
+        <div class="lc-arrow">→</div>
+        <div class="lc-decision">Vender ou jogar fora?<span class="lc-tag">Kloop atua aqui</span></div>
+      </div>
+      <div class="lc-branches">
+        <div class="lc-branch without">
+          <span class="lc-branch-label">Sem plataforma acessível</span>
+          <span class="lc-arrow">→</span>
+          <span class="lc-pill end-bad">Joga fora</span>
+          <span class="lc-arrow">→</span>
+          <span class="lc-pill end-bad">Aterro</span>
+        </div>
+        <div class="lc-branch with">
+          <span class="lc-branch-label">Com o Kloop</span>
+          <span class="lc-arrow">→</span>
+          <span class="lc-pill end-good">Vende</span>
+          <span class="lc-arrow">→</span>
+          <span class="lc-pill end-good">Circula mais um ciclo ↻</span>
+        </div>
+      </div>
+    </div>
+    <div class="evidence">
+      <div class="evidence-photo"><img src="assets/img/slide2img.jpeg" alt="Pilha de roupas descartadas em praça pública"></div>
+      <div class="photo-caption">Instalação de roupas descartadas · matéria Abrema, 20/01/2025</div>
+    </div>
+    <div class="footer-zone">
+      <span class="footer-count">2 / 8</span>
+      <svg class="loop-mark state-open" width="44" height="44" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/></svg>
+    </div>
+  </section>
+  <!-- Passagem: "A gente não entrou pra competir de frente. Enjoei e OLX são feitos pra vender pra desconhecidos e cobram pesado na peça barata. A gente entrou por dois lugares que eles não ocupam: confiança e custo." -->
+
+  <!-- ============ SLIDE 3 — O QUE É O KLOOP + DEMO (unificado) ============ -->
+  <section class="slide theme-light" id="s3">
+    <div class="deco-ring" style="top:-500px; left:-460px;"></div>
+    <img class="slide-logo" src="assets/img/logo-teal.png" alt="Kloop">
+    <div class="title-zone">Um marketplace consolidador de desapegos</div>
+    <div class="solution-top">
+      <p>Descoberta, negociação, reputação, pagamento e entrega no mesmo lugar.</p>
+      <div class="steps">
+        <div class="step">Anuncia</div>
+        <div class="arrow">→</div>
+        <div class="step">Negocia</div>
+        <div class="arrow">→</div>
+        <div class="step">Recebe</div>
+      </div>
+    </div>
+    <div class="phones-row">
+      <div class="phone-col">
+        <div class="phone-frame small">
+          <div class="notch"></div>
+          <img src="assets/img/oferta-print.jpeg" alt="Tela de oferta e contra-proposta">
+        </div>
+        <div class="anchor-tag">Oferta e contra-proposta</div>
+      </div>
+      <div class="phone-col">
+        <div class="phone-frame small">
+          <div class="notch"></div>
+          <video id="demo-video" muted playsinline loop autoplay poster="">
+            <source src="assets/video/demo.mp4" type="video/mp4">
+          </video>
+          <div class="placeholder" id="demo-placeholder">
+            <div class="ph-title">Vídeo da demo</div>
+            <div class="ph-sub">Coloque a gravação em<br><code>assets/video/demo.mp4</code></div>
+          </div>
+        </div>
+        <div class="anchor-tag">Demonstração</div>
+      </div>
+      <div class="phone-col">
+        <div class="phone-frame small">
+          <div class="notch"></div>
+          <img src="assets/img/vender-print.png.jpeg" alt="Tela do painel do vendedor, cashback e saldo">
+        </div>
+        <div class="anchor-tag">Cashback e vendas</div>
+      </div>
+    </div>
+    <div class="corner-note">O nome vem de fechar o loop: a peça volta a circular em vez de virar resíduo.</div>
+    <div class="footer-zone">
+      <span class="footer-count">3 / 8</span>
+      <svg class="loop-mark state-closing" width="44" height="44" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/></svg>
+    </div>
+  </section>
+  <!-- Passagem: "O que vocês acabaram de ver tem uma regra por trás: dentro do C2C, todo usuário é ao mesmo tempo um possível vendedor e um possível comprador. E essa regra é o nosso primeiro diferencial." -->
+
+  <!-- ============ SLIDE 4 — DIFERENCIAL: CONFIANÇA ============ -->
+  <section class="slide theme-dark" id="s4">
+    <div class="deco-ring" style="top:-480px; right:-420px;"></div>
+    <img class="slide-logo" src="assets/img/logo-extensa.png" alt="Kloop">
+    <div class="title-zone">A negociação inteira acontece dentro do app.</div>
+    <div class="split">
+      <div class="col c2c">
+        <h3>No Marketplace (C2C)</h3>
+        <div class="frame-line">O encontro é risco. Por isso o app substitui o encontro.</div>
+        <ul>
+          <li>Negociação com prazo de 24h, até 4 rodadas e turno explícito de quem responde</li>
+          <li>Reputação e cashback só existem dentro da plataforma: sair do app custa os dois</li>
+          <li>Sem chat privado: a comunicação pré-venda é pública no anúncio</li>
+        </ul>
+        <div class="card-icon">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M24 4 L40 10 V22 C40 33 33 40 24 44 C15 40 8 33 8 22 V10 Z"/>
+            <path d="M17 24 L22 29 L32 18"/>
+          </svg>
+        </div>
+      </div>
+      <div class="col comm">
+        <h3>Nas Comunidades (B2B)</h3>
+        <div class="frame-line">O encontro é o valor. Por isso ele vira opção.</div>
+        <ul>
+          <li>Retirada na portaria ou entrega combinada, escolha do usuário</li>
+          <li>Aproxima vizinhos de forma natural.</li>
+        </ul>
+        <div class="card-icon">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="10" y="6" width="28" height="38" rx="2"/>
+            <line x1="17" y1="14" x2="21" y2="14"/>
+            <line x1="27" y1="14" x2="31" y2="14"/>
+            <line x1="17" y1="22" x2="21" y2="22"/>
+            <line x1="27" y1="22" x2="31" y2="22"/>
+            <line x1="17" y1="30" x2="21" y2="30"/>
+            <line x1="27" y1="30" x2="31" y2="30"/>
+            <rect x="20" y="36" width="8" height="8"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div class="footer-zone">
+      <span class="footer-count">4 / 8</span>
+      <svg class="loop-mark state-closing" width="44" height="44" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/></svg>
+    </div>
+  </section>
+  <!-- Passagem: "E é dentro do condomínio que a nossa aposta principal acontece: o nosso maior diferencial." -->
+
+  <!-- ============ SLIDE 5 — DIFERENCIAL: KLOOP COMUNIDADES ============ -->
+  <section class="slide theme-light" id="s5">
+    <div class="deco-ring" style="bottom:-500px; left:-460px;"></div>
+    <img class="slide-logo" src="assets/img/logo-teal.png" alt="Kloop">
+    <div class="title-zone">Uma conversa com o síndico abre um prédio inteiro.</div>
+    <div class="thesis">Distribuição institucional, não usuário a usuário. Uma administradora que gerencia dezenas de prédios é uma única conversa comercial.</div>
+    <div class="plans">
+      <div class="plan plan-split">
+        <div class="plan-body">
+          <div class="plan-name">Comunidades</div>
+          <div class="plan-tag">GRÁTIS</div>
+          <ul>
+            <li>Feed de compra e venda fechado ao condomínio</li>
+            <li>Sem frete: é entre vizinhos, no mesmo prédio</li>
+            <li>Em mãos ou na portaria, a escolha é do usuário</li>
+            <li>Fatia da comissão dividida com o fundo do condomínio, ajudando a abater a taxa condominial</li>
+            <li>Sem mensalidade e sem taxa de adesão: não precisa passar por assembleia</li>
+          </ul>
+        </div>
+        <div class="plan-visual">
+          <div class="phone-frame mini">
+            <div class="notch"></div>
+            <img src="assets/img/comunidades-print.jpeg" alt="Tela do feed de uma comunidade">
+          </div>
+        </div>
+      </div>
+      <div class="plan pro">
+        <div class="plan-name">Comunidades Pro</div>
+        <div class="plan-tag">UPSELL</div>
+        <ul>
+          <li>Totem físico com login por QR no hall do prédio</li>
+          <li>Painel do síndico: movimentação, uso, retorno gerado</li>
+        </ul>
+        <div class="plan-photos">
+          <div class="plan-photo"><img src="assets/img/totem-logo-kloop.jpg" alt="Totem físico do Kloop Comunidades"></div>
+          <div class="plan-photo"><img src="assets/img/totem-tela-kloop.png" alt="Totem exibindo o feed da comunidade"></div>
+        </div>
+      </div>
+    </div>
+    <div class="honesty-note">Modelo de planos e monetização decididos, ainda não implementados em código. O totem já existe e funciona.</div>
+    <div class="footer-zone">
+      <span class="footer-count">5 / 8</span>
+      <svg class="loop-mark state-closing" width="44" height="44" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/></svg>
+    </div>
+  </section>
+  <!-- Passagem: "Esse é o motor que permite a gente cobrar diferente do resto do mercado. É assim que o mercado cobra hoje." -->
+
+  <!-- ============ SLIDE 6 — CUSTO: ENJOEI, OLX, KLOOP ============ -->
+  <section class="slide theme-dark" id="s6">
+    <div class="deco-ring" style="top:-480px; left:-420px;"></div>
+    <img class="slide-logo" src="assets/img/logo-extensa.png" alt="Kloop">
+    <div class="title-zone" style="font-size:40px;">Como o mercado cobra hoje, numa peça de R$100.</div>
+    <div class="fee-grid">
+      <div class="fee-card">
+        <div class="fee-logo-row"><img class="fee-logo" src="assets/img/logo-enjoei.png" alt="Enjoei" onerror="this.style.display='none'"></div>
+        <div class="fee-name">Enjoei (clássico)</div>
+        <div class="fee-model">12% de comissão + R$12,50 de tarifa fixa + R$2,50 de envio</div>
+        <div class="fee-discount">− R$27,00 em taxas</div>
+        <div class="fee-net">R$73,00</div>
+        <div class="fee-note">Modelo focado em retenção alta, com forte apelo visual e social.</div>
+      </div>
+      <div class="fee-card">
+        <div class="fee-logo-row"><img class="fee-logo" src="assets/img/logo-repassa.png" alt="Repassa" onerror="this.style.display='none'"></div>
+        <div class="fee-name">Repassa (consignação)</div>
+        <div class="fee-model">~50% de comissão + ~R$8,00 de taxa fixa por peça armazenada, mais frete e promoção à parte</div>
+        <div class="fee-discount">− R$58,00 em taxas (sem frete/promoção)</div>
+        <div class="fee-net">R$42,00</div>
+        <div class="fee-note">Comodidade total: o vendedor não faz nada, a Repassa fotografa e despacha. Em troca, retém uma margem bem mais alta.</div>
+      </div>
+      <div class="fee-card">
+        <div class="fee-logo-row"><img class="fee-logo" src="assets/img/kloop-icon.png" alt="Kloop" style="height:40px;"></div>
+        <div class="fee-name">Kloop (plano gratuito)</div>
+        <div class="fee-model">14% de comissão + R$7,50 de tarifa fixa</div>
+        <div class="fee-discount">− R$21,50 em taxas</div>
+        <div class="fee-net">R$78,50</div>
+        <div class="fee-note">Sem taxa de saque, sem tarifa de inatividade.</div>
+      </div>
+    </div>
+    <span class="citation-line fee-citation">Valores calculados sobre uma peça de R$100. Fontes: enjoei.com.br/ajuda, levantamento próprio no site da Repassa e print do app Kloop (ago/2026).</span>
+    <div class="closing-line">Kloop e Enjoei disputam a mesma experiência curada de moda. A Kloop posiciona sua taxa abaixo da pressão de custos do Enjoei, sem abrir mão da sustentabilidade, e ainda soma o volume das Comunidades.</div>
+    <div class="footer-zone">
+      <span class="footer-count">6 / 8</span>
+      <svg class="loop-mark state-closing" width="44" height="44" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/></svg>
+    </div>
+  </section>
+  <!-- Passagem: "E isso tudo precisa fechar como negócio." -->
+
+  <!-- ============ SLIDE 7 — VIABILIDADE E ONDE ESTAMOS ============ -->
+  <section class="slide theme-light" id="s7">
+    <div class="deco-ring" style="bottom:-500px; right:-460px;"></div>
+    <img class="slide-logo" src="assets/img/logo-teal.png" alt="Kloop">
+    <div class="title-zone" style="font-size:40px;">A conta fecha, e aqui está o estado real do produto.</div>
+    <div class="top-half">
+      <div class="equation">
+        <div class="eq-term"><div class="num">13,6%</div><div class="lbl">comissão ponderada</div></div>
+        <div class="eq-op">+</div>
+        <div class="eq-term"><div class="num">5%</div><div class="lbl">tarifa fixa*</div></div>
+        <div class="eq-op">−</div>
+        <div class="eq-term"><div class="num">5%</div><div class="lbl">cashback</div></div>
+        <div class="eq-op">=</div>
+        <div class="eq-term result"><div class="num">13,6%</div><div class="lbl">margem bruta</div></div>
+      </div>
+      <div class="eq-note">*R$7,50 por peça equivalem a 5% do GMV neste ticket: sozinha, a tarifa fixa cobre o cashback inteiro.</div>
+      <div class="breakeven-row">
+        <div class="chip">Mês 6<span>break-even, cenário realista</span></div>
+        <div class="chip">Mês 20<span>break-even, cenário conservador</span></div>
+      </div>
+      <div class="micro-footer">500 usuários iniciais · ticket médio R$150 · mix 80% gratuito / 20% Pro</div>
+    </div>
+    <div class="bottom-half">
+      <div class="status-col done">
+        <h4>Funciona ponta a ponta</h4>
+        <p>Cadastro, anúncio, negociação, transação, cashback, avaliação, consignação, comunidades, painel administrativo.</p>
+      </div>
+      <div class="status-col">
+        <h4>Simulado de propósito</h4>
+        <p>Gateway de pagamento, cobrança de assinatura, checkout da Kloop Shop.</p>
+      </div>
+      <div class="status-col">
+        <h4>Próximo passo</h4>
+        <p>Gateway de pagamento real, piloto com usuários reais e migração do serverless atual para infraestrutura dedicada quando tráfego e custo justificarem.</p>
+      </div>
+    </div>
+    <div class="footer-zone">
+      <span class="footer-count">7 / 8</span>
+      <svg class="loop-mark state-closing" width="44" height="44" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/></svg>
+    </div>
+  </section>
+  <!-- Passagem: "O comportamento já existe. A gente deu estrutura, segurança e um custo que cabe na peça de cinquenta reais. Pra fechar." -->
+
+  <!-- ============ SLIDE 8 — OBRIGADO ============ -->
+  <section class="slide theme-deep" id="s8">
+    <div class="deco-ring" style="top:-480px; right:-420px;"></div>
+    <div class="center-wrap">
+      <div class="thanks-line">Obrigado!</div>
+      <div class="thanks-credits">Kloop · Otavio Vitoriano, Gabriel Torres, Eduardo Fedeli, Caique Chagas, Rodrigo Resende</div>
+    </div>
+    <div class="footer-zone">
+      <span class="footer-count">8 / 8</span>
+      <svg class="loop-mark state-closed" width="44" height="44" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"/></svg>
+    </div>
+  </section>
+
+</div><!-- /#stage -->
+
+<script>
+(function () {
+  var stage = document.getElementById('stage');
+  function fitStage() {
+    var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
+    stage.style.top = '50%';
+    stage.style.left = '50%';
+  }
+  window.addEventListener('resize', fitStage);
+  fitStage();
+
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var current = 0;
+
+  function syncLetterbox() {
+    document.body.style.background = getComputedStyle(slides[current]).backgroundColor;
+  }
+
+  function show(n) {
+    if (n < 0) n = 0;
+    if (n > slides.length - 1) n = slides.length - 1;
+    slides[current].classList.remove('active');
+    current = n;
+    slides[current].classList.add('active');
+    syncLetterbox();
+    var v = document.getElementById('demo-video');
+    if (v) {
+      if (slides[current].contains(v)) {
+        v.currentTime = 0;
+        v.play().catch(function () {});
+      } else {
+        v.pause();
+      }
+    }
+  }
+  syncLetterbox();
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); show(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(current - 1); }
+    if (e.key === 'Home') { e.preventDefault(); show(0); }
+    if (e.key === 'End') { e.preventDefault(); show(slides.length - 1); }
+  });
+
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('video')) return;
+    var rect = stage.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    if (x < rect.width / 2) show(current - 1); else show(current + 1);
+  });
+
+  // Video fallback: if the team hasn't dropped the demo file yet, show the placeholder.
+  var video = document.getElementById('demo-video');
+  var placeholder = document.getElementById('demo-placeholder');
+  video.addEventListener('error', function () { placeholder.classList.add('show'); }, true);
+  video.querySelector('source').addEventListener('error', function () { placeholder.classList.add('show'); });
+  setTimeout(function () {
+    if (video.readyState === 0) placeholder.classList.add('show');
+  }, 800);
+})();
+</script>
+
+</body>
+</html>
